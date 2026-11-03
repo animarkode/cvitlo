@@ -47,10 +47,12 @@ describe('DeviceActivity', () => {
     expect(el().textContent).toContain('10.0.0.1');
   });
 
-  it('should show "No other devices" when only the current one exists', async () => {
+  it('should list only this device, with nothing to sign out, when it is the only one', async () => {
     await setup([device('a', true)]);
 
-    expect(el().querySelector('[data-test="empty"]')!.textContent).toContain('No other devices');
+    expect(el().querySelectorAll('[data-test="device"]').length).toBe(1);
+    expect(el().querySelector('[data-test="empty"]')).toBeNull();
+    expect(el().querySelector('[data-test="sign-out"]')).toBeNull();
     expect(el().querySelector('[data-test="sign-out-others"]')).toBeNull();
   });
 
