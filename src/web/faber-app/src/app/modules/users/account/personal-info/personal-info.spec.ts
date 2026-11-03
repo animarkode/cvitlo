@@ -4,7 +4,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { PersonalInfo } from './personal-info';
 import { AuthStore } from '../../../../core/auth/auth-store';
+import { of } from 'rxjs';
 import { AccountClient } from '../account-client';
+import { AccountConfirm } from '../account-confirm';
 import { AccountProfile } from '../account-contracts';
 import { API_ROUTES } from '../../../../core/routes/api-routes';
 import { expectNoAxeViolations } from '../../../../shared/testing/axe';
@@ -113,6 +115,37 @@ describe('PersonalInfo', () => {
 
     expect(el().querySelector('[data-test="server-error"]')!.textContent).toContain('Last name is not allowed.');
     expect(el().querySelector('[data-test="save-error"]')).not.toBeNull();
+  });
+
+  it('should call the save button Update profile', () => {
+    expect(el().querySelector('[data-test="save"]')!.textContent?.trim()).toBe('Update profile');
+  });
+
+  it('should show a Verified chip once the e-mail is verified', async () => {
+    el().querySelector<HTMLElement>('[data-test="save"]')!.click();
+    http.expectOne(API_ROUTES.auth.account.profile).flush({ ...profile, emailVerified: true });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(el().querySelector('[data-test="email-verified"]')!.textContent?.trim()).toBe('Verified');
+  });
+
+  it('should start deleting the account only after confirmation', () => {
+    vi.spyOn(TestBed.inject(AccountConfirm), 'ask').mockReturnValue(of(true));
+    const start = vi.spyOn(TestBed.inject(AccountClient), 'startAction').mockImplementation(() => undefined);
+
+    el().querySelector<HTMLElement>('[data-test="delete-account"]')!.click();
+
+    expect(start).toHaveBeenCalledWith('delete');
+  });
+
+  it('should stay put when deleting is declined', () => {
+    vi.spyOn(TestBed.inject(AccountConfirm), 'ask').mockReturnValue(of(false));
+    const start = vi.spyOn(TestBed.inject(AccountClient), 'startAction').mockImplementation(() => undefined);
+
+    el().querySelector<HTMLElement>('[data-test="delete-account"]')!.click();
+
+    expect(start).not.toHaveBeenCalled();
   });
 
   it('should have no AXE violations', async () => {

@@ -9,8 +9,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { Check, LUCIDE_ICONS, LucideAngularModule, LucideIconProvider, Trash2 } from 'lucide-angular';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { AccountClient } from '../account-client';
+import { AccountConfirm } from '../account-confirm';
 import { AccountProfile, ProfileField } from '../account-contracts';
 import { humanize } from '../account-labels';
 import { FbButton } from '../../../../shared/components/fb-button/fb-button';
@@ -26,7 +28,8 @@ interface EditableField {
 
 @Component({
   selector: 'app-personal-info',
-  imports: [ReactiveFormsModule, FbButton, FbInput],
+  imports: [ReactiveFormsModule, LucideAngularModule, FbButton, FbInput],
+  providers: [{ provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({ Check, Trash2 }) }],
   templateUrl: './personal-info.html',
   styleUrl: './personal-info.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +37,7 @@ interface EditableField {
 export class PersonalInfo {
   private readonly client = inject(AccountClient);
   private readonly auth = inject(AuthStore);
+  private readonly confirmation = inject(AccountConfirm);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly profile = this.client.profileResource();
@@ -100,6 +104,19 @@ export class PersonalInfo {
 
   protected changeEmail(): void {
     this.client.startAction('email');
+  }
+
+  protected deleteAccount(): void {
+    this.confirmation
+      .ask({
+        title: 'Delete account',
+        message: 'This permanently deletes your account and your ability to sign in. This cannot be undone.',
+        confirmLabel: 'Delete account',
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(confirmed => {
+        if (confirmed) this.client.startAction('delete');
+      });
   }
 
   private showFailure(e: unknown): void {

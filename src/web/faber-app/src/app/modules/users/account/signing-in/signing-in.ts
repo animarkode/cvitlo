@@ -4,6 +4,7 @@ import {
   DestroyRef,
   ElementRef,
   inject,
+  LOCALE_ID,
   signal,
   viewChild,
 } from '@angular/core';
@@ -12,7 +13,7 @@ import { DatePipe } from '@angular/common';
 import { AccountClient, problemDetail } from '../account-client';
 import { AccountConfirm } from '../account-confirm';
 import { AccountAction, CredentialGroup, StoredCredential } from '../account-contracts';
-import { humanize } from '../account-labels';
+import { helpText, humanize } from '../account-labels';
 import { FbButton } from '../../../../shared/components/fb-button/fb-button';
 
 @Component({
@@ -26,6 +27,7 @@ export class SigningIn {
   private readonly client = inject(AccountClient);
   private readonly confirmation = inject(AccountConfirm);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly datePipe = new DatePipe(inject(LOCALE_ID));
 
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
 
@@ -36,8 +38,23 @@ export class SigningIn {
     return humanize(group.displayName) || humanize(group.type);
   }
 
+  protected groupHelp(group: CredentialGroup): string | null {
+    return helpText(group.helpText);
+  }
+
   protected itemName(group: CredentialGroup, item: StoredCredential): string {
     return item.userLabel || this.typeName(group);
+  }
+
+  /** A password has nothing to tell apart from another one, so it shows when it changed instead of a list row. */
+  protected isPassword(group: CredentialGroup): boolean {
+    return group.type === 'password';
+  }
+
+  protected passwordChangedText(group: CredentialGroup): string {
+    const created = group.credentials[0]?.createdDate;
+    const date = created ? this.datePipe.transform(created, 'mediumDate') : null;
+    return date ? `Last changed ${date}` : 'Password is set';
   }
 
   protected createVerb(group: CredentialGroup): string {

@@ -4,3 +4,11 @@ export const APP_ROUTES = {
   about: '/about',
   account: '/account',
 } as const;
+
+/** The account page's sections, each a child route of `/account`. The API returns from Keycloak to these paths too. */
+export const ACCOUNT_SECTIONS = {
+  personalInfo: 'personal-info',
+  signingIn: 'signing-in',
+  devices: 'devices',
+  linkedAccounts: 'linked-accounts',
+} as const;

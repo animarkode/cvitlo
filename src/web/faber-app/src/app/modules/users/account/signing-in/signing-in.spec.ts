@@ -56,6 +56,14 @@ describe('SigningIn', () => {
     expect(el().textContent).toContain('Passkey');
   });
 
+  it('should show when the password changed instead of a list row', async () => {
+    await setup();
+
+    const password = el().querySelectorAll('[data-test="group"]')[0];
+    expect(password.querySelector('[data-test="password-changed"]')!.textContent).toContain('Last changed Jan 2, 2026');
+    expect(password.querySelector('[data-test="item"]')).toBeNull();
+  });
+
   it('should show an empty state for a type with nothing stored', async () => {
     await setup();
 

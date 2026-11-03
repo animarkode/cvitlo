@@ -1,5 +1,8 @@
-<section class="bg-card border-[0.5px] border-line rounded-xl p-6 flex flex-col gap-4" aria-labelledby="linked-accounts-heading">
-  <h2 #heading id="linked-accounts-heading" tabindex="-1" class="font-serif text-lg font-bold text-foreground">Linked accounts</h2>
+<section class="bg-card border-[0.5px] border-line rounded-[1.875rem] p-7 flex flex-col gap-5" aria-labelledby="linked-accounts-heading">
+  <div class="flex flex-col gap-0.5">
+    <h1 #heading id="linked-accounts-heading" tabindex="-1" class="font-serif text-[1.375rem] font-bold text-foreground">Linked accounts</h1>
+    <p class="text-sm text-muted-foreground">Sign in with an account you already have.</p>
+  </div>
 
   @if (error(); as message) {
     <p role="alert" class="text-sm text-destructive-text" data-test="error">{{ message }}</p>

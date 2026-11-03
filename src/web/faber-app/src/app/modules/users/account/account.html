@@ -1,20 +1,43 @@
-<div class="max-w-2xl mx-auto mt-10 mb-10 px-4 flex flex-col gap-6">
-  <h1 class="font-serif text-2xl font-bold text-foreground">Account</h1>
-
-  <p role="status" class="text-sm" [class.text-destructive-text]="failed()" [class.text-foreground]="!failed()" data-test="status">{{ statusMessage() }}</p>
-
-  <app-personal-info />
-  <app-signing-in />
-  <app-device-activity />
-  <app-linked-accounts />
-
-  <section class="bg-card border-[0.5px] border-destructive-text rounded-xl p-6 flex flex-col gap-3" aria-labelledby="danger-zone-heading">
-    <h2 id="danger-zone-heading" class="font-serif text-lg font-bold text-foreground">Danger zone</h2>
-    <p class="text-sm text-muted-foreground">Deleting your account permanently removes it and your ability to sign in.</p>
-    <div>
-      <button type="button" fb-button variant="destructive" data-test="delete-account" (click)="deleteAccount()">
-        Delete account
-      </button>
+<div class="max-w-screen-xl mx-auto px-4 pt-6 pb-16 flex flex-col gap-6">
+  <div class="flex items-center gap-3 min-w-0">
+    @if (user(); as u) {
+      <fb-initials [firstName]="u.firstName" [lastName]="u.lastName" aria-hidden="true" />
+    }
+    <div class="flex flex-col min-w-0">
+      <span class="font-bold text-foreground truncate" data-test="user-name">{{ fullName() }}</span>
+      <span class="text-sm text-muted-foreground">Your personal account</span>
     </div>
-  </section>
+  </div>
+
+  <p role="status" class="text-sm empty:hidden" [class.text-destructive-text]="failed()" [class.text-foreground]="!failed()" data-test="status">{{ statusMessage() }}</p>
+
+  <div class="flex flex-wrap items-start gap-4">
+    <aside class="flex flex-col gap-4 grow shrink basis-60 min-w-55 md:max-w-70">
+      <nav aria-label="Account sections" class="flex flex-col gap-1 p-2 bg-card border-[0.5px] border-line rounded-[1.875rem]">
+        @for (section of sections; track section.path) {
+          <a [routerLink]="section.path"
+             routerLinkActive="bg-muted font-bold"
+             ariaCurrentWhenActive="page"
+             class="flex items-center gap-3 min-h-11 px-3 rounded-full font-semibold text-foreground transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+             data-test="section-link">
+            <lucide-icon [name]="section.icon" [size]="20" [strokeWidth]="1.8" aria-hidden="true" />
+            <span class="flex-1">{{ section.label }}</span>
+            @if (section.path === devicesPath && deviceCount() !== null) {
+              <span class="inline-flex size-[22px] shrink-0 items-center justify-center rounded-full bg-surface text-xs font-bold text-foreground"
+                    data-test="device-count">{{ deviceCount() }}</span>
+            }
+          </a>
+        }
+      </nav>
+
+      <button type="button" fb-button variant="outline" class="h-11 w-full font-semibold" data-test="sign-out" (click)="signOut()">
+        <lucide-icon name="log-out" [size]="18" [strokeWidth]="1.8" aria-hidden="true" />
+        Sign out
+      </button>
+    </aside>
+
+    <main class="grow-[999] shrink basis-[560px] min-w-0">
+      <router-outlet />
+    </main>
+  </div>
 </div>

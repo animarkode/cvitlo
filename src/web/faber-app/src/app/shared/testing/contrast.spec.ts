@@ -178,6 +178,22 @@ describe('destructive button fill tokens (#370)', () => {
   });
 });
 
+describe('status chip fills (account page Verified / This device)', () => {
+  describe.each(MODES)('$name mode', ({ tokens }) => {
+    it.each([
+      ['--color-success-text', '--color-success-soft'],
+      ['--color-info-text', '--color-info-soft'],
+    ])('%s meets AA on %s', (text, fill) => {
+      expect(contrastRatio(color(tokens, text), color(tokens, fill))).toBeGreaterThanOrEqual(AA_NORMAL);
+    });
+
+    it.each(['--color-success-soft', '--color-info-soft'])('%s is opaque', fill => {
+      expect(tokens[fill], `${fill} should be defined in styles.css`).toBeDefined();
+      expect(tokens[fill]).not.toMatch(/\//);
+    });
+  });
+});
+
 describe('solid success fill (verify-email pill)', () => {
   describe.each(MODES)('$name mode', ({ tokens }) => {
     it('success-foreground meets AA on success-solid', () => {
