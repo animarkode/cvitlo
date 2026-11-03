@@ -299,3 +299,34 @@ describe('FbInput', () => {
     }
   }, 20000);
 });
+
+@Component({
+  template: `<fb-input [formControl]="ctrl" label="First name" layout="inline" />`,
+  imports: [FbInput, ReactiveFormsModule],
+})
+class InlineHost {
+  ctrl = new FormControl('Ada');
+}
+
+describe('FbInput inline layout', () => {
+  let fixture: ComponentFixture<InlineHost>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ imports: [InlineHost] }).compileComponents();
+    fixture = TestBed.createComponent(InlineHost);
+    fixture.detectChanges();
+  });
+
+  it('should keep the label tied to the field while it sits beside it', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const label = el.querySelector('label')!;
+    const input = el.querySelector('input')!;
+
+    expect(label.getAttribute('for')).toBe(input.id);
+    expect(label.classList).toContain('basis-28');
+  });
+
+  it('should have no AXE violations', async () => {
+    await expectNoAxeViolations(fixture);
+  }, 20000);
+});
