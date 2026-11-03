@@ -52,9 +52,24 @@ public static class AccountActions
         };
     }
 
-    /// <summary>Where the browser lands after an account action: the account page, with the outcome.</summary>
+    private const string PersonalInfoSection = "personal-info";
+
+    /// <summary>The account page section each action belongs to, so the browser returns where the person started it.</summary>
+    private static readonly FrozenDictionary<string, string> Sections = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["password"] = "signing-in",
+        ["passkey"] = "signing-in",
+        ["totp"] = "signing-in",
+        ["email"] = PersonalInfoSection,
+        ["link-google"] = "linked-accounts",
+        ["link-github"] = "linked-accounts",
+        [Delete] = PersonalInfoSection
+    }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>Where the browser lands after an account action: the action's section of the account page, with the outcome.</summary>
     public static string ReturnPath(string action, string status)
     {
-        return $"/account?action={Uri.EscapeDataString(action)}&status={status}";
+        var section = Sections.GetValueOrDefault(action, PersonalInfoSection);
+        return $"/account/{section}?action={Uri.EscapeDataString(action)}&status={status}";
     }
 }

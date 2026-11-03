@@ -1,5 +1,6 @@
 using System.Net;
 using System.Web;
+using Faber.Modules.Auth.Application.Features.AccountAction;
 using Faber.Modules.Auth.Infrastructure.Database;
 using Faber.Testing.Shared.Http;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,16 @@ namespace Faber.Modules.Auth.Application.Tests.Features.AccountAction;
 public class AccountActionTests(WebApp app)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Theory]
+    [InlineData("passkey", "/account/signing-in?action=passkey&status=success")]
+    [InlineData("email", "/account/personal-info?action=email&status=success")]
+    [InlineData("link-github", "/account/linked-accounts?action=link-github&status=success")]
+    [InlineData("delete", "/account/personal-info?action=delete&status=success")]
+    public void ReturnPath_ForAnAction_ShouldPointAtItsAccountSection(string action, string expected)
+    {
+        AccountActions.ReturnPath(action, AccountActions.StatusSuccess).ShouldBe(expected);
+    }
 
     [Fact]
     public async Task AccountAction_WithoutSession_ShouldReturnUnauthorized()
@@ -126,7 +137,7 @@ public class AccountActionTests(WebApp app)
         using var callback = await driver.FinishAtApiAsync(cancelled, Ct);
 
         callback.StatusCode.ShouldBe(HttpStatusCode.Redirect);
-        callback.Headers.Location!.OriginalString.ShouldBe("/account?action=password&status=cancelled");
+        callback.Headers.Location!.OriginalString.ShouldBe("/account/signing-in?action=password&status=cancelled");
         await using var scope = app.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
         (await db.Sessions.CountAsync(s => s.Subject == subject, Ct)).ShouldBe(1,
