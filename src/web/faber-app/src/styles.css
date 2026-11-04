@@ -67,6 +67,11 @@ body {
   --color-success-text: oklch(45% 0.13 160);
   --color-warning-text: oklch(48% 0.14 75);
   --color-info-text: oklch(45% 0.15 230);
+  /* Opaque status chip fills (Verified, This device), read with their -text
+     token. Opaque for the same reason as destructive-soft (#370): alpha fills
+     turn gray on dark cards. contrast.spec.ts guards each text/fill pair. */
+  --color-success-soft: oklch(94% 0.04 160);
+  --color-info-soft: oklch(94% 0.03 230);
   --color-dot: oklch(80% 0 0);
   --color-bg: oklch(93% 0 0);
 
@@ -140,6 +145,8 @@ body {
   --color-success-text: oklch(68% 0.13 160);
   --color-warning-text: oklch(70% 0.14 75);
   --color-info-text: oklch(68% 0.15 230);
+  --color-success-soft: oklch(28% 0.06 160);
+  --color-info-soft: oklch(28% 0.06 230);
   --color-glass: oklch(27.5% 0 0 / 0.55);
   --color-glass-border: oklch(98% 0 0 / 0.12);
   --color-bg: oklch(22% 0 0);

@@ -26,6 +26,8 @@ export class FbInput implements ControlValueAccessor, OnInit {
   readonly autocomplete = input('off');
   readonly showToggle = input(false);
   readonly icon = input<'user' | 'email' | 'password' | 'lock' | null>(null);
+  /** `stacked`: label above the field. `inline`: label in a fixed column to the left, as in a settings row. */
+  readonly layout = input<'stacked' | 'inline'>('stacked');
 
   readonly focused = signal(false);
   readonly showPassword = signal(false);
@@ -60,14 +62,26 @@ export class FbInput implements ControlValueAccessor, OnInit {
     this.type() === 'password' && this.showPassword() ? 'text' : this.type(),
   );
 
-  protected readonly labelClasses = computed(() =>
-    this.hasError() ? 'text-destructive-text' : 'text-muted-foreground',
+  protected readonly labelClasses = computed(() => {
+    const tone = this.hasError() ? 'text-destructive-text' : 'text-muted-foreground';
+    const size = this.layout() === 'inline' ? 'basis-28 shrink-0 text-sm' : 'text-[0.8rem]';
+    return `${tone} ${size}`;
+  });
+
+  protected readonly rootClasses = computed(() =>
+    this.layout() === 'inline' ? 'flex flex-wrap items-center gap-x-4 gap-y-1.5' : 'flex flex-col gap-1.5',
   );
 
+  // The outline is the field's boundary, so it keeps 3:1 against the card (WCAG 1.4.11); focus thickens it.
   protected readonly wrapClasses = computed(() => {
+    const size = this.layout() === 'inline' ? 'grow shrink basis-60 max-w-90' : '';
+    return `${this.outlineClass()} ${size}`;
+  });
+
+  private readonly outlineClass = computed(() => {
     if (this.hasError()) return 'shadow-[inset_0_0_0_1px_var(--color-destructive-text)]';
-    if (this.focused()) return 'shadow-[inset_0_0_0_1px_var(--color-line)]';
-    return '';
+    if (this.focused()) return 'shadow-[inset_0_0_0_2px_var(--color-provider-border)]';
+    return 'shadow-[inset_0_0_0_1px_var(--color-provider-border)]';
   });
 
   protected readonly iconClasses = computed(() => {

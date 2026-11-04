@@ -1,0 +1,66 @@
+<section class="bg-card border-[0.5px] border-line rounded-[1.875rem] p-7 flex flex-col" aria-labelledby="signing-in-heading">
+  <div class="flex flex-col gap-0.5 pb-3.5">
+    <h1 #heading id="signing-in-heading" tabindex="-1" class="font-serif text-[1.375rem] font-bold text-foreground">Signing in</h1>
+    <p class="max-w-prose text-base text-muted-foreground">Ways you can sign in to Faber.</p>
+  </div>
+
+  @if (error(); as message) {
+    <p role="alert" class="pb-3 text-base text-destructive-text" data-test="error">{{ message }}</p>
+  }
+
+  @if (credentials.error() && !credentials.hasValue()) {
+    <p role="alert" class="border-t-[0.5px] border-line py-4 text-base text-destructive-text" data-test="load-error">Your sign-in methods could not be loaded.</p>
+  } @else if (credentials.isLoading() && !credentials.hasValue()) {
+    <p class="border-t-[0.5px] border-line py-4 text-base text-muted-foreground">Loading your sign-in methods…</p>
+  }
+
+  @for (group of credentials.value() ?? []; track group.type) {
+    <div class="flex flex-col gap-1 border-t-[0.5px] border-line py-4 last:pb-0" data-test="group">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-1">
+        <h3 class="font-semibold text-foreground">{{ typeName(group) }}</h3>
+        <div class="flex gap-2">
+          @if (group.updateAction; as update) {
+            <button type="button" fb-button variant="outline" size="sm" data-test="update"
+                    [attr.aria-label]="'Update ' + typeName(group).toLowerCase()" (click)="start(update)">
+              Update
+            </button>
+          }
+          @if (group.createAction; as create) {
+            <button type="button" fb-button variant="outline" size="sm" data-test="create"
+                    [attr.aria-label]="createLabel(group)"
+                    (click)="start(create)">
+              {{ createVerb(group) }}
+            </button>
+          }
+        </div>
+      </div>
+      @if (groupHelp(group); as help) {
+        <p class="max-w-prose text-base text-muted-foreground" data-test="help">{{ help }}</p>
+      }
+      @if (group.credentials.length === 0) {
+        <p class="text-base text-muted-foreground" data-test="empty">Not set up.</p>
+      } @else if (isPassword(group)) {
+        <p class="text-base text-muted-foreground" data-test="password-changed">{{ passwordChangedText(group) }}</p>
+      } @else {
+        <ul class="flex flex-col divide-y divide-line">
+          @for (item of group.credentials; track item.id) {
+            <li class="flex flex-wrap items-center justify-between gap-2 py-3" data-test="item">
+              <div class="flex flex-col">
+                <span class="text-foreground">{{ itemName(group, item) }}</span>
+                @if (item.createdDate) {
+                  <span class="text-sm leading-normal text-muted-foreground">Created {{ item.createdDate | date: 'mediumDate' }}</span>
+                }
+              </div>
+              @if (group.removeable) {
+                <button type="button" fb-button variant="soft-destructive" size="sm" data-test="remove"
+                        [attr.aria-label]="removeLabel(group, item)" (click)="remove(group, item)">
+                  Remove
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</section>

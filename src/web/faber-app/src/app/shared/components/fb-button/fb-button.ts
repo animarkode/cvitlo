@@ -9,7 +9,9 @@ const buttonVariants = cva(
       variant: {
         default: 'before:bg-muted text-foreground hover:before:bg-surface hover:before:scale-[0.975]',
         primary: 'before:bg-primary text-primary-foreground hover:before:scale-[0.975]',
-        outline: 'border border-line text-foreground hover:before:bg-muted hover:before:scale-[0.975]',
+        // Hover keeps the card fill and shrinks like the other variants, but the whole button shrinks — border
+        // included — so no gap opens between a shrinking fill and a fixed border.
+        outline: 'border border-provider-border bg-card text-foreground transition-[border-color,box-shadow,scale] duration-[280ms] ease-[cubic-bezier(0.2,0.7,0.2,1)] hover:border-foreground hover:shadow-[0_2px_8px_rgb(0_0_0/0.18)] hover:scale-[0.975]',
         ghost: 'text-foreground hover:before:bg-muted hover:before:scale-[0.975]',
         destructive: 'before:bg-destructive text-destructive-foreground hover:before:bg-destructive-hover hover:before:scale-[0.975]',
         'soft-destructive': 'before:bg-destructive-soft text-destructive-text hover:before:bg-destructive-soft-hover hover:before:scale-[0.975]',
