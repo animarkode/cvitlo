@@ -116,6 +116,7 @@ public sealed class PostgresTicketStore(
         return _protector.Protect(TicketSerializer.Default.Serialize(ticket));
     }
 
+    /// <summary>Decrypts and deserializes a stored authentication ticket.</summary>
     /// <returns>The ticket, or <see langword="null"/> when it no longer decrypts (keys rotated away).</returns>
     public AuthenticationTicket? Unprotect(byte[] protectedTicket, string key)
     {

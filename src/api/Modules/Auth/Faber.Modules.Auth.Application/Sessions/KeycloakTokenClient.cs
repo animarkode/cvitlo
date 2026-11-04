@@ -15,6 +15,7 @@ public sealed class KeycloakTokenClient(
 {
     private readonly KeycloakOptions _options = options.Value;
 
+    /// <summary>Requests fresh tokens for a session from Keycloak.</summary>
     /// <remarks>
     /// Only <c>invalid_grant</c> means the session is over (expired, signed out, revoked, or the refresh token
     /// already used). Everything else — an unreachable or slow Keycloak, <c>invalid_client</c> after a secret
