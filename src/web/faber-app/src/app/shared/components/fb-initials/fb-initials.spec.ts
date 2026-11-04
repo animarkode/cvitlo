@@ -22,6 +22,26 @@ describe('FbInitials', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should reshape on hover by default', () => {
+    const tile = (fixture.nativeElement as HTMLElement).querySelector('div')!;
+    expect(tile.classList).toContain('hover:rounded-xl');
+  });
+
+  it('should not reshape on hover when hoverable is false', () => {
+    fixture.componentRef.setInput('hoverable', false);
+    fixture.detectChanges();
+    const tile = (fixture.nativeElement as HTMLElement).querySelector('div')!;
+    expect(tile.classList).not.toContain('hover:rounded-xl');
+  });
+
+  it('should be 40px by default and 48px at size lg', () => {
+    const tile = (fixture.nativeElement as HTMLElement).querySelector('div')!;
+    expect(tile.classList).toContain('size-10');
+    fixture.componentRef.setInput('size', 'lg');
+    fixture.detectChanges();
+    expect(tile.classList).toContain('size-12');
+  });
+
   it('should compute firstChar as uppercase first letter of firstName', () => {
     expect(component.firstChar()).toBe('J');
   });
