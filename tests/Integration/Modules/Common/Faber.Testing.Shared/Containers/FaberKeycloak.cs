@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using DotNet.Testcontainers.Builders;
@@ -11,13 +12,18 @@ namespace Faber.Testing.Shared.Containers;
 /// <summary>
 /// A throwaway Keycloak configured exactly like the real one: the stock image the AppHost runs, with
 /// <c>infra/keycloak/config/faber.json</c> applied by the same keycloak-config-cli image, and the <c>faber</c>
-/// login theme mounted (the realm selects it, so it must exist). Only the variables
-/// differ (URLs, SMTP, a known <c>faber-api</c> secret passed the way the AppHost passes it) and a test-only client for bearer tokens.
+/// login theme mounted (the realm selects it, so it must exist), sending mail to a throwaway Mailpit as the
+/// AppHost's Keycloak does. Only the variables differ (URLs, a known <c>faber-api</c> secret passed the way the
+/// AppHost passes it) and a test-only client for bearer tokens.
 /// </summary>
 public sealed class FaberKeycloak : IAsyncDisposable
 {
     public const string Image = "quay.io/keycloak/keycloak:26.8.1";
     public const string ConfigCliImage = "adorsys/keycloak-config-cli:6.5.1-26.1.0";
+
+    /// <summary>The image the AppHost's <c>AddMailPit</c> runs.</summary>
+    public const string MailpitImage = "axllent/mailpit:v1.22.3";
+
     public const string AdminUsername = "admin";
     public const string AdminPassword = "admin";
     public const string Realm = "faber";
@@ -32,10 +38,17 @@ public sealed class FaberKeycloak : IAsyncDisposable
     public const string TestClientId = "faber-tests";
 
     private const string NetworkAlias = "keycloak";
+    private const string MailpitAlias = "mailpit";
+    private const int MailpitSmtpPort = 1025;
+    private const int MailpitApiPort = 8025;
 
-    private FaberKeycloak(KeycloakContainer container)
+    // Without a mail server Keycloak shows "Failed to send email" where the verify-e-mail page belongs.
+    private readonly IContainer _mailpit;
+
+    private FaberKeycloak(KeycloakContainer container, IContainer mailpit)
     {
         Container = container;
+        _mailpit = mailpit;
         Admin = new KeycloakAdminTestClient(BaseAddress, AdminUsername, AdminPassword, Realm);
     }
 
@@ -59,6 +72,16 @@ public sealed class FaberKeycloak : IAsyncDisposable
         string backchannelLogoutUrl,
         CancellationToken ct = default)
     {
+        var mailpit = new ContainerBuilder(MailpitImage)
+            .WithName($"mailpit-tests-{Guid.NewGuid()}")
+            .WithNetwork(network)
+            .WithNetworkAliases(MailpitAlias)
+            .WithPortBinding(MailpitApiPort, assignRandomHostPort: true)
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(MailpitSmtpPort))
+            .Build();
+
+        await mailpit.StartAsync(ct);
+
         var container = new KeycloakBuilder(Image)
             .WithName($"keycloak-tests-{Guid.NewGuid()}")
             .WithNetwork(network)
@@ -74,7 +97,7 @@ public sealed class FaberKeycloak : IAsyncDisposable
         await ApplyRealmConfigurationAsync(network, appUrl, backchannelLogoutUrl, ct);
         await EnablePasskeysAsync(network, ct);
 
-        var keycloak = new FaberKeycloak(container);
+        var keycloak = new FaberKeycloak(container, mailpit);
         await container.DisableSslRequirementAsync(AdminUsername, AdminPassword, ["master", Realm], ct);
         await keycloak.CreateTestClientAsync(ct);
 
@@ -100,10 +123,28 @@ public sealed class FaberKeycloak : IAsyncDisposable
         return (await response.Content.ReadFromJsonAsync<JsonObject>(ct))!;
     }
 
+    /// <summary>The plain-text body of the newest mail Keycloak sent to <paramref name="recipient"/>.</summary>
+    public async Task<string> GetLatestMailTextAsync(string recipient, CancellationToken ct = default)
+    {
+        using var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://{_mailpit.Hostname}:{_mailpit.GetMappedPublicPort(MailpitApiPort)}/")
+        };
+
+        var found = await http.GetFromJsonAsync<JsonObject>(
+            $"api/v1/search?query={Uri.EscapeDataString($"to:\"{recipient}\"")}", ct);
+        var id = found!["messages"]!.AsArray().FirstOrDefault()?["ID"]?.GetValue<string>()
+            ?? throw new InvalidOperationException($"No mail to {recipient}.");
+        var message = await http.GetFromJsonAsync<JsonObject>($"api/v1/message/{id}", ct);
+
+        return message!["Text"]!.GetValue<string>();
+    }
+
     public async ValueTask DisposeAsync()
     {
         Admin.Dispose();
         await Container.DisposeAsync();
+        await _mailpit.DisposeAsync();
     }
 
     private static async Task ApplyRealmConfigurationAsync(
@@ -126,8 +167,8 @@ public sealed class FaberKeycloak : IAsyncDisposable
             .WithEnvironment("FABER_API_CLIENT_SECRET", ClientSecret)
             .WithEnvironment("FABER_APP_URL", appUrl)
             .WithEnvironment("FABER_BACKCHANNEL_LOGOUT_URL", backchannelLogoutUrl)
-            .WithEnvironment("KC_SMTP_HOST", "localhost")
-            .WithEnvironment("KC_SMTP_PORT", "1025")
+            .WithEnvironment("KC_SMTP_HOST", MailpitAlias)
+            .WithEnvironment("KC_SMTP_PORT", MailpitSmtpPort.ToString(CultureInfo.InvariantCulture))
             .WithEnvironment("KC_SMTP_FROM", "no-reply@faber.test")
             .WithWaitStrategy(Wait.ForUnixContainer())
             .Build();
