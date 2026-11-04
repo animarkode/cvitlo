@@ -1,15 +1,15 @@
 <div class="max-w-screen-xl mx-auto px-4 pt-6 pb-16 flex flex-col gap-6">
   <div class="flex items-center gap-3 min-w-0">
     @if (user(); as u) {
-      <fb-initials [firstName]="u.firstName" [lastName]="u.lastName" aria-hidden="true" />
+      <fb-initials [firstName]="u.firstName" [lastName]="u.lastName" [hoverable]="false" size="lg" aria-hidden="true" />
     }
     <div class="flex flex-col min-w-0">
-      <span class="font-bold text-foreground truncate" data-test="user-name">{{ fullName() }}</span>
-      <span class="text-sm text-muted-foreground">Your personal account</span>
+      <span class="text-lg font-bold text-foreground truncate" data-test="user-name">{{ fullName() }}</span>
+      <span class="text-base text-muted-foreground">Your personal account</span>
     </div>
   </div>
 
-  <p role="status" class="text-sm empty:hidden" [class.text-destructive-text]="failed()" [class.text-foreground]="!failed()" data-test="status">{{ statusMessage() }}</p>
+  <p role="status" class="text-base empty:hidden" [class.text-destructive-text]="failed()" [class.text-foreground]="!failed()" data-test="status">{{ statusMessage() }}</p>
 
   <div class="flex flex-wrap items-start gap-4">
     <aside class="flex flex-col gap-4 grow shrink basis-60 min-w-55 md:max-w-70">
