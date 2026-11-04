@@ -7,15 +7,18 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AccountClient, problemDetail } from '../account-client';
 import { AccountConfirm } from '../account-confirm';
 import { LinkedAccount } from '../account-contracts';
 import { FbButton } from '../../../../shared/components/fb-button/fb-button';
 
+const PROVIDER_ICONS = new Set(['google', 'github']);
+
 @Component({
   selector: 'app-linked-accounts',
-  imports: [FbButton],
+  imports: [FbButton, NgOptimizedImage],
   templateUrl: './linked-accounts.html',
   styleUrl: './linked-accounts.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +32,11 @@ export class LinkedAccounts {
 
   protected readonly accounts = this.client.linkedAccountsResource();
   protected readonly error = signal<string | null>(null);
+
+  /** Brand mark under `public/providers/`, or null for a provider we ship no mark for. */
+  protected providerIcon(account: LinkedAccount): string | null {
+    return PROVIDER_ICONS.has(account.providerAlias) ? `/providers/${account.providerAlias}.svg` : null;
+  }
 
   protected linkedStatus(account: LinkedAccount): string {
     if (!account.connected) return 'Not linked';

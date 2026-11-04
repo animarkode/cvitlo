@@ -44,6 +44,15 @@ describe('LinkedAccounts', () => {
     expect(rows[1].querySelector('[data-test="link"]')!.getAttribute('aria-label')).toBe('Link GitHub');
   });
 
+  it('should show the provider mark and a Social login chip on every row', async () => {
+    await setup();
+
+    const rows = el().querySelectorAll('[data-test="account"]');
+    expect(rows[0].querySelector('[data-test="provider-icon"]')!.getAttribute('src')).toBe('/providers/google.svg');
+    expect(rows[1].querySelector('[data-test="provider-icon"]')!.getAttribute('src')).toBe('/providers/github.svg');
+    rows.forEach(row => expect(row.querySelector('[data-test="social-login"]')!.textContent).toContain('Social login'));
+  });
+
   it('should navigate to the link action', async () => {
     await setup();
     const start = vi.spyOn(TestBed.inject(AccountClient), 'startAction').mockImplementation(() => undefined);

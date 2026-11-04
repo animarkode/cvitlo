@@ -18,11 +18,20 @@
     <ul class="flex flex-col divide-y divide-line border-t-[0.5px] border-line">
       @for (account of accounts.value(); track account.providerAlias) {
         <li class="flex flex-wrap items-center justify-between gap-2 py-3 last:pb-0" data-test="account">
-          <div class="flex flex-col">
-            <span class="text-foreground">{{ account.displayName }}</span>
-            <span class="text-xs text-muted-foreground">
-              {{ linkedStatus(account) }}
-            </span>
+          <div class="flex min-w-0 items-center gap-3">
+            @if (providerIcon(account); as icon) {
+              <img [ngSrc]="icon" width="24" height="24" alt="" class="size-6 shrink-0"
+                   [class.dark:invert]="account.providerAlias === 'github'" data-test="provider-icon" />
+            }
+            <div class="flex min-w-0 flex-col">
+              <span class="flex flex-wrap items-center gap-2">
+                <span class="text-foreground">{{ account.displayName }}</span>
+                <span class="rounded-full bg-info-soft px-2.5 py-0.5 text-xs font-bold text-info-text" data-test="social-login">Social login</span>
+              </span>
+              <span class="text-xs text-muted-foreground">
+                {{ linkedStatus(account) }}
+              </span>
+            </div>
           </div>
           @if (account.connected) {
             <button type="button" fb-button variant="soft-destructive" size="sm" data-test="unlink"
