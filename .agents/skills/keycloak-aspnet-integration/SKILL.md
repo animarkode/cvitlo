@@ -38,6 +38,7 @@ Keycloak owns every credential and every sign-in page. The API is a backend-for-
 11. **Keycloak-hosted actions go through the allow-list.** Add a name to `AccountActions` (name to `kc_action`); never pass a client-supplied `kc_action` through. The matching required action in the realm needs `max_auth_age` (300) so it re-authenticates after 5 minutes.
 12. **Run removals through `LastSignInMethodGuard`.** Passwords, passwordless passkeys and connected providers are sign-in methods; removing the last one is 409 `Account.LastSignInMethod`. OTP and 2FA keys are always removable.
 13. **An account-action callback replaces the session.** The old session row is deleted using its id hash carried in the OIDC state, because the SameSite=Strict cookie is absent on the cross-site callback. `delete` success signs out. Ending other sessions relies on back-channel logout to sign those devices out of the app.
+14. **`VERIFY_EMAIL` keeps the lowest required-action priority (10).** Keycloak runs pending actions lowest first; a password, OTP or passkey set up before the e-mail is verified would belong to whoever typed the address.
 
 ## How a request is authenticated
 
@@ -58,6 +59,7 @@ Integration tests run the real thing: stock Keycloak 26.8.1 with `faber.json` ap
 - **Browser flow:** `KeycloakLoginDriver` follows the API's redirect, submits Keycloak's real login form and returns the callback response. It keeps Keycloak cookies per path (each realm has its own), because `CookieContainer` will not send Keycloak's `Secure` cookies over `http://localhost`. The API client uses `https://localhost` so its own `__Host-` cookie round-trips.
 - **Bearer flow:** `FaberKeycloak.GetTokensAsync` uses the test-only public client `faber-tests` (password grant, `aud=faber-api` on access and ID tokens). It exists only in test Keycloaks.
 - **Back-channel logout:** `BackchannelLogoutRelay` listens on a host port that Keycloak reaches as `host.docker.internal` and forwards logout tokens to the in-memory API.
+- **Mail:** `FaberKeycloak` runs a Mailpit as Keycloak's SMTP, as the AppHost does; `GetLatestMailTextAsync` reads the newest mail to an address (e.g. to follow a verification link).
 - **Providers:** `AddStandInIdentityProviderAsync` adds a second realm as an OIDC provider with the same first-broker-login flow and `email_verified` filter as Google.
 - **Clock:** the Auth tests replace `TimeProvider` with a `FakeTimeProvider` to make access tokens look expired.
 - Migrate `AuthDbContext` **before** the app starts (Data Protection reads its key table on first use).

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Web;
 using Faber.Testing.Shared.Containers;
+using Faber.Testing.Shared.Data;
 using Faber.Testing.Shared.Http;
 using Shouldly;
 
@@ -38,6 +39,38 @@ public class SignInTests(WebApp app)
 
         response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
         HttpUtility.ParseQueryString(response.Headers.Location!.Query)["prompt"].ShouldBe("create");
+    }
+
+    // The registration page has no password field: whoever submits it has not yet proved they own the
+    // address, so Keycloak must send the verification link before it lets them set a password.
+    [Fact]
+    public async Task Register_ShouldVerifyTheEmailBeforeAskingForAPassword()
+    {
+        var user = new TestUserFaker(9201).Generate();
+        using var client = app.CreateBrowserClient();
+        using var driver = new KeycloakLoginDriver(client);
+        var registerPage = await driver.StartAsync("api/v1/auth/register", TestContext.Current.CancellationToken);
+
+        using var submitted = await driver.SubmitAsync(registerPage, "kc-register-form", new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["email"] = user.Email,
+            ["firstName"] = user.FirstName,
+            ["lastName"] = user.LastName
+        }, TestContext.Current.CancellationToken);
+        var (page, apiResponse) = await driver.FollowAsync(submitted, TestContext.Current.CancellationToken);
+
+        apiResponse.ShouldBeNull("an unverified registration must not sign anyone in");
+        page.ShouldNotBeNull();
+        page.ShouldNotContain("<!-- template: login-update-password.ftl -->", customMessage: "no password before the e-mail is verified");
+        page.ShouldContain("<!-- template: login-verify-email.ftl -->", customMessage: "the next page is the verify-e-mail page");
+
+        var mail = await app.Keycloak.GetLatestMailTextAsync(user.Email, TestContext.Current.CancellationToken);
+        var link = mail.Split('\n')
+            .Select(line => line.Trim())
+            .First(line => line.Contains("/login-actions/action-token", StringComparison.Ordinal));
+        var afterLink = await driver.GetPageAsync(new Uri(link), TestContext.Current.CancellationToken);
+
+        afterLink.ShouldContain("<!-- template: login-update-password.ftl -->", customMessage: "the password is set once the link is followed");
     }
 
     [Fact]
