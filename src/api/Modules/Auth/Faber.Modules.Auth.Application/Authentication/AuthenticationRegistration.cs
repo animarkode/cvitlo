@@ -140,7 +140,6 @@ internal static class AuthenticationRegistration
     /// <summary>
     /// After an account action the callback signs the user in again. The session it replaces is removed
     /// (not the Keycloak session, which the new tokens share), so one browser keeps exactly one app session.
-    /// A deleted account ends the app session and signs nobody in.
     /// </summary>
     private static async Task OnTicketReceivedAsync(TicketReceivedContext context)
     {
@@ -154,15 +153,6 @@ internal static class AuthenticationRegistration
         properties.Items.TryGetValue(OidcParameters.ReplacesSession, out var replaces);
         properties.Items.TryGetValue(OidcParameters.AccountSubject, out var expectedSubject);
         var store = context.HttpContext.RequestServices.GetRequiredService<PostgresTicketStore>();
-
-        if (string.Equals(action, AccountActions.Delete, StringComparison.Ordinal)
-            && string.Equals(status, AccountActions.StatusSuccess, StringComparison.Ordinal))
-        {
-            await EndAfterDeletionAsync(context.HttpContext, store, expectedSubject, replaces);
-            context.Response.Redirect(AccountDeletedUri);
-            context.HandleResponse();
-            return;
-        }
 
         var subject = context.Principal?.FindFirst(JwtClaimTypes.Registered.Sub)?.Value;
         if (expectedSubject is not null && !string.Equals(subject, expectedSubject, StringComparison.Ordinal))
@@ -199,42 +189,8 @@ internal static class AuthenticationRegistration
             return;
         }
 
-        // Keycloak deletes the user before it redirects, so the code exchange for a deleted account can fail
-        // even though the action succeeded: its own success flag decides.
-        var status = AccountActions.NormalizeStatus(context.Request.Query[OidcParameters.KcActionStatus]);
-        if (string.Equals(action, AccountActions.Delete, StringComparison.Ordinal)
-            && string.Equals(status, AccountActions.StatusSuccess, StringComparison.Ordinal))
-        {
-            context.Properties.Items.TryGetValue(OidcParameters.ReplacesSession, out var replaces);
-            context.Properties.Items.TryGetValue(OidcParameters.AccountSubject, out var expectedSubject);
-            await EndAfterDeletionAsync(
-                context.HttpContext,
-                context.HttpContext.RequestServices.GetRequiredService<PostgresTicketStore>(),
-                expectedSubject,
-                replaces);
-            context.Response.Redirect(AccountDeletedUri);
-            return;
-        }
-
         context.Response.Redirect(AccountActions.ReturnPath(action, AccountActions.StatusError));
     }
-
-    private static async Task EndAfterDeletionAsync(HttpContext http, PostgresTicketStore store, string? subject, string? replaces)
-    {
-        // The account is gone, so every app session of that user goes with it.
-        if (subject is not null)
-        {
-            await store.RemoveBySubjectAsync(subject);
-        }
-        else if (replaces is not null)
-        {
-            await store.RemoveByIdAsync(replaces);
-        }
-
-        await http.SignOutAsync(AuthSchemes.Session);
-    }
-
-    private const string AccountDeletedUri = "/?accountDeleted=true";
 
     private static void ConfigureBearer(JwtBearerOptions o, KeycloakOptions keycloak)
     {

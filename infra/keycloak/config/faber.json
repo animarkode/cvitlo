@@ -72,11 +72,20 @@
         "composite": true,
         "composites": {
           "realm": ["offline_access", "uma_authorization", "regular"],
-          "client": { "account": ["view-profile", "manage-account", "delete-account"] }
+          "client": { "account": ["view-profile", "manage-account"] }
         }
       }
     ]
   },
+
+  "users": [
+    {
+      "username": "service-account-faber-admin",
+      "enabled": true,
+      "serviceAccountClientId": "faber-admin",
+      "clientRoles": { "realm-management": ["manage-users"] }
+    }
+  ],
 
   "clients": [
     {
@@ -127,6 +136,30 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "faber-admin",
+      "name": "Faber admin",
+      "description": "Service account the API uses to delete a user's own account. It can only manage users and has no sign-in flow.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "$(env:FABER_ADMIN_CLIENT_SECRET)",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "frontchannelLogout": false,
+      "consentRequired": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [],
+      "webOrigins": [],
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      }
     },
     {
       "clientId": "account",
@@ -246,7 +279,7 @@
       "alias": "delete_account",
       "name": "Delete Account",
       "providerId": "delete_account",
-      "enabled": true,
+      "enabled": false,
       "defaultAction": false,
       "priority": 60,
       "config": { "max_auth_age": "300" }

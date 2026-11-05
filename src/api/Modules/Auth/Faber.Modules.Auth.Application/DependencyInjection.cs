@@ -29,6 +29,9 @@ public static class DependencyInjection
             .Validate(
                 o => !string.IsNullOrWhiteSpace(o.ClientSecret),
                 "Keycloak:ClientSecret must be configured.")
+            .Validate(
+                o => !string.IsNullOrWhiteSpace(o.AdminClientId) && !string.IsNullOrWhiteSpace(o.AdminClientSecret),
+                "Keycloak:AdminClientId and Keycloak:AdminClientSecret must be configured.")
             .ValidateOnStart();
         services.TryAddSingleton(TimeProvider.System);
 
@@ -52,6 +55,7 @@ public static class DependencyInjection
         // Short: a refresh holds the session's row lock while it waits.
         services.AddHttpClient<KeycloakTokenClient>(client => client.Timeout = TimeSpan.FromSeconds(5));
         services.AddHttpClient<KeycloakAccountClient>(client => client.Timeout = TimeSpan.FromSeconds(5));
+        services.AddHttpClient<KeycloakAdminClient>(client => client.Timeout = TimeSpan.FromSeconds(5));
 
         services.AddFaberAuthentication();
 

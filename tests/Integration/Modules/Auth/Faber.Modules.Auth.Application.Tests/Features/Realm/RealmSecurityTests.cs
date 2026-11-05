@@ -115,7 +115,6 @@ public class RealmSecurityTests(WebApp app)
     [InlineData("CONFIGURE_TOTP")]
     [InlineData("webauthn-register-passwordless")]
     [InlineData("idp_link")]
-    [InlineData("delete_account")]
     [InlineData("UPDATE_EMAIL")]
     public async Task SensitiveRequiredAction_ShouldBeEnabledAndRequireARecentSignIn(string alias)
     {
@@ -141,12 +140,72 @@ public class RealmSecurityTests(WebApp app)
     }
 
     [Fact]
-    public async Task DefaultRoles_ShouldLetUsersDeleteTheirOwnAccount()
+    public async Task DefaultRoles_ShouldNotLetUsersDeleteTheirOwnAccountThroughKeycloak()
     {
         var composites = await app.Keycloak.Admin.GetRealmRoleCompositesAsync("default-roles-faber", Ct);
 
-        composites.Any(r => string.Equals(r!["name"]!.GetValue<string>(), "delete-account", StringComparison.Ordinal) && r["clientRole"]!.GetValue<bool>())
-            .ShouldBeTrue();
+        composites.Any(r => string.Equals(r!["name"]!.GetValue<string>(), "delete-account", StringComparison.Ordinal))
+            .ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteAccountRequiredAction_ShouldBeDisabled()
+    {
+        var action = await app.Keycloak.Admin.GetRequiredActionAsync("delete_account", Ct);
+
+        action["enabled"]!.GetValue<bool>().ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task AdminClient_ShouldRefuseThePasswordGrant()
+    {
+        var user = app.Users[0];
+        using var http = new HttpClient { BaseAddress = new Uri(app.Keycloak.BaseAddress) };
+
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["grant_type"] = "password",
+                ["client_id"] = FaberKeycloak.AdminClientId,
+                ["client_secret"] = FaberKeycloak.AdminClientSecret,
+                ["username"] = user.Email,
+                ["password"] = user.Password
+            });
+        using var response = await http.PostAsync($"realms/{FaberKeycloak.Realm}/protocol/openid-connect/token", content, Ct);
+
+        response.IsSuccessStatusCode.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task AdminClient_ShouldHaveNoBrowserFlow()
+    {
+        var client = await app.Keycloak.Admin.GetClientAsync(FaberKeycloak.AdminClientId, Ct);
+
+        client["standardFlowEnabled"]!.GetValue<bool>().ShouldBeFalse();
+        client["implicitFlowEnabled"]!.GetValue<bool>().ShouldBeFalse();
+        client["directAccessGrantsEnabled"]!.GetValue<bool>().ShouldBeFalse();
+        client["serviceAccountsEnabled"]!.GetValue<bool>().ShouldBeTrue();
+
+        using var http = new HttpClient { BaseAddress = new Uri(app.Keycloak.BaseAddress) };
+        using var response = await http.GetAsync(
+            $"realms/{FaberKeycloak.Realm}/protocol/openid-connect/auth?client_id={FaberKeycloak.AdminClientId}"
+            + "&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%2Fcb", Ct);
+
+        // Keycloak shows an error page (or redirects with an error) instead of its login form.
+        var body = await response.Content.ReadAsStringAsync(Ct);
+        body.ShouldNotContain("kc-form-login");
+    }
+
+    [Fact]
+    public async Task AdminClientServiceAccount_ShouldHoldOnlyManageUsers()
+    {
+        var userId = await app.Keycloak.Admin.GetServiceAccountUserIdAsync(FaberKeycloak.AdminClientId, Ct);
+
+        var mappings = await app.Keycloak.Admin.GetRoleMappingsAsync(userId, Ct);
+
+        var clientRoles = mappings["clientMappings"]!.AsObject()
+            .SelectMany(client => client.Value!["mappings"]!.AsArray().Select(role => role!["name"]!.GetValue<string>()))
+            .ToList();
+        clientRoles.ShouldBe(["manage-users"]);
     }
 
     [Fact]

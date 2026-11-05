@@ -49,6 +49,19 @@ var faberApiClientSecret = builder.AddParameter(
         persist: true)
     .WithDescription("Client secret of the faber-api Keycloak client. Generated once and kept in user-secrets.");
 
+// Same arrangement for faber-admin, the client whose service account may only manage users: the API
+// uses it to delete a user's own account.
+var faberAdminClientSecret = builder.AddParameter(
+        "faber-admin-client-secret",
+        new GenerateParameterDefault
+        {
+            MinLength = 48,
+            Special = false
+        },
+        secret: true,
+        persist: true)
+    .WithDescription("Client secret of the faber-admin Keycloak client. Generated once and kept in user-secrets.");
+
 var keycloakUser = builder.AddParameter("keycloak-admin")
     .WithDescription("Username of Keycloak's bootstrap admin in the master realm.");
 var keycloakPass = builder.AddParameter("keycloak-password", secret: true)
@@ -95,6 +108,7 @@ var keycloakConfig = builder.AddContainer("keycloak-config", "adorsys/keycloak-c
     // Off: the import cache can skip a run whose only change is a variable, such as a rotated secret.
     .WithEnvironment("IMPORT_CACHE_ENABLED", "false")
     .WithEnvironment("FABER_API_CLIENT_SECRET", faberApiClientSecret)
+    .WithEnvironment("FABER_ADMIN_CLIENT_SECRET", faberAdminClientSecret)
     .WithEnvironment("FABER_APP_URL", "http://localhost:4200")
     .WithEnvironment("FABER_BACKCHANNEL_LOGOUT_URL", "http://host.docker.internal:5020/api/v1/auth/backchannel-logout")
     .WithEnvironment("KC_SMTP_HOST", "mailpit")
@@ -127,6 +141,7 @@ var faberApi = builder.AddProject<Faber_Api>("faberapi")
     .WaitFor(keycloak)
     .WaitFor(mailpit)
     .WithEnvironment("Keycloak__ClientSecret", faberApiClientSecret)
+    .WithEnvironment("Keycloak__AdminClientSecret", faberAdminClientSecret)
     .WithReference(redis)
     .WithReference(faberDb);
 
