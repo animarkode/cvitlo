@@ -125,6 +125,21 @@ public class RealmSecurityTests(WebApp app)
         action["config"]!["max_auth_age"]!.GetValue<string>().ShouldBe("300");
     }
 
+    // Keycloak runs pending required actions lowest priority first. A credential set up before the e-mail
+    // is verified would belong to whoever typed the address, not to its owner.
+    [Theory]
+    [InlineData("UPDATE_PASSWORD")]
+    [InlineData("CONFIGURE_TOTP")]
+    [InlineData("webauthn-register-passwordless")]
+    public async Task VerifyEmail_ShouldRunBeforeSettingUpACredential(string alias)
+    {
+        var verifyEmail = await app.Keycloak.Admin.GetRequiredActionAsync("VERIFY_EMAIL", Ct);
+        var credential = await app.Keycloak.Admin.GetRequiredActionAsync(alias, Ct);
+
+        verifyEmail["enabled"]!.GetValue<bool>().ShouldBeTrue();
+        verifyEmail["priority"]!.GetValue<int>().ShouldBeLessThan(credential["priority"]!.GetValue<int>());
+    }
+
     [Fact]
     public async Task DefaultRoles_ShouldLetUsersDeleteTheirOwnAccount()
     {

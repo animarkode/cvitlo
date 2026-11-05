@@ -18,7 +18,7 @@ One e-mail is one account, and e-mail is the login.
 - With the e-mail of an **existing** account, Keycloak asks whether to link and then asks the person to sign in to the existing account (password plus 2FA if set, or a provider already linked). Only then is the provider linked. Nothing is linked automatically, so a provider account someone else controls cannot take over an existing account.
 - **Google sign-ins whose e-mail Google has not verified are refused** (an essential-claim filter on `email_verified`). GitHub only completes OAuth for users with a verified primary e-mail.
 - A provider with a different e-mail is linked from the account page's *Linked accounts* (see section 2a). The API refuses to remove the last way to sign in.
-- A password registration asks only for e-mail and name. The password is set after the e-mail link is followed (Keycloak 26.8 does this when e-mail verification is on), so nobody can set a password on an address they do not control.
+- A password registration asks only for e-mail and name. Keycloak then sends the verification link and asks for a password only once the link is followed, so nobody can set a password on an address they do not control. This order is not Keycloak's default: `VERIFY_EMAIL` is declared in `faber.json` with priority 10, lower than every other required action, because Keycloak runs pending required actions lowest priority first and by default asks for the password (30) before the e-mail (50).
 
 ## 2. The realm is code
 
