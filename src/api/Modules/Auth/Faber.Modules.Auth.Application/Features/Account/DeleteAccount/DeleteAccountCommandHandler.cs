@@ -14,8 +14,9 @@ namespace Faber.Modules.Auth.Application.Features.Account.DeleteAccount;
 /// </summary>
 /// <remarks>
 /// The order matters. Keycloak goes first: if it fails nothing else has happened and the person can retry. Once
-/// the Keycloak user is gone the deletion cannot be undone, so a failing module is logged for a republish of
-/// <see cref="UserDeleted"/> (handlers are idempotent) instead of failing the request.
+/// the Keycloak user is gone the deletion cannot be undone, so the rest no longer depends on the request:
+/// it runs with <see cref="CancellationToken.None"/>. Sessions end before <see cref="UserDeleted"/> is published,
+/// so no other tab or device can write data after the erasure. A failing module does not fail the request.
 /// </remarks>
 public class DeleteAccountCommandHandler(
     KeycloakAdminClient keycloak,
@@ -48,8 +49,9 @@ public class DeleteAccountCommandHandler(
             return deleted.FirstError;
         }
 
-        await EraseUserDataAsync(command.Subject, ct);
+        // Past the point of no return: a cancelled request must not leave sessions open or data behind.
         await sessions.RemoveBySubjectAsync(command.Subject);
+        await EraseUserDataAsync(command.Subject);
 
         logger.LogInformation("[SUCCESS] {HandlerName}", HandlerName);
         return Result.Deleted;
@@ -82,11 +84,11 @@ public class DeleteAccountCommandHandler(
         "Design",
         "CA1031:Do not catch general exception types",
         Justification = "The Keycloak user is already deleted, so a failing module must not turn the request into an error; it is logged for a republish.")]
-    private async Task EraseUserDataAsync(string subject, CancellationToken ct)
+    private async Task EraseUserDataAsync(string subject)
     {
         try
         {
-            await new UserDeleted(subject).PublishAsync(Mode.WaitForAll, ct);
+            await new UserDeleted(subject).PublishAsync(Mode.WaitForAll, CancellationToken.None);
         }
         catch (Exception exception)
         {
