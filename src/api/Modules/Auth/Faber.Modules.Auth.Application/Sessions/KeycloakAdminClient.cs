@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 using ErrorOr;
 using Faber.Modules.Auth.Application.Options;
@@ -15,13 +14,12 @@ namespace Faber.Modules.Auth.Application.Sessions;
 /// </summary>
 public sealed class KeycloakAdminClient(
     HttpClient http,
+    KeycloakTokenClient tokenClient,
     IOptions<KeycloakOptions> options,
     ILogger<KeycloakAdminClient> logger)
 {
     /// <summary>The error code for every failure to reach or use the Admin API.</summary>
     public const string UnavailableErrorCode = "Account.Unavailable";
-
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     /// <summary>
     /// Deletes a user and, with them, everything Keycloak holds for them. A user Keycloak no longer knows
@@ -98,27 +96,9 @@ public sealed class KeycloakAdminClient(
     private async Task<ErrorOr<string>> GetAccessTokenAsync(CancellationToken ct)
     {
         var keycloak = options.Value;
-        using var content = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["grant_type"] = "client_credentials",
-            ["client_id"] = keycloak.AdminClientId,
-            ["client_secret"] = keycloak.AdminClientSecret
-        });
+        var tokens = await tokenClient.GetClientCredentialsTokenAsync(keycloak.AdminClientId, keycloak.AdminClientSecret, ct);
 
-        using var response = await http.PostAsync(keycloak.TokenEndpoint, content, ct);
-        if (!response.IsSuccessStatusCode)
-        {
-            logger.LogError("Keycloak refused the admin client's token request with {StatusCode}", (int)response.StatusCode);
-            return Unavailable();
-        }
-
-        var body = await response.Content.ReadFromJsonAsync<TokenResponse>(Json, ct);
-        if (string.IsNullOrEmpty(body?.AccessToken))
-        {
-            return Unavailable();
-        }
-
-        return body.AccessToken;
+        return tokens is null ? Unavailable() : tokens.AccessToken;
     }
 
     private static bool IsTransient(Exception exception, CancellationToken ct)
