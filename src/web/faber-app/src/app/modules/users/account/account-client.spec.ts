@@ -91,12 +91,16 @@ describe('AccountClient navigation', () => {
     expect(API_ROUTES.auth.account.action('password')).toMatch(/\/auth\/account-action\/password$/);
   });
 
-  it('leaveDeletedAccount should navigate the whole page home with the notice flag', () => {
+  it('leaveDeletedAccount should navigate the whole page to the account-deleted page with a one-time pass', () => {
     const assign = vi.fn();
-    TestBed.configureTestingModule({ providers: [{ provide: DOCUMENT, useValue: { location: { assign } } }] });
+    const sessionStorage = { setItem: vi.fn() };
+    TestBed.configureTestingModule({
+      providers: [{ provide: DOCUMENT, useValue: { location: { assign }, defaultView: { sessionStorage } } }],
+    });
 
     TestBed.inject(AccountClient).leaveDeletedAccount();
 
-    expect(assign).toHaveBeenCalledWith('/?accountDeleted=true');
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('faber.accountDeleted', 'true');
+    expect(assign).toHaveBeenCalledWith('/account-deleted');
   });
 });

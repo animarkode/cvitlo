@@ -135,7 +135,7 @@ describe('PersonalInfo', () => {
     el().querySelector<HTMLElement>('[data-test="delete-account"]')!.click();
   }
 
-  it('should leave for the home page once the account is deleted', () => {
+  it('should leave for the account-deleted page once the account is deleted', () => {
     const leave = vi.spyOn(TestBed.inject(AccountClient), 'leaveDeletedAccount').mockImplementation(() => undefined);
     confirmDelete();
 
