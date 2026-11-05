@@ -26,8 +26,8 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_AfterARecentSignIn_ShouldEraseTheUserEverywhereAndLeaveOthersAlone()
     {
         app.Clock.Realign();
-        var (userA, subjectA) = await CreateUserAsync(9201);
-        var (userB, subjectB) = await CreateUserAsync(9202);
+        var (userA, subjectA) = await CreateUserAsync(9301);
+        var (userB, subjectB) = await CreateUserAsync(9302);
         var resumeA1 = await SeedResumeAsync(subjectA);
         var resumeA2 = await SeedResumeAsync(subjectA);
         var resumeB = await SeedResumeAsync(subjectB);
@@ -60,7 +60,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_AfterAnOldSignIn_ShouldRequireReauthenticationAndKeepEverything()
     {
         app.Clock.Realign();
-        var (user, subject) = await CreateUserAsync(9203);
+        var (user, subject) = await CreateUserAsync(9303);
         var resume = await SeedResumeAsync(subject);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
         using var _client = client;
@@ -78,7 +78,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_JustInsideTheFiveMinuteLimit_ShouldSucceed()
     {
         app.Clock.Realign();
-        var (user, _) = await CreateUserAsync(9204);
+        var (user, _) = await CreateUserAsync(9304);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
         using var _client = client;
         app.Clock.Advance(TimeSpan.FromSeconds(240));
@@ -92,7 +92,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_AfterReauthenticating_ShouldSucceed()
     {
         app.Clock.Realign();
-        var (user, subject) = await CreateUserAsync(9205);
+        var (user, subject) = await CreateUserAsync(9305);
         var resume = await SeedResumeAsync(subject);
         using var client = app.CreateBrowserClient();
         using var driver = new KeycloakLoginDriver(client);
@@ -124,7 +124,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_WithoutCsrfHeader_ShouldBeRefusedAndKeepTheUser()
     {
         app.Clock.Realign();
-        var (user, _) = await CreateUserAsync(9206);
+        var (user, _) = await CreateUserAsync(9306);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
         using var _client = client;
         client.DefaultRequestHeaders.Remove("X-CSRF");
@@ -149,7 +149,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_WithABearerToken_ShouldBeRefusedAndKeepTheUser()
     {
         app.Clock.Realign();
-        var (user, _) = await CreateUserAsync(9207);
+        var (user, _) = await CreateUserAsync(9307);
         var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, Ct);
         using var client = app.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens["access_token"]!.GetValue<string>());
@@ -164,7 +164,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_WhenKeycloakCannotDeleteTheUser_ShouldReturnBadGatewayAndKeepTheData()
     {
         app.Clock.Realign();
-        var (user, subject) = await CreateUserAsync(9208);
+        var (user, subject) = await CreateUserAsync(9308);
         var resume = await SeedResumeAsync(subject);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
         using var _client = client;
@@ -194,7 +194,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task DeleteAccount_WhenTheErasureFails_ShouldStillSucceedAndKeepThePendingRecord()
     {
         app.Clock.Realign();
-        var (user, subject) = await CreateUserAsync(9209);
+        var (user, subject) = await CreateUserAsync(9309);
         var resume = await SeedResumeAsync(subject);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
         using var _client = client;
@@ -225,7 +225,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task Sweep_ForADeletedUserOlderThanTenMinutes_ShouldEraseTheDataAndForgetTheRecord()
     {
         app.Clock.Realign();
-        var (user, subject) = await CreateUserAsync(9210);
+        var (user, subject) = await CreateUserAsync(9310);
         var resume = await SeedResumeAsync(subject);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
         using var _client = client;
@@ -243,7 +243,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task Sweep_ForAUserWhoStillExists_ShouldForgetTheRecordAndKeepEverything()
     {
         app.Clock.Realign();
-        var (user, subject) = await CreateUserAsync(9211);
+        var (user, subject) = await CreateUserAsync(9311);
         var resume = await SeedResumeAsync(subject);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
         using var _client = client;
@@ -261,7 +261,7 @@ public class DeleteAccountTests(WebApp app)
     public async Task Sweep_ForARecordYoungerThanTenMinutes_ShouldLeaveItAlone()
     {
         app.Clock.Realign();
-        var (_, subject) = await CreateUserAsync(9212);
+        var (_, subject) = await CreateUserAsync(9312);
         var resume = await SeedResumeAsync(subject);
         await DeleteKeycloakUserAsync(subject);
         await AddPendingErasureAsync(subject, TimeSpan.FromMinutes(5));
