@@ -181,7 +181,7 @@ internal static class AuthenticationRegistration
         context.ReturnUri = AccountActions.ReturnPath(action, status);
     }
 
-    private static async Task OnRemoteFailureAsync(RemoteFailureContext context)
+    private static Task OnRemoteFailureAsync(RemoteFailureContext context)
     {
         context.HandleResponse();
 
@@ -190,10 +190,11 @@ internal static class AuthenticationRegistration
             || action is null)
         {
             context.Response.Redirect("/?signInFailed=true");
-            return;
+            return Task.CompletedTask;
         }
 
         context.Response.Redirect(AccountActions.ReturnPath(action, AccountActions.StatusError));
+        return Task.CompletedTask;
     }
 
     private static void ConfigureBearer(JwtBearerOptions o, KeycloakOptions keycloak)
