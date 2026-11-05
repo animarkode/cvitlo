@@ -71,7 +71,10 @@
         Permanently removes your account, your resumes and your ability to sign in. This can't be undone.
       </p>
     </div>
-    <button type="button" fb-button variant="soft-destructive" data-test="delete-account" (click)="deleteAccount()">
+    @if (deleteError(); as message) {
+      <p role="alert" class="basis-full text-base text-destructive-text" data-test="delete-error">{{ message }}</p>
+    }
+    <button type="button" fb-button variant="soft-destructive" [disabled]="deleting()" data-test="delete-account" (click)="deleteAccount()">
       <lucide-icon name="trash-2" [size]="16" [strokeWidth]="2" aria-hidden="true" />
       Delete account
     </button>

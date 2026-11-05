@@ -3,7 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { AccountClient, problemDetail } from './account-client';
+import { AccountClient, problemCode, problemDetail } from './account-client';
 import { API_ROUTES } from '../../../core/routes/api-routes';
 
 describe('AccountClient', () => {
@@ -57,6 +57,20 @@ describe('AccountClient', () => {
     req.flush(null, { status: 204, statusText: 'No Content' });
   });
 
+  it('deleteAccount should DELETE the account', () => {
+    client.deleteAccount().subscribe();
+
+    const req = http.expectOne(API_ROUTES.auth.account.self);
+    expect(req.request.method).toBe('DELETE');
+    expect(API_ROUTES.auth.account.self).toMatch(/\/auth\/account$/);
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('problemCode should read the code extension', () => {
+    expect(problemCode(new HttpErrorResponse({ status: 403, error: { code: 'Account.X' } }))).toBe('Account.X');
+    expect(problemCode(new HttpErrorResponse({ status: 403 }))).toBeNull();
+  });
+
   it('problemDetail should prefer the problem detail and fall back otherwise', () => {
     const conflict = new HttpErrorResponse({ status: 409, error: { detail: 'Last method.' } });
 
@@ -75,5 +89,14 @@ describe('AccountClient navigation', () => {
 
     expect(assign).toHaveBeenCalledWith(API_ROUTES.auth.account.action('password'));
     expect(API_ROUTES.auth.account.action('password')).toMatch(/\/auth\/account-action\/password$/);
+  });
+
+  it('leaveDeletedAccount should navigate the whole page home with the notice flag', () => {
+    const assign = vi.fn();
+    TestBed.configureTestingModule({ providers: [{ provide: DOCUMENT, useValue: { location: { assign } } }] });
+
+    TestBed.inject(AccountClient).leaveDeletedAccount();
+
+    expect(assign).toHaveBeenCalledWith('/?accountDeleted=true');
   });
 });

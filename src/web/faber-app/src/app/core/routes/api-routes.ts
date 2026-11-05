@@ -29,6 +29,7 @@ export const API_ROUTES = {
       session: (id: string) => `${base}/auth/account/sessions/${encodeURIComponent(id)}`,
       otherSessions: `${base}/auth/account/sessions/others`,
       /** A page navigation, not a fetch: the API sends the browser on to Keycloak to perform the action. */
+      self: `${base}/auth/account`,
       action: (name: string) => `${base}/auth/account-action/${encodeURIComponent(name)}`,
     },
   },

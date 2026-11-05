@@ -15,7 +15,7 @@ export class Home {
   // The resumes route is guarded: a signed-out visitor is sent to Keycloak's sign-in and back.
   protected readonly link = APP_ROUTES.resumes;
 
-  // The API sends the browser here with ?accountDeleted=true after Keycloak has deleted the account.
+  // The account page navigates here with ?accountDeleted=true after the API deleted the account and its resumes.
   protected readonly accountDeleted = toSignal(
     inject(ActivatedRoute).queryParamMap.pipe(map(params => params.get('accountDeleted') === 'true')),
     { initialValue: false },

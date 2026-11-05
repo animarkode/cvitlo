@@ -31,7 +31,7 @@ describe('Home', () => {
     const harness = await RouterTestingHarness.create('/?accountDeleted=true');
 
     const status = (harness.routeNativeElement as HTMLElement).querySelector('[role="status"]');
-    expect(status?.textContent).toContain('Your account has been deleted.');
+    expect(status?.textContent).toContain('Your account and all its resumes have been deleted.');
   });
 
   it('should show no notice for an ordinary visit', async () => {

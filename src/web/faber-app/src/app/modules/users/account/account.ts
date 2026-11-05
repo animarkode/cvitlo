@@ -26,6 +26,7 @@ const SUCCESS_MESSAGES: Record<string, string> = {
   email: 'E-mail updated',
   'link-google': 'Google account linked',
   'link-github': 'GitHub account linked',
+  reauthenticate: 'You signed in again. You can delete your account now.',
 };
 
 interface AccountSectionLink {
@@ -43,7 +44,7 @@ const SECTION_LINKS: readonly AccountSectionLink[] = [
 
 /**
  * The person's account settings: who they are, a side menu of sections, and the open section. Keycloak is only
- * visited for the steps that need its own pages (password, passkeys, 2FA, e-mail, linking, deletion), and returns
+ * visited for the steps that need its own pages (password, passkeys, 2FA, e-mail, linking, signing in again before deletion), and returns
  * to the section the step belongs to with `?action=…&status=…`.
  */
 @Component({
