@@ -22,6 +22,18 @@ public static class AccountActions
         ["link-github"] = "idp_link:github"
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Asks Keycloak to sign the person in again (<c>prompt=login</c>) without running a required action, so the
+    /// session's <c>auth_time</c> becomes fresh. It has no <c>kc_action</c>, hence no entry in the maps below.
+    /// </summary>
+    public const string Reauthenticate = "reauthenticate";
+
+    /// <summary>Whether the name is on the allow-list, with or without a <c>kc_action</c>.</summary>
+    public static bool IsAllowed(string? name)
+    {
+        return string.Equals(name, Reauthenticate, StringComparison.Ordinal) || (name is not null && KcActions.ContainsKey(name));
+    }
+
     /// <summary>The Keycloak <c>kc_action</c> for an allow-listed action name; <see langword="false"/> for anything else.</summary>
     public static bool TryGetKcAction(string? name, out string kcAction)
     {

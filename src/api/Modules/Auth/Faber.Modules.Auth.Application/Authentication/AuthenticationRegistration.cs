@@ -149,7 +149,10 @@ internal static class AuthenticationRegistration
             return;
         }
 
-        var status = AccountActions.NormalizeStatus(context.Request.Query[OidcParameters.KcActionStatus]);
+        // Re-authentication runs no required action, so Keycloak sends no status: coming back at all is success.
+        var status = string.Equals(action, AccountActions.Reauthenticate, StringComparison.Ordinal)
+            ? AccountActions.StatusSuccess
+            : AccountActions.NormalizeStatus(context.Request.Query[OidcParameters.KcActionStatus]);
         properties.Items.TryGetValue(OidcParameters.ReplacesSession, out var replaces);
         properties.Items.TryGetValue(OidcParameters.AccountSubject, out var expectedSubject);
         var store = context.HttpContext.RequestServices.GetRequiredService<PostgresTicketStore>();
@@ -174,6 +177,7 @@ internal static class AuthenticationRegistration
         properties.Items.Remove(OidcParameters.IdTokenHint);
         properties.Items.Remove(OidcParameters.ReplacesSession);
         properties.Items.Remove(OidcParameters.KcAction);
+        properties.Items.Remove(OidcParameters.Prompt);
         context.ReturnUri = AccountActions.ReturnPath(action, status);
     }
 

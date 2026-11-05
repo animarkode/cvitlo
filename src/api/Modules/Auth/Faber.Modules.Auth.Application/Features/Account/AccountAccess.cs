@@ -43,12 +43,21 @@ public static class AccountAccess
         return error.Type switch
         {
             ErrorType.Validation => ToValidationProblem(error),
-            ErrorType.Unauthorized => TypedResults.Problem(error.Description, statusCode: StatusCodes.Status401Unauthorized),
-            ErrorType.Forbidden => TypedResults.Problem(error.Description, statusCode: StatusCodes.Status403Forbidden),
-            ErrorType.Conflict => TypedResults.Problem(error.Description, statusCode: StatusCodes.Status409Conflict),
-            ErrorType.NotFound => TypedResults.Problem(error.Description, statusCode: StatusCodes.Status404NotFound),
-            _ => TypedResults.Problem(error.Description, statusCode: StatusCodes.Status502BadGateway)
+            ErrorType.Unauthorized => ToProblem(error, StatusCodes.Status401Unauthorized),
+            ErrorType.Forbidden => ToProblem(error, StatusCodes.Status403Forbidden),
+            ErrorType.Conflict => ToProblem(error, StatusCodes.Status409Conflict),
+            ErrorType.NotFound => ToProblem(error, StatusCodes.Status404NotFound),
+            _ => ToProblem(error, StatusCodes.Status502BadGateway)
         };
+    }
+
+    /// <summary>The error's code travels as the <c>code</c> extension, so a client can tell apart errors of one status.</summary>
+    private static ProblemHttpResult ToProblem(Error error, int statusCode)
+    {
+        return TypedResults.Problem(
+            error.Description,
+            statusCode: statusCode,
+            extensions: new Dictionary<string, object?>(StringComparer.Ordinal) { ["code"] = error.Code });
     }
 
     private static ProblemHttpResult ToValidationProblem(Error error)
