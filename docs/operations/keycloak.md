@@ -39,6 +39,7 @@ Run the image `adorsys/keycloak-config-cli:6.5.1-26.1.0` as a one-shot job after
 | `FABER_APP_URL` | the web app's public origin, `https://<APP-HOST>`; the API callback is `https://<APP-HOST>/api/v1/auth/callback` |
 | `FABER_BACKCHANNEL_LOGOUT_URL` | the API's back-channel logout endpoint as Keycloak reaches it, e.g. `http://<API-INTERNAL-HOST>/api/v1/auth/backchannel-logout` |
 | `FABER_API_CLIENT_SECRET` | the `faber-api` client secret, from the platform's secret store; the realm sets the client's `secret` to it, and the job fails if it is missing |
+| `FABER_ADMIN_CLIENT_SECRET` | the `faber-admin` client secret (the service account that deletes accounts, section 2a), from the platform's secret store; the realm sets the client's `secret` to it, and the job fails if it is missing |
 | `KC_SMTP_HOST`, `KC_SMTP_PORT`, `KC_SMTP_FROM` | the mail server Keycloak sends verification and reset mail through |
 | `KC_SMTP_AUTH`, `KC_SMTP_USER`, `KC_SMTP_PASSWORD`, `KC_SMTP_SSL`, `KC_SMTP_STARTTLS` | optional, default off |
 | `GOOGLE_ENABLED`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `true` and the Google OAuth credentials, or `false` |
@@ -52,16 +53,20 @@ The passkeys step then runs, as `keycloak-passkeys` in Development. Run the Keyc
 
 People manage their account on the web app's `/account` page; Keycloak's account console is disabled (`account-console` client off, no redirect to it anywhere).
 
-- **Reads and edits use Keycloak's Account REST API** with the signed-in person's own access token: profile (first and last name only; the e-mail is never changed there), credentials, devices and linked accounts, removing a credential or a linked account, and ending a device session. The API never uses the Admin API and holds no service account.
-- **Actions that need Keycloak's own pages** (change password, add a passkey or an authenticator app, change e-mail, link Google or GitHub, delete the account) go through `GET /api/v1/auth/account-action/{name}`, a top-level navigation. `name` is checked against a fixed allow-list (`password`, `passkey`, `totp`, `email`, `link-google`, `link-github`, `delete`) and mapped to a Keycloak `kc_action`; anything else is refused. Keycloak runs the action, and the callback returns the person to `/account?action=<name>&status=<success|cancelled|...>`. The sign-in session is replaced by the new one and the old session row is removed. After `delete` succeeds the person is signed out and lands on `/?accountDeleted=true`.
+- **Reads and edits use Keycloak's Account REST API** with the signed-in person's own access token: profile (first and last name only; the e-mail is never changed there), credentials, devices and linked accounts, removing a credential or a linked account, and ending a device session. The one use of the Admin API is deleting the account (below).
+- **Actions that need Keycloak's own pages** (change password, add a passkey or an authenticator app, change e-mail, link Google or GitHub, sign in again) go through `GET /api/v1/auth/account-action/{name}`, a top-level navigation. `name` is checked against a fixed allow-list (`password`, `passkey`, `totp`, `email`, `link-google`, `link-github`, `reauthenticate`) and mapped to a Keycloak `kc_action`; anything else is refused. Keycloak runs the action, and the callback returns the person to `/account?action=<name>&status=<success|cancelled|...>`. The sign-in session is replaced by the new one and the old session row is removed. `reauthenticate` makes Keycloak ask for credentials again and returns to `/account/personal-info?action=reauthenticate&status=<success|error>`; it exists for account deletion.
+- **Deleting the account** is our own flow, not a Keycloak page. The `/account` dialog calls `DELETE /api/v1/auth/account`. If the last sign-in is older than five minutes the API answers 403 (`code: Account.ReauthenticationRequired`) and the page starts the `reauthenticate` action; the person then confirms again, with no automatic deletion. Otherwise the API deletes the user through the Keycloak Admin API as the `faber-admin` client, which raises the `UserDeleted` event; the Resumes module deletes every resume of the user and its sections, every session of the user is ended, and the cookie is cleared (204). The page then navigates to `/?accountDeleted=true`. If Keycloak is unavailable the API answers 502 (`code: Account.Unavailable`) and nothing has changed. The delete is immediate and hard: there is no grace period and no undo.
+- **Why Keycloak's own delete page is off:** it never returns to the app, so the app could not end sessions or erase the person's data. `delete-account` is not in `default-roles-faber`, the `delete_account` required action is disabled, and `delete` is not an account action (`GET /api/v1/auth/account-action/delete` is 404).
+- **The `faber-admin` client:** confidential, service account only (no browser flows), with the single role `manage-users`. That role can also edit users; it is the narrowest built-in role that can delete them, and keycloak-config-cli 6.5.1 cannot express fine-grained admin permissions. Its secret is `FABER_ADMIN_CLIENT_SECRET` for `keycloak-config` and `Keycloak__AdminClientSecret` for the API (the two must be equal). In Development both come from the AppHost parameter `faber-admin-client-secret`; in production from the platform's secret store as environment variables.
+- **Known gaps:** if erasing the data fails after Keycloak has deleted the user, the API logs an Error that names the subject; republish `UserDeleted` for it. A user deleted directly in Keycloak (the admin console) keeps their resumes.
 - **Lock-out guard:** passwords, passwordless passkeys and connected providers count as ways to sign in. The API refuses (409 `Account.LastSignInMethod`) to remove the last one. Authenticator apps and security keys used as a second factor can always be removed.
 - **Ending other sessions** removes them in Keycloak; those devices are signed out of the app through back-channel logout (section 1). A device's "last access" only moves when the API refreshes its tokens, so it can lag by minutes.
 
 ### Realm hardening
 
 - The `account` client stays **enabled**: its roles are what authorize Account REST. Its standard, implicit and direct-access flows are off, so nobody can sign in through it. Do not disable it, or the account page stops working.
-- `delete-account` is part of `default-roles-faber`, so a person may delete their own account.
-- The required actions `UPDATE_EMAIL`, `UPDATE_PASSWORD`, `CONFIGURE_TOTP`, `webauthn-register-passwordless`, `idp_link` and `delete_account` are enabled. Each has `max_auth_age` set to `300`: if the person last signed in more than five minutes ago, Keycloak asks for their credentials again before the action.
+- `delete-account` is **not** part of `default-roles-faber`: people delete their account through the app, not Keycloak's page.
+- The required actions `UPDATE_EMAIL`, `UPDATE_PASSWORD`, `CONFIGURE_TOTP`, `webauthn-register-passwordless`, and `idp_link` are enabled; `delete_account` is disabled. Each has `max_auth_age` set to `300`: if the person last signed in more than five minutes ago, Keycloak asks for their credentials again before the action.
 - To change the window, edit `max_auth_age` (seconds) on those required actions in `infra/keycloak/config/faber.json` and redeploy `keycloak-config`; it applies on the next action, with no user impact. `0` means always re-authenticate.
 
 ## 3. Keycloak itself
@@ -147,7 +152,11 @@ ConnectionStrings__faberdb=<CONNECTION-STRING>
 Keycloak__ClientSecret=<FABER-API-CLIENT-SECRET>
 ```
 
-`Keycloak__ClientSecret` must equal `FABER_API_CLIENT_SECRET` given to `keycloak-config`. `Keycloak__ClientId` defaults to `faber-api`. The API refuses to start without the connection string or the client secret.
+```text
+Keycloak__AdminClientSecret=<FABER-ADMIN-CLIENT-SECRET>
+```
+
+`Keycloak__ClientSecret` must equal `FABER_API_CLIENT_SECRET` given to `keycloak-config`. `Keycloak__ClientId` defaults to `faber-api`. `Keycloak__AdminClientSecret` must equal `FABER_ADMIN_CLIENT_SECRET`. The API refuses to start without the connection string or the client secret.
 
 `Keycloak__RequireHttpsMetadata` defaults to `true`; leave it.
 
@@ -167,6 +176,8 @@ Rotation is manual. Nothing regenerates the secret on its own.
 2. Replace it in the secret store (production) or in the AppHost user-secrets as `Parameters:faber-api-client-secret` (development).
 3. Redeploy `keycloak-config` so Keycloak takes the new secret.
 4. Redeploy the API with the same value as `Keycloak__ClientSecret`. Do this together with step 3.
+
+The `faber-admin` secret rotates the same way: `Parameters:faber-admin-client-secret` in development, `FABER_ADMIN_CLIENT_SECRET` for `keycloak-config` and `Keycloak__AdminClientSecret` for the API in production. Until the API has the new value, deleting an account answers 502.
 
 Between steps 3 and 4 the API holds the old secret, so Keycloak refuses it with `invalid_client`: new sign-ins fail at the callback, and token refreshes fail while sessions are kept. Keep the gap short.
 
