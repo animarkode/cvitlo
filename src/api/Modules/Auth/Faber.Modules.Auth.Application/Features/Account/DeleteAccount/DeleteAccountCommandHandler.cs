@@ -21,7 +21,8 @@ namespace Faber.Modules.Auth.Application.Features.Account.DeleteAccount;
 /// so no other tab or device can write data after the erasure. A failing module does not fail the request.
 /// A <see cref="PendingAccountErasure"/> row is saved before the Keycloak call and removed only when everything
 /// is done, so a failed publish or a crash leaves a durable record that <see cref="PendingErasureSweeper"/>
-/// finishes. If Keycloak fails the row is removed, because the user still exists and nothing may be erased.
+/// finishes. If the Keycloak call fails the row stays too: a timeout can hide a deletion that did happen, and the
+/// sweep checks whether the user still exists before it erases anything.
 /// </remarks>
 public class DeleteAccountCommandHandler(
     KeycloakAdminClient keycloak,
@@ -53,7 +54,8 @@ public class DeleteAccountCommandHandler(
         var deleted = await keycloak.DeleteUserAsync(command.Subject, ct);
         if (deleted.IsError)
         {
-            await ForgetPendingErasureAsync(command.Subject);
+            // The row stays: a timeout can hide a deletion Keycloak did make. The sweep asks Keycloak and
+            // forgets the row if the user still exists.
             logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, deleted.FirstError.Code);
             return deleted.FirstError;
         }

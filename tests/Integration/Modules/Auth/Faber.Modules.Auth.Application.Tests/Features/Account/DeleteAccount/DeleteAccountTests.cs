@@ -184,9 +184,10 @@ public class DeleteAccountTests(WebApp app)
         (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct)).ShouldBe(subject);
         (await CountResumesAsync(resume)).ShouldBe(1);
         (await CountSessionsAsync(subject)).ShouldBe(1);
-        (await CountPendingErasuresAsync(subject)).ShouldBe(0, "the user still exists, so nothing may be erased later");
+        (await CountPendingErasuresAsync(subject)).ShouldBe(1, "a failed call may still have deleted the user, so the sweep decides");
         using var stillSignedIn = await client.GetAsync("api/v1/auth/user", Ct);
         stillSignedIn.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await RemovePendingErasureAsync(subject);
     }
 
     [Fact]
