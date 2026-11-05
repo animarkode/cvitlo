@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
+using Faber.Modules.Auth.Application.Sessions;
+using Faber.Modules.Auth.Application.Tests.Support;
 using Faber.Modules.Auth.Infrastructure.Database;
 using Faber.Modules.Resumes.Domain.Entities;
 using Faber.Modules.Resumes.Infrastructure.Database;
@@ -43,6 +45,7 @@ public class DeleteAccountTests(WebApp app)
         (await app.Keycloak.Admin.FindUserIdAsync(userA.Email, Ct)).ShouldBeNull();
         (await CountResumesAsync(resumeA1, resumeA2)).ShouldBe(0);
         (await CountExperiencesAsync(resumeA1, resumeA2)).ShouldBe(0);
+        (await CountPendingErasuresAsync(subjectA)).ShouldBe(0, "a finished erasure leaves no record");
         (await CountSessionsAsync(subjectA)).ShouldBe(0, "every session of the user goes, not only this browser's");
         (await CountResumesAsync(resumeB)).ShouldBe(1);
         (await CountExperiencesAsync(resumeB)).ShouldBe(1);
@@ -181,8 +184,129 @@ public class DeleteAccountTests(WebApp app)
         (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct)).ShouldBe(subject);
         (await CountResumesAsync(resume)).ShouldBe(1);
         (await CountSessionsAsync(subject)).ShouldBe(1);
+        (await CountPendingErasuresAsync(subject)).ShouldBe(0, "the user still exists, so nothing may be erased later");
         using var stillSignedIn = await client.GetAsync("api/v1/auth/user", Ct);
         stillSignedIn.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task DeleteAccount_WhenTheErasureFails_ShouldStillSucceedAndKeepThePendingRecord()
+    {
+        app.Clock.Realign();
+        var (user, subject) = await CreateUserAsync(9209);
+        var resume = await SeedResumeAsync(subject);
+        var (client, _) = await app.SignInAsync(user, ct: Ct);
+        using var _client = client;
+        var (otherDevice, _) = await app.SignInAsync(user, ct: Ct);
+        using var _otherDevice = otherDevice;
+        FailingUserDeletedHandler.FailFor.Add(subject);
+
+        try
+        {
+            using var response = await client.DeleteAsync(Route, Ct);
+
+            response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        }
+        finally
+        {
+            FailingUserDeletedHandler.FailFor.Remove(subject);
+        }
+
+        (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct)).ShouldBeNull();
+        (await CountSessionsAsync(subject)).ShouldBe(0);
+        (await CountPendingErasuresAsync(subject)).ShouldBe(1, "the unfinished erasure stays recorded for the sweep");
+        (await CountResumesAsync(resume)).ShouldBe(1);
+
+        await RemovePendingErasureAsync(subject);
+    }
+
+    [Fact]
+    public async Task Sweep_ForADeletedUserOlderThanTenMinutes_ShouldEraseTheDataAndForgetTheRecord()
+    {
+        app.Clock.Realign();
+        var (user, subject) = await CreateUserAsync(9210);
+        var resume = await SeedResumeAsync(subject);
+        var (client, _) = await app.SignInAsync(user, ct: Ct);
+        using var _client = client;
+        await DeleteKeycloakUserAsync(subject);
+        await AddPendingErasureAsync(subject, TimeSpan.FromMinutes(11));
+
+        await SweepAsync();
+
+        (await CountResumesAsync(resume)).ShouldBe(0);
+        (await CountSessionsAsync(subject)).ShouldBe(0);
+        (await CountPendingErasuresAsync(subject)).ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Sweep_ForAUserWhoStillExists_ShouldForgetTheRecordAndKeepEverything()
+    {
+        app.Clock.Realign();
+        var (user, subject) = await CreateUserAsync(9211);
+        var resume = await SeedResumeAsync(subject);
+        var (client, _) = await app.SignInAsync(user, ct: Ct);
+        using var _client = client;
+        await AddPendingErasureAsync(subject, TimeSpan.FromMinutes(11));
+
+        await SweepAsync();
+
+        (await CountPendingErasuresAsync(subject)).ShouldBe(0);
+        (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct)).ShouldBe(subject);
+        (await CountResumesAsync(resume)).ShouldBe(1);
+        (await CountSessionsAsync(subject)).ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Sweep_ForARecordYoungerThanTenMinutes_ShouldLeaveItAlone()
+    {
+        app.Clock.Realign();
+        var (_, subject) = await CreateUserAsync(9212);
+        var resume = await SeedResumeAsync(subject);
+        await DeleteKeycloakUserAsync(subject);
+        await AddPendingErasureAsync(subject, TimeSpan.FromMinutes(5));
+
+        await SweepAsync();
+
+        (await CountPendingErasuresAsync(subject)).ShouldBe(1);
+        (await CountResumesAsync(resume)).ShouldBe(1);
+        await RemovePendingErasureAsync(subject);
+    }
+
+    private async Task<int> SweepAsync()
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+
+        return await scope.ServiceProvider.GetRequiredService<PendingErasureSweeper>().SweepAsync(Ct);
+    }
+
+    private async Task DeleteKeycloakUserAsync(string subject)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        var deleted = await scope.ServiceProvider.GetRequiredService<KeycloakAdminClient>().DeleteUserAsync(subject, Ct);
+        deleted.IsError.ShouldBeFalse();
+    }
+
+    private async Task AddPendingErasureAsync(string subject, TimeSpan age)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        db.PendingAccountErasures.Add(new PendingAccountErasure { Subject = subject, RequestedAt = app.Clock.GetUtcNow() - age });
+        await db.SaveChangesAsync(Ct);
+    }
+
+    private async Task RemovePendingErasureAsync(string subject)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        await db.PendingAccountErasures.Where(e => e.Subject == subject).ExecuteDeleteAsync(Ct);
+    }
+
+    private async Task<int> CountPendingErasuresAsync(string subject)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+
+        return await db.PendingAccountErasures.CountAsync(e => e.Subject == subject, Ct);
     }
 
     private static async Task ShouldRequireReauthenticationAsync(HttpResponseMessage response)

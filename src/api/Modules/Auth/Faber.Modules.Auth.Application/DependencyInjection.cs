@@ -50,6 +50,8 @@ public static class DependencyInjection
         services.AddScoped<SessionRefresher>();
         services.AddScoped<ExpiredSessionSweeper>();
         services.AddHostedService<ExpiredSessionSweepService>();
+        services.AddScoped<PendingErasureSweeper>();
+        services.AddHostedService<PendingErasureSweepService>();
         services.AddScoped<LogoutTokenValidator>();
         services.AddScoped<AccountSignInMethodsLock>();
         // Short: a refresh holds the session's row lock while it waits.

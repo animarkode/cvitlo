@@ -3,12 +3,14 @@ using DotNet.Testcontainers.Networks;
 using Faber.Modules.Auth.Application.Sessions;
 using Faber.Modules.Auth.Application.Tests.Support;
 using Faber.Modules.Auth.Infrastructure.Database;
+using Faber.Modules.Auth.PublicApi.Events;
 using Faber.Modules.Resumes.Infrastructure.Database;
 using AuthDbConstants = Faber.Modules.Auth.Infrastructure.Database.DbConstants;
 using ResumesDbConstants = Faber.Modules.Resumes.Infrastructure.Database.DbConstants;
 using Faber.Testing.Shared.Containers;
 using Faber.Testing.Shared.Data;
 using Faber.Testing.Shared.Http;
+using FastEndpoints;
 using FastEndpoints.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -150,6 +152,7 @@ public class WebApp : AppFixture<Program>
     {
         services.RemoveAll<TimeProvider>();
         services.AddSingleton<TimeProvider>(Clock);
+        services.RegisterTestEventHandler<UserDeleted, FailingUserDeletedHandler>();
         services.AddHttpClient<KeycloakTokenClient>().AddHttpMessageHandler(KeycloakBackChannel.CreateHandler);
         services.AddHttpClient<KeycloakAdminClient>().AddHttpMessageHandler(KeycloakAdminBackChannel.CreateHandler);
     }

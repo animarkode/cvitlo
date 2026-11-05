@@ -2,8 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using ErrorOr;
 using Faber.Modules.Auth.Application.Sessions;
 using Faber.Modules.Auth.PublicApi;
+using Faber.Modules.Auth.Infrastructure.Database;
 using Faber.Modules.Auth.PublicApi.Events;
 using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 
@@ -17,9 +19,13 @@ namespace Faber.Modules.Auth.Application.Features.Account.DeleteAccount;
 /// the Keycloak user is gone the deletion cannot be undone, so the rest no longer depends on the request:
 /// it runs with <see cref="CancellationToken.None"/>. Sessions end before <see cref="UserDeleted"/> is published,
 /// so no other tab or device can write data after the erasure. A failing module does not fail the request.
+/// A <see cref="PendingAccountErasure"/> row is saved before the Keycloak call and removed only when everything
+/// is done, so a failed publish or a crash leaves a durable record that <see cref="PendingErasureSweeper"/>
+/// finishes. If Keycloak fails the row is removed, because the user still exists and nothing may be erased.
 /// </remarks>
 public class DeleteAccountCommandHandler(
     KeycloakAdminClient keycloak,
+    AuthDbContext db,
     PostgresTicketStore sessions,
     TimeProvider time,
     ILogger<DeleteAccountCommandHandler> logger)
@@ -42,16 +48,22 @@ public class DeleteAccountCommandHandler(
                 "Sign in again to delete the account.");
         }
 
+        await RecordPendingErasureAsync(command.Subject, ct);
+
         var deleted = await keycloak.DeleteUserAsync(command.Subject, ct);
         if (deleted.IsError)
         {
+            await ForgetPendingErasureAsync(command.Subject);
             logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, deleted.FirstError.Code);
             return deleted.FirstError;
         }
 
         // Past the point of no return: a cancelled request must not leave sessions open or data behind.
         await sessions.RemoveBySubjectAsync(command.Subject);
-        await EraseUserDataAsync(command.Subject);
+        if (await EraseUserDataAsync(command.Subject))
+        {
+            await ForgetPendingErasureAsync(command.Subject);
+        }
 
         logger.LogInformation("[SUCCESS] {HandlerName}", HandlerName);
         return Result.Deleted;
@@ -84,19 +96,41 @@ public class DeleteAccountCommandHandler(
         "Design",
         "CA1031:Do not catch general exception types",
         Justification = "The Keycloak user is already deleted, so a failing module must not turn the request into an error; it is logged for a republish.")]
-    private async Task EraseUserDataAsync(string subject)
+    private async Task<bool> EraseUserDataAsync(string subject)
     {
         try
         {
             await new UserDeleted(subject).PublishAsync(Mode.WaitForAll, CancellationToken.None);
+            return true;
         }
         catch (Exception exception)
         {
             logger.LogError(
                 exception,
-                "[FAIL] {HandlerName} | The data of {Subject} was not erased; it must be purged by republishing UserDeleted",
+                "[FAIL] {HandlerName} | The data of {Subject} was not erased; the pending erasure is kept for the hourly sweep",
                 HandlerName,
                 subject);
+            return false;
         }
+    }
+
+    private async Task RecordPendingErasureAsync(string subject, CancellationToken ct)
+    {
+        var pending = await db.PendingAccountErasures.AsTracking().FirstOrDefaultAsync(e => e.Subject == subject, ct);
+        if (pending is null)
+        {
+            db.PendingAccountErasures.Add(new PendingAccountErasure { Subject = subject, RequestedAt = time.GetUtcNow() });
+        }
+        else
+        {
+            pending.RequestedAt = time.GetUtcNow();
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    private async Task ForgetPendingErasureAsync(string subject)
+    {
+        await db.PendingAccountErasures.Where(e => e.Subject == subject).ExecuteDeleteAsync(CancellationToken.None);
     }
 }

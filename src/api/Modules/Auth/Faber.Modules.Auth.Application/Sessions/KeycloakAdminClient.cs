@@ -58,6 +58,43 @@ public sealed class KeycloakAdminClient(
         }
     }
 
+    /// <summary>Asks whether Keycloak still knows a user. Viewing is part of <c>manage-users</c>.</summary>
+    /// <param name="subject">The Keycloak user id (the token's <c>sub</c>).</param>
+    /// <param name="ct">Cancels the calls.</param>
+    public async Task<ErrorOr<bool>> UserExistsAsync(string subject, CancellationToken ct)
+    {
+        try
+        {
+            var token = await GetAccessTokenAsync(ct);
+            if (token.IsError)
+            {
+                return token.Errors;
+            }
+
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get, $"{options.Value.AdminUsersUrl}/{Uri.EscapeDataString(subject)}");
+            request.Headers.Authorization = new("Bearer", token.Value);
+
+            using var response = await http.SendAsync(request, ct);
+            if (response.StatusCode is HttpStatusCode.OK)
+            {
+                return true;
+            }
+
+            if (response.StatusCode is HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            logger.LogError("Keycloak's Admin API answered {StatusCode} to a user lookup", (int)response.StatusCode);
+            return Unavailable();
+        }
+        catch (Exception exception) when (IsTransient(exception, ct))
+        {
+            return Unavailable(exception);
+        }
+    }
+
     private async Task<ErrorOr<string>> GetAccessTokenAsync(CancellationToken ct)
     {
         var keycloak = options.Value;
