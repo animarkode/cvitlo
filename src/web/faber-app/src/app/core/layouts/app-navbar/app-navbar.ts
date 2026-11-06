@@ -33,7 +33,6 @@ import { AppUserMenu } from './app-user-menu/app-user-menu';
   host: {
     'class': 'block',
     '(window:resize)': 'onResize()',
-    '(window:scroll)': 'onScroll()',
   },
 })
 export class AppNavbar implements OnInit {
@@ -45,7 +44,8 @@ export class AppNavbar implements OnInit {
 
   isUserMenuDropdownVisible = signal(false);
   isDrawerOpen = signal(false);
-  isScrolled = signal(false);
+  /** Set by the shell from its scroll container: the window itself never scrolls. */
+  scrolled = input(false);
   title = input('microcivi.com');
 
   private readonly userMenuAnchor = viewChild<ElementRef>('userMenuAnchor');
@@ -100,10 +100,6 @@ export class AppNavbar implements OnInit {
         this.closeDrawer();
         this.isUserMenuDropdownVisible.set(false);
       });
-  }
-
-  onScroll(): void {
-    this.isScrolled.set(window.scrollY > 10);
   }
 
   onResize() {
