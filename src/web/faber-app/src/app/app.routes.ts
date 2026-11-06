@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/guards/auth-guard';
+import { accountDeletedGuard } from './modules/users/account-deleted/account-deleted-guard';
 import { ResumesStore } from './modules/resumes/resumes-store';
 
 export const routes: Routes = [
@@ -19,6 +20,11 @@ export const routes: Routes = [
         path: 'account',
         loadChildren: () => import('./modules/users/users.routes').then(m => m.usersRoutes),
         canActivate: [authGuard],
+      },
+      {
+        path: 'account-deleted',
+        loadComponent: () => import('./modules/users/account-deleted/account-deleted').then(m => m.AccountDeleted),
+        canActivate: [accountDeletedGuard],
       },
       {
         path: 'resumes',

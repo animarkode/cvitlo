@@ -72,4 +72,16 @@ describe('AppShell', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should turn the navbar to glass once the content scrolls', () => {
+    const content = fixture.nativeElement.querySelector('div.overflow-y-auto') as HTMLElement;
+    const navbar = (): HTMLElement => fixture.nativeElement.querySelector('.navbar-shell');
+    expect(navbar().classList).toContain('navbar-shell--top');
+
+    content.scrollTop = 200;
+    content.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(navbar().classList).toContain('navbar-shell--glass');
+  });
 });

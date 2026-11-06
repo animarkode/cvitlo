@@ -30,13 +30,21 @@ public class AccountActionEndpoint : EndpointWithoutRequest<Results<ChallengeHtt
     public override async Task<Results<ChallengeHttpResult, NotFound>> ExecuteAsync(CancellationToken ct)
     {
         var action = Route<string>("action", isRequired: false);
-        if (!AccountActions.TryGetKcAction(action, out var kcAction))
+        if (!AccountActions.IsAllowed(action))
         {
             return TypedResults.NotFound();
         }
 
         var properties = new AuthenticationProperties { RedirectUri = AccountActions.ReturnPath(action!, AccountActions.StatusError) };
-        properties.Items[OidcParameters.KcAction] = kcAction;
+        if (AccountActions.TryGetKcAction(action, out var kcAction))
+        {
+            properties.Items[OidcParameters.KcAction] = kcAction;
+        }
+        else
+        {
+            properties.Items[OidcParameters.Prompt] = "login";
+        }
+
         properties.Items[OidcParameters.AccountAction] = action;
 
         // The callback runs without the session cookie (SameSite=Strict, arriving from Keycloak), so the

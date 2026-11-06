@@ -6,7 +6,7 @@ export type AccountAction =
   | 'email'
   | 'link-google'
   | 'link-github'
-  | 'delete';
+  | 'reauthenticate';
 
 export interface ProfileField {
   name: string;

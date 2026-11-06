@@ -16,6 +16,15 @@ public class KeycloakOptions
 
     public string ClientSecret { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The confidential client whose service account may only manage users (the Admin API). Used solely to
+    /// delete a user's own account; it has no sign-in flow.
+    /// </summary>
+    public string AdminClientId { get; set; } = "faber-admin";
+
+    /// <summary>The secret of <see cref="AdminClientId"/>.</summary>
+    public string AdminClientSecret { get; set; } = string.Empty;
+
     /// <summary>Off only for a local Keycloak served over plain HTTP.</summary>
     public bool RequireHttpsMetadata { get; set; } = true;
 
@@ -31,4 +40,10 @@ public class KeycloakOptions
 
     /// <summary>Keycloak's Account REST API, called with the signed-in user's own access token.</summary>
     public string AccountApiUrl => $"{Issuer}/account";
+
+    /// <summary>
+    /// Keycloak's Admin API users collection, derived from <see cref="Issuer"/>
+    /// (<c>{server}/realms/{realm}</c> becomes <c>{server}/admin/realms/{realm}/users</c>).
+    /// </summary>
+    public string AdminUsersUrl => Issuer.Replace("/realms/", "/admin/realms/", StringComparison.Ordinal) + "/users";
 }

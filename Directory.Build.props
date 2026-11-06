@@ -21,4 +21,14 @@
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
   </PropertyGroup>
 
+  <!--
+    Without a documentation file the compiler reads `///` as plain comments, so the build never sees
+    a broken doc comment (RCS1139 missing <summary>, CS1572/CS1573 wrong <param>, CS1574 bad cref)
+    that Rider already flags. Not every public member must be documented, hence CS1591 is off.
+  -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
 </Project>

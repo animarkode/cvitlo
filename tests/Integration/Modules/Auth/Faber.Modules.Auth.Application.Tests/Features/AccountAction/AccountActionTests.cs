@@ -18,7 +18,6 @@ public class AccountActionTests(WebApp app)
     [InlineData("passkey", "/account/signing-in?action=passkey&status=success")]
     [InlineData("email", "/account/personal-info?action=email&status=success")]
     [InlineData("link-github", "/account/linked-accounts?action=link-github&status=success")]
-    [InlineData("delete", "/account/personal-info?action=delete&status=success")]
     public void ReturnPath_ForAnAction_ShouldPointAtItsAccountSection(string action, string expected)
     {
         AccountActions.ReturnPath(action, AccountActions.StatusSuccess).ShouldBe(expected);
@@ -36,6 +35,7 @@ public class AccountActionTests(WebApp app)
 
     [Theory]
     [InlineData("unknown")]
+    [InlineData("delete")]
     [InlineData("UPDATE_PASSWORD")]
     [InlineData("idp_link:google")]
     public async Task AccountAction_WithUnknownAction_ShouldReturnNotFound(string action)
@@ -55,7 +55,6 @@ public class AccountActionTests(WebApp app)
     [InlineData("email", "UPDATE_EMAIL")]
     [InlineData("link-google", "idp_link:google")]
     [InlineData("link-github", "idp_link:github")]
-    [InlineData("delete", "delete_account")]
     public async Task AccountAction_ShouldRedirectToKeycloakWithTheMappedAction(string action, string kcAction)
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);

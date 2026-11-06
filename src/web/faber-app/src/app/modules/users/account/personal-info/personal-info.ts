@@ -11,7 +11,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { Check, LUCIDE_ICONS, LucideAngularModule, LucideIconProvider, Trash2 } from 'lucide-angular';
 import { AuthStore } from '../../../../core/auth/auth-store';
-import { AccountClient } from '../account-client';
+import { AccountClient, problemCode } from '../account-client';
 import { AccountConfirm } from '../account-confirm';
 import { AccountProfile, ProfileField } from '../account-contracts';
 import { humanize } from '../account-labels';
@@ -45,6 +45,8 @@ export class PersonalInfo {
   protected readonly saving = signal(false);
   protected readonly saved = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly deleting = signal(false);
+  protected readonly deleteError = signal<string | null>(null);
   protected readonly serverErrors = signal<Record<string, string[]>>({});
 
   /** The profile as last read or saved, kept apart from the resource so a save can replace it locally. */
@@ -110,12 +112,33 @@ export class PersonalInfo {
     this.confirmation
       .ask({
         title: 'Delete account',
-        message: 'This permanently deletes your account and your ability to sign in. This cannot be undone.',
+        message:
+          'This permanently deletes your account and all your resumes. This cannot be undone. You may be asked to sign in again first.',
         confirmLabel: 'Delete account',
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(confirmed => {
-        if (confirmed) this.client.startAction('delete');
+        if (confirmed) this.performDeletion();
+      });
+  }
+
+  private performDeletion(): void {
+    if (this.deleting()) return;
+    this.deleting.set(true);
+    this.deleteError.set(null);
+    this.client
+      .deleteAccount()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.client.leaveDeletedAccount(),
+        error: (e: unknown) => {
+          this.deleting.set(false);
+          if (e instanceof HttpErrorResponse && e.status === 403 && problemCode(e) === 'Account.ReauthenticationRequired') {
+            this.client.startAction('reauthenticate');
+            return;
+          }
+          this.deleteError.set('Your account could not be deleted. Try again later.');
+        },
       });
   }
 

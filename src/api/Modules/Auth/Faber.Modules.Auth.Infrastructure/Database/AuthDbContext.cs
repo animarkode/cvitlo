@@ -7,6 +7,8 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
 {
     public DbSet<AuthSession> Sessions => Set<AuthSession>();
 
+    public DbSet<PendingAccountErasure> PendingAccountErasures => Set<PendingAccountErasure>();
+
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,6 +26,14 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             session.HasIndex(s => s.KeycloakSessionId);
             session.HasIndex(s => s.Subject);
             session.HasIndex(s => s.ExpiresAt);
+        });
+
+        modelBuilder.Entity<PendingAccountErasure>(erasure =>
+        {
+            erasure.ToTable("pending_account_erasures");
+            erasure.HasKey(e => e.Subject);
+            erasure.Property(e => e.Subject).HasMaxLength(DbConstants.KeycloakIdMaxLength);
+            erasure.HasIndex(e => e.RequestedAt);
         });
 
         modelBuilder.Entity<DataProtectionKey>().ToTable("data_protection_keys");

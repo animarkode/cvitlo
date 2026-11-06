@@ -16,7 +16,8 @@ public class AppHostModelTests
         "--Parameters:postgres-password=test-postgres-password",
         "--Parameters:keycloak-admin=test-keycloak-admin",
         "--Parameters:keycloak-password=test-keycloak-password",
-        "--Parameters:faber-api-client-secret=test-faber-api-client-secret"
+        "--Parameters:faber-api-client-secret=test-faber-api-client-secret",
+        "--Parameters:faber-admin-client-secret=test-faber-admin-client-secret"
     ];
 
     [Fact]

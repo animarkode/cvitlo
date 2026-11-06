@@ -86,6 +86,8 @@ describe('Account', () => {
     ['/account/signing-in?action=password&status=success', 'Password updated'],
     ['/account/signing-in?action=passkey&status=cancelled', 'Cancelled'],
     ['/account/signing-in?action=totp&status=error', 'Something went wrong'],
+    ['/account/personal-info?action=reauthenticate&status=success', 'You signed in again. You can delete your account now.'],
+    ['/account/personal-info?action=reauthenticate&status=error', 'Something went wrong'],
   ])('should show the outcome of %s', async (url, message) => {
     await open(url);
 

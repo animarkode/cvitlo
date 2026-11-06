@@ -130,22 +130,62 @@ describe('PersonalInfo', () => {
     expect(el().querySelector('[data-test="email-verified"]')!.textContent?.trim()).toBe('Verified');
   });
 
-  it('should start deleting the account only after confirmation', () => {
+  function confirmDelete(): void {
     vi.spyOn(TestBed.inject(AccountConfirm), 'ask').mockReturnValue(of(true));
-    const start = vi.spyOn(TestBed.inject(AccountClient), 'startAction').mockImplementation(() => undefined);
+    el().querySelector<HTMLElement>('[data-test="delete-account"]')!.click();
+  }
 
+  it('should leave for the account-deleted page once the account is deleted', () => {
+    const leave = vi.spyOn(TestBed.inject(AccountClient), 'leaveDeletedAccount').mockImplementation(() => undefined);
+    confirmDelete();
+
+    const req = http.expectOne(API_ROUTES.auth.account.self);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(leave).toHaveBeenCalledTimes(1);
+  });
+
+  it('should sign in again when the API asks for a recent sign-in', () => {
+    const start = vi.spyOn(TestBed.inject(AccountClient), 'startAction').mockImplementation(() => undefined);
+    confirmDelete();
+
+    http.expectOne(API_ROUTES.auth.account.self).flush(
+      { code: 'Account.ReauthenticationRequired' },
+      { status: 403, statusText: 'Forbidden' },
+    );
+
+    expect(start).toHaveBeenCalledWith('reauthenticate');
+  });
+
+  it('should show a failure when Keycloak is unavailable', () => {
+    const start = vi.spyOn(TestBed.inject(AccountClient), 'startAction').mockImplementation(() => undefined);
+    confirmDelete();
+
+    http.expectOne(API_ROUTES.auth.account.self).flush({ code: 'Account.Unavailable' }, { status: 502, statusText: 'Bad Gateway' });
+    fixture.detectChanges();
+
+    expect(start).not.toHaveBeenCalled();
+    expect(el().querySelector('[data-test="delete-error"]')!.textContent).toContain('could not be deleted');
+    expect(el().querySelector<HTMLButtonElement>('[data-test="delete-account"]')!.disabled).toBe(false);
+  });
+
+  it('should ignore a second click while deleting', () => {
+    confirmDelete();
+    fixture.detectChanges();
+
+    expect(el().querySelector<HTMLButtonElement>('[data-test="delete-account"]')!.disabled).toBe(true);
     el().querySelector<HTMLElement>('[data-test="delete-account"]')!.click();
 
-    expect(start).toHaveBeenCalledWith('delete');
+    http.expectOne(API_ROUTES.auth.account.self);
   });
 
   it('should stay put when deleting is declined', () => {
     vi.spyOn(TestBed.inject(AccountConfirm), 'ask').mockReturnValue(of(false));
-    const start = vi.spyOn(TestBed.inject(AccountClient), 'startAction').mockImplementation(() => undefined);
 
     el().querySelector<HTMLElement>('[data-test="delete-account"]')!.click();
 
-    expect(start).not.toHaveBeenCalled();
+    http.expectNone(API_ROUTES.auth.account.self);
   });
 
   it('should have no AXE violations', async () => {

@@ -143,6 +143,23 @@ public sealed class KeycloakAdminTestClient(string baseAddress, string adminUser
             $"admin/realms/{Realm}/roles/{Uri.EscapeDataString(roleName)}/composites", ct))!;
     }
 
+    /// <summary>Gets a user's role mappings: <c>realmMappings</c> and <c>clientMappings</c> keyed by client id.</summary>
+    public async Task<JsonObject> GetRoleMappingsAsync(string userId, CancellationToken ct = default)
+    {
+        await AuthorizeAsync(ct);
+        return (await _http.GetFromJsonAsync<JsonObject>($"admin/realms/{Realm}/users/{userId}/role-mappings", ct))!;
+    }
+
+    /// <summary>Gets the id of the user that acts as a client's service account.</summary>
+    public async Task<string> GetServiceAccountUserIdAsync(string clientId, CancellationToken ct = default)
+    {
+        var client = await GetClientAsync(clientId, ct);
+        var user = await _http.GetFromJsonAsync<JsonObject>(
+            $"admin/realms/{Realm}/clients/{client["id"]!.GetValue<string>()}/service-account-user", ct);
+
+        return user!["id"]!.GetValue<string>();
+    }
+
     /// <summary>Reads a client, lets <paramref name="change"/> modify it and writes it back.</summary>
     public async Task UpdateClientAsync(string clientId, Action<JsonObject> change, CancellationToken ct = default)
     {

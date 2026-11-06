@@ -29,6 +29,8 @@ public sealed class FaberKeycloak : IAsyncDisposable
     public const string Realm = "faber";
     public const string ClientId = "faber-api";
     public const string ClientSecret = "secret-secret";
+    public const string AdminClientId = "faber-admin";
+    public const string AdminClientSecret = "admin-secret-secret";
 
     /// <summary>
     /// A public client with the password grant that exists only in tests. It stands in for the planned mobile
@@ -165,6 +167,7 @@ public sealed class FaberKeycloak : IAsyncDisposable
             .WithEnvironment("IMPORT_VARSUBSTITUTION_ENABLED", "true")
             .WithEnvironment("IMPORT_CACHE_ENABLED", "false")
             .WithEnvironment("FABER_API_CLIENT_SECRET", ClientSecret)
+            .WithEnvironment("FABER_ADMIN_CLIENT_SECRET", AdminClientSecret)
             .WithEnvironment("FABER_APP_URL", appUrl)
             .WithEnvironment("FABER_BACKCHANNEL_LOGOUT_URL", backchannelLogoutUrl)
             .WithEnvironment("KC_SMTP_HOST", MailpitAlias)

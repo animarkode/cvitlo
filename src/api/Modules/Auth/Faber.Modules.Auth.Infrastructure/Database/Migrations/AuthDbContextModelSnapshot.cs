@@ -69,6 +69,26 @@ namespace Faber.Modules.Auth.Infrastructure.Database.Migrations
                     b.ToTable("sessions", "auth");
                 });
 
+            modelBuilder.Entity("Faber.Modules.Auth.Infrastructure.Database.PendingAccountErasure", b =>
+                {
+                    b.Property<string>("Subject")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("subject");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at");
+
+                    b.HasKey("Subject")
+                        .HasName("pk_pending_account_erasures");
+
+                    b.HasIndex("RequestedAt")
+                        .HasDatabaseName("ix_pending_account_erasures_requested_at");
+
+                    b.ToTable("pending_account_erasures", "auth");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")

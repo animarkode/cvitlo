@@ -44,7 +44,7 @@ Features/{Feature}/
 
 ## C# Patterns
 
-**Use:** records for DTOs/commands/requests/responses · primary constructors for DI · file-scoped namespaces · `ErrorOr<T>` for results · static mapper classes · guard clauses / early returns · `CancellationToken ct` as last async parameter · Options Pattern with `IOptions<T>` / `IConfigureOptions<T>` · curly braces `{}` for all `if` blocks.
+**Use:** records for DTOs/commands/requests/responses · primary constructors for DI · file-scoped namespaces · `ErrorOr<T>` for results · static mapper classes · guard clauses / early returns · `CancellationToken ct` as last async parameter · Options Pattern with `IOptions<T>` / `IConfigureOptions<T>` · curly braces `{}` for all `if` blocks · every `///` doc comment starts with a `<summary>`, records with `<param>` lines included (RCS1139 fails the build).
 
 **Avoid:** AutoMapper · repository pattern over EF Core · exceptions for flow control · `#region`/`#endregion` · `if-else` chains.
 

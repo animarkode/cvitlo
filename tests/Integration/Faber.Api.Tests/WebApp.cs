@@ -76,6 +76,7 @@ public class WebApp : AppFixture<Program>
         builder.UseSetting("Keycloak:Audience", FaberKeycloak.ClientId);
         builder.UseSetting("Keycloak:ClientId", FaberKeycloak.ClientId);
         builder.UseSetting("Keycloak:ClientSecret", FaberKeycloak.ClientSecret);
+        builder.UseSetting("Keycloak:AdminClientSecret", FaberKeycloak.AdminClientSecret);
         builder.UseSetting("Keycloak:RequireHttpsMetadata", "false");
 
         builder.UseSetting("RateLimiting:Enabled", "true");

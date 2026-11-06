@@ -3,9 +3,14 @@ using DotNet.Testcontainers.Networks;
 using Faber.Modules.Auth.Application.Sessions;
 using Faber.Modules.Auth.Application.Tests.Support;
 using Faber.Modules.Auth.Infrastructure.Database;
+using Faber.Modules.Auth.PublicApi.Events;
+using Faber.Modules.Resumes.Infrastructure.Database;
+using AuthDbConstants = Faber.Modules.Auth.Infrastructure.Database.DbConstants;
+using ResumesDbConstants = Faber.Modules.Resumes.Infrastructure.Database.DbConstants;
 using Faber.Testing.Shared.Containers;
 using Faber.Testing.Shared.Data;
 using Faber.Testing.Shared.Http;
+using FastEndpoints;
 using FastEndpoints.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -34,12 +39,15 @@ public class WebApp : AppFixture<Program>
     public BackchannelLogoutRelay Relay => _relay ?? throw new InvalidOperationException("Relay not started");
 
     /// <summary>The clock the API reads; tests move it forward to make access tokens look expired.</summary>
-    public FakeTimeProvider Clock { get; } = new(DateTimeOffset.UtcNow);
+    public RealignableClock Clock { get; } = new(DateTimeOffset.UtcNow);
 
     public List<TestUser> Users { get; } = RegisteredUsersData.Generate();
 
     /// <summary>Lets a test make Keycloak's token endpoint misbehave for the API's back-channel calls.</summary>
     public TokenEndpointInterceptor KeycloakBackChannel { get; } = new();
+
+    /// <summary>The same for the Admin API client, which deletes accounts.</summary>
+    public TokenEndpointInterceptor KeycloakAdminBackChannel { get; } = new();
 
     /// <summary>A second realm in the same Keycloak that plays Google or GitHub.</summary>
     public static readonly StandInIdentityProvider StandIn = new(
@@ -97,11 +105,21 @@ public class WebApp : AppFixture<Program>
         // Before the API starts: Data Protection reads its key table on first use.
         await using (var db = new AuthDbContext(new DbContextOptionsBuilder<AuthDbContext>()
                          .UseNpgsql(_postgres.GetConnectionString(), o => o.MigrationsHistoryTable(
-                             DbConstants.MigrationsHistoryTableName, DbConstants.SchemaName))
+                             AuthDbConstants.MigrationsHistoryTableName, AuthDbConstants.SchemaName))
                          .UseSnakeCaseNamingConvention()
                          .Options))
         {
             await db.Database.MigrateAsync();
+        }
+
+        // Deleting an account reaches the resumes schema.
+        await using (var resumesDb = new ResumesDbContext(new DbContextOptionsBuilder<ResumesDbContext>()
+                         .UseNpgsql(_postgres.GetConnectionString(), o => o.MigrationsHistoryTable(
+                             ResumesDbConstants.MigrationsHistoryTableName, ResumesDbConstants.SchemaName))
+                         .UseSnakeCaseNamingConvention()
+                         .Options))
+        {
+            await resumesDb.Database.MigrateAsync();
         }
 
         foreach (var user in Users)
@@ -125,6 +143,7 @@ public class WebApp : AppFixture<Program>
         builder.UseSetting("Keycloak:Audience", FaberKeycloak.ClientId);
         builder.UseSetting("Keycloak:ClientId", FaberKeycloak.ClientId);
         builder.UseSetting("Keycloak:ClientSecret", FaberKeycloak.ClientSecret);
+        builder.UseSetting("Keycloak:AdminClientSecret", FaberKeycloak.AdminClientSecret);
         builder.UseSetting("Keycloak:RequireHttpsMetadata", "false");
         builder.UseSetting("RateLimiting:Enabled", "false");
     }
@@ -133,7 +152,9 @@ public class WebApp : AppFixture<Program>
     {
         services.RemoveAll<TimeProvider>();
         services.AddSingleton<TimeProvider>(Clock);
+        services.RegisterTestEventHandler<UserDeleted, FailingUserDeletedHandler>();
         services.AddHttpClient<KeycloakTokenClient>().AddHttpMessageHandler(KeycloakBackChannel.CreateHandler);
+        services.AddHttpClient<KeycloakAdminClient>().AddHttpMessageHandler(KeycloakAdminBackChannel.CreateHandler);
     }
 
     protected override async ValueTask TearDownAsync()

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Faber.Modules.Auth.Application.Sessions;
 
-/// <summary>The two back-channel calls the BFF makes to Keycloak after sign-in: refresh and logout.</summary>
+/// <summary>The back-channel calls the BFF makes to Keycloak's token endpoints: refresh, logout and client credentials.</summary>
 public sealed class KeycloakTokenClient(
     HttpClient http,
     IOptions<KeycloakOptions> options,
@@ -53,6 +53,39 @@ public sealed class KeycloakTokenClient(
         {
             logger.LogError(exception, "Keycloak could not be asked to refresh; the session is kept");
             return RefreshResult.Unavailable;
+        }
+    }
+
+    /// <summary>Requests an access token for a confidential client's own service account.</summary>
+    /// <returns>The tokens, or <see langword="null"/> when Keycloak refused or could not be reached (logged).</returns>
+    public async Task<TokenResponse?> GetClientCredentialsTokenAsync(
+        string clientId, string clientSecret, CancellationToken ct)
+    {
+        try
+        {
+            using var form = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["grant_type"] = "client_credentials",
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret
+            });
+            using var response = await http.PostAsync(_options.TokenEndpoint, form, ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var tokens = await response.Content.ReadFromJsonAsync<TokenResponse>(ct);
+                return string.IsNullOrEmpty(tokens?.AccessToken) ? null : tokens;
+            }
+
+            logger.LogError("Keycloak refused the client {ClientId}'s token request with {StatusCode} {Error}",
+                clientId, (int)response.StatusCode, await ReadOAuthErrorAsync(response, ct));
+            return null;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or JsonException
+                                              || (exception is TaskCanceledException && !ct.IsCancellationRequested))
+        {
+            logger.LogError(exception, "Keycloak could not be asked for the client {ClientId}'s token", clientId);
+            return null;
         }
     }
 

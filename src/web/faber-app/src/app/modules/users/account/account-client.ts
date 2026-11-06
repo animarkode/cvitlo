@@ -2,6 +2,8 @@ import { DOCUMENT, inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ROUTES } from '../../../core/routes/api-routes';
+import { APP_ROUTES } from '../../../core/routes/app-routes';
+import { rememberAccountDeleted } from '../account-deleted/account-deleted-flag';
 import {
   AccountAction,
   AccountDevice,
@@ -57,10 +59,30 @@ export class AccountClient {
     return this.http.delete<void>(API_ROUTES.auth.account.otherSessions);
   }
 
+  /** Deletes the account and every resume of the person; the API ends the session too. */
+  deleteAccount(): Observable<void> {
+    return this.http.delete<void>(API_ROUTES.auth.account.self);
+  }
+
+  /** A full navigation, not a router one: the in-memory signed-in state must reset. */
+  leaveDeletedAccount(): void {
+    rememberAccountDeleted(this.document.defaultView?.sessionStorage);
+    this.document.location.assign(APP_ROUTES.accountDeleted);
+  }
+
   /** Leaves the app for the Keycloak flow behind the action. */
   startAction(action: AccountAction): void {
     this.document.location.assign(API_ROUTES.auth.account.action(action));
   }
+}
+
+/** The machine-readable `code` extension of a failed account call's problem details, if any. */
+export function problemCode(error: unknown): string | null {
+  if (error instanceof HttpErrorResponse) {
+    const code = (error.error as { code?: unknown } | null)?.code;
+    if (typeof code === 'string') return code;
+  }
+  return null;
 }
 
 /** The human message of a failed account call: the problem's `detail` when the API gave one. */
