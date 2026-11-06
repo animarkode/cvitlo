@@ -483,7 +483,9 @@ $RECYCLE.BIN/
 
 ### JetBrains Rider ###
 .idea/
+.openidea/
 .superpowers/
+.playwright-mcp/
 docs/superpowers/
 docs/issues/
 docs/plans/
