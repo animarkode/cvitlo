@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { expectNoAxeViolations } from '../../../shared/testing/axe';
 import { AccountDeleted } from './account-deleted';
 
@@ -9,7 +8,6 @@ describe('AccountDeleted', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AccountDeleted],
-      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AccountDeleted);
@@ -21,9 +19,8 @@ describe('AccountDeleted', () => {
     expect(heading?.textContent).toContain('Your account has been deleted');
   });
 
-  it('should lead back to the home page', () => {
-    const link = (fixture.nativeElement as HTMLElement).querySelector('a');
-    expect(link?.getAttribute('href')).toBe('/');
+  it('should offer no way onward but the navbar', () => {
+    expect((fixture.nativeElement as HTMLElement).querySelector('a, button')).toBeNull();
   });
 
   it('should have no AXE violations', async () => {
