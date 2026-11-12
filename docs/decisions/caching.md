@@ -1,7 +1,7 @@
 # Caching
 
-Faber.Api uses `HybridCache` (`Microsoft.Extensions.Caching.Hybrid`), wired in
-`src/api/Faber.Api/Caching/CachingServiceCollectionExtensions.cs` (`AddFaberCaching`) and consumed
+Cvitlo.Api uses `HybridCache` (`Microsoft.Extensions.Caching.Hybrid`), wired in
+`src/api/Cvitlo.Api/Caching/CachingServiceCollectionExtensions.cs` (`AddFaberCaching`) and consumed
 by the Resumes module.
 
 ## What is cached
@@ -17,7 +17,7 @@ hit — caching removes the render cost, not the request budget.
 
 ## Key and tag scheme
 
-Keys and tags are built by `Faber.Modules.Resumes.Application.Caching.ResumesCacheKeys`, all
+Keys and tags are built by `Cvitlo.Resumes.Application.Caching.ResumesCacheKeys`, all
 user-scoped:
 
 - `resumes:{build}:user:{userId}:list`

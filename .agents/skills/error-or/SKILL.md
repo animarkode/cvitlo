@@ -8,11 +8,11 @@ description: ErrorOr result pattern for Faber — error creation, error code con
 Faber uses the [ErrorOr](https://github.com/amantinband/error-or) library (v2) for command-handler results and business failures. Never throw exceptions for business logic.
 
 Canonical sources to mirror before changing behavior:
-- `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/Logout/`
-- `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/BackchannelLogout/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/CreateEducation/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/DeleteEducation/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Persons/CreatePerson/`
+- `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/Logout/`
+- `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/BackchannelLogout/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/CreateEducation/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/DeleteEducation/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Persons/CreatePerson/`
 
 ---
 

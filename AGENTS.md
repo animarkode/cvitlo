@@ -18,7 +18,7 @@ Faber is a full-stack CV/resume builder:
 - Frontend: Angular 21 standalone components, Angular Material, Tailwind CSS,
   and signal-based state.
 - Local orchestration: .NET Aspire 13.6.5. The `Aspire.AppHost.Sdk` version in
-  `Faber.AppHost.csproj` must be bumped together with the `Aspire.*` packages
+  `Cvitlo.AppHost.csproj` must be bumped together with the `Aspire.*` packages
   (dependabot cannot see it) and the local Aspire CLI must be at least that version.
 
 ## Working conventions
@@ -46,22 +46,22 @@ Faber is a full-stack CV/resume builder:
 
 ## Common commands
 
-Build the API project (or the whole solution with `Faber.sln`).
+Build the API project (or the whole solution with `Cvitlo.sln`).
 
 ```bash
-dotnet build src/api/Faber.Api/Faber.Api.csproj
+dotnet build src/api/Cvitlo.Api/Cvitlo.Api.csproj
 ```
 
 Run all services through Aspire. The dashboard opens at a `https://localhost:15xxx` port shown in the console.
 
 ```bash
-dotnet run --project src/api/Aspire/Faber.AppHost
+dotnet run --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 Run an integration test project (Docker required).
 
 ```bash
-DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}" dotnet run --project tests/Integration/Modules/Auth/Faber.Modules.Auth.Application.Tests
+DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}" dotnet run --project tests/Modules/Auth/Cvitlo.Auth.Application.IntegrationTests
 ```
 
 Run one xUnit v3 test.
@@ -74,7 +74,7 @@ Frontend commands run from `src/web/faber-app`: `ng serve`, `ng build`, `ng test
 
 ## Migrations
 
-`Faber.Migrations` applies every module's EF Core migrations. In development the AppHost runs
+`Cvitlo.Migrations` applies every module's EF Core migrations. In development the AppHost runs
 it once Postgres is up; in production its container runs before the API container. `dotnet ef`
 is pinned in `.config/dotnet-tools.json`; run `dotnet tool restore` first. Adding a migration,
 registering a module `DbContext` and the deploy flow: `docs/operations/migrations.md`.

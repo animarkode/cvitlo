@@ -4,11 +4,11 @@ This guide covers how Faber's database schema is migrated in development and in 
 
 ## 1. How migrations run
 
-One job, `Faber.Migrations` (`src/api/Jobs/Faber.Migrations`), applies every module's EF Core migrations to the `faberdb` database. The API never migrates on its own start.
+One job, `Cvitlo.Migrations` (`src/api/Jobs/Cvitlo.Migrations`), applies every module's EF Core migrations to the `faberdb` database. The API never migrates on its own start.
 
 | Environment | How migrations run |
 |---|---|
-| Development | Automatically: the Aspire AppHost runs `Faber.Migrations` once Postgres is up, before Keycloak and the API start |
+| Development | Automatically: the Aspire AppHost runs `Cvitlo.Migrations` once Postgres is up, before Keycloak and the API start |
 | Production / Staging | The `faber-migrations` container runs to completion before the API container starts |
 
 The job exits 0 when every context migrated and non-zero on any failure, which must abort the deploy.
@@ -37,8 +37,8 @@ services:
 
 | DbContext | Schema | History table | Module Infrastructure project |
 |---|---|---|---|
-| `ResumesDbContext` | `resumes` | `migrations_history` | `Faber.Modules.Resumes.Infrastructure` |
-| `AuthDbContext` | `auth` | `migrations_history` | `Faber.Modules.Auth.Infrastructure` |
+| `ResumesDbContext` | `resumes` | `migrations_history` | `Cvitlo.Resumes.Infrastructure` |
+| `AuthDbContext` | `auth` | `migrations_history` | `Cvitlo.Auth.Infrastructure` |
 
 Each module keeps its own schema and its own history table, named by the module's `DbConstants`. The legacy `FaberDbContext` no longer exists. Leftover legacy tables and `__EFMigrationsHistory` rows in older databases are untouched and not managed by this job.
 
@@ -57,22 +57,22 @@ dotnet tool restore
 ```
 
 ```bash
-dotnet ef migrations add <MIGRATION-NAME> --project src/api/Modules/<MODULE>/Faber.Modules.<MODULE>.Infrastructure --startup-project src/api/Faber.Api
+dotnet ef migrations add <MIGRATION-NAME> --project src/api/Modules/<MODULE>/Cvitlo.<MODULE>.Infrastructure --startup-project src/api/Cvitlo.Api
 ```
 
 To review the SQL before it is applied:
 
 ```bash
-dotnet ef migrations script --project src/api/Modules/<MODULE>/Faber.Modules.<MODULE>.Infrastructure --startup-project src/api/Faber.Api
+dotnet ef migrations script --project src/api/Modules/<MODULE>/Cvitlo.<MODULE>.Infrastructure --startup-project src/api/Cvitlo.Api
 ```
 
 You do not run `database update` yourself in the normal flow: the AppHost applies pending migrations on the next start, and production applies them through the job above.
 
 ## 3. Registering a new module DbContext
 
-A module that owns a `DbContext` must be registered with the migration job as well as with the API. All paths are under `src/api/Jobs/Faber.Migrations` unless noted.
+A module that owns a `DbContext` must be registered with the migration job as well as with the API. All paths are under `src/api/Jobs/Cvitlo.Migrations` unless noted.
 
-1. Add a `<ProjectReference>` to the module's Infrastructure project in `Faber.Migrations.csproj`.
+1. Add a `<ProjectReference>` to the module's Infrastructure project in `Cvitlo.Migrations.csproj`.
 2. In `Program.cs`, register the context with `AddDbContext`, using Npgsql, `MigrationsHistoryTable(DbConstants.MigrationsHistoryTableName, DbConstants.SchemaName)` from the module's `DbConstants`, and `UseSnakeCaseNamingConvention()`. Alias the `DbConstants` type per module, as `ResumesDbConst` and `AuthDbConst` are.
 3. In `MigrationWorker.cs`, add `succeeded &= await TryMigrateAsync<YourDbContext>("YourDbContext", stoppingToken);` next to the existing calls.
-4. Assert the new history table in `tests/Integration/Faber.Migrations.Tests/MigrationWorkerTests.cs`.
+4. Assert the new history table in `tests/Jobs/Cvitlo.Migrations.IntegrationTests/MigrationWorkerTests.cs`.

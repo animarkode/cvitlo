@@ -4,7 +4,7 @@
 
 ## Quick Start
 
-**Prerequisites:** .NET 8 SDK or newer, Node.js 24, Docker Desktop or another OCI-compatible container runtime, and the Aspire CLI — at least the `Aspire.AppHost.Sdk` version pinned in `src/api/Aspire/Faber.AppHost/Faber.AppHost.csproj` (an older CLI fails at startup).
+**Prerequisites:** .NET 8 SDK or newer, Node.js 24, Docker Desktop or another OCI-compatible container runtime, and the Aspire CLI — at least the `Aspire.AppHost.Sdk` version pinned in `src/api/Aspire/Cvitlo.AppHost/Cvitlo.AppHost.csproj` (an older CLI fails at startup).
 
 A first run takes four .NET user-secrets on the AppHost; migrations, the Keycloak realm and the API's client secret are then provisioned automatically. The **Aspire Dashboard** opens at `https://localhost:15xxx` as soon as the AppHost starts.
 
@@ -33,38 +33,45 @@ The full step-by-step walkthrough lives in [CONTRIBUTING.md → Getting set up](
 src/
 ├── api/
 │   ├── Aspire/
-│   │   ├── Faber.AppHost          # Service orchestrator
-│   │   └── Faber.ServiceDefaults  # Shared telemetry, health checks
-│   ├── Modules/                   # Feature modules (Auth, Users, Identity, Resumes, etc.)
-│   └── Faber.Api                  # API host (FastEndpoints)
+│   │   ├── Cvitlo.AppHost          # Service orchestrator
+│   │   └── Cvitlo.ServiceDefaults  # Shared telemetry, health checks
+│   ├── Common/
+│   │   └── Cvitlo.Common          # What two or more modules need
+│   ├── Jobs/
+│   │   └── Cvitlo.Migrations      # Database migrations
+│   ├── Modules/                   # Feature modules (Auth, Resumes, Documents)
+│   └── Cvitlo.Api                  # API host (FastEndpoints)
 └── web/
     └── faber-app/                 # Angular SPA
 
 tests/
-├── Integration/Modules/           # Integration tests per module
-└── Unit/Modules/                  # Unit tests per module
+├── Aspire/                        # Cvitlo.AppHost.IntegrationTests
+├── Common/                        # Cvitlo.Common.Testing (shared test infrastructure)
+├── Jobs/                          # Cvitlo.Migrations.IntegrationTests
+├── Modules/                       # {Module}.Application.IntegrationTests / .UnitTests per module
+└── Cvitlo.Api.IntegrationTests/
 ```
 
 ## Development
 
 ### Backend
 
-Build the API project directly (or the whole solution with `Faber.sln`) using SDK 8:
+Build the API project directly (or the whole solution with `Cvitlo.sln`) using SDK 8:
 
 ```bash
-dotnet build src/api/Faber.Api/Faber.Api.csproj
+dotnet build src/api/Cvitlo.Api/Cvitlo.Api.csproj
 ```
 
 Run integration tests (requires Docker):
 
 ```bash
-dotnet run --project tests/Integration/Modules/Auth/Faber.Modules.Auth.Application.Tests
+dotnet run --project tests/Modules/Auth/Cvitlo.Auth.Application.IntegrationTests
 ```
 
 Run unit tests (no Docker required):
 
 ```bash
-dotnet run --project tests/Unit/Modules/Resumes/Faber.Modules.Resumes.Application.UnitTests
+dotnet run --project tests/Modules/Resumes/Cvitlo.Resumes.Application.UnitTests
 ```
 
 Run a specific test:

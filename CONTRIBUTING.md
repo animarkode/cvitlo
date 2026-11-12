@@ -8,14 +8,14 @@ For architectural conventions — module layout, vertical slices, ErrorOr, Angul
 
 ### 1. Prerequisites
 
-.NET 8 SDK or newer, Node.js 24 (the version CI pins in `.github/workflows/frontend.yml`), Docker Desktop or another OCI-compatible container runtime, and the Aspire CLI. The orchestrator (DCP) and the dashboard come from the CLI's bundle, so the installed CLI must be at least the `Aspire.AppHost.Sdk` version pinned in `src/api/Aspire/Faber.AppHost/Faber.AppHost.csproj`; an older one fails at startup with `Newer version of the Aspire.Hosting.AppHost package is required`.
+.NET 8 SDK or newer, Node.js 24 (the version CI pins in `.github/workflows/frontend.yml`), Docker Desktop or another OCI-compatible container runtime, and the Aspire CLI. The orchestrator (DCP) and the dashboard come from the CLI's bundle, so the installed CLI must be at least the `Aspire.AppHost.Sdk` version pinned in `src/api/Aspire/Cvitlo.AppHost/Cvitlo.AppHost.csproj`; an older one fails at startup with `Newer version of the Aspire.Hosting.AppHost package is required`.
 
 ```bash
 curl -sSL https://aspire.dev/install.sh | bash
 aspire --version
 ```
 
-The printed version must be at least the `Aspire.AppHost.Sdk` version pinned in `Faber.AppHost.csproj`.
+The printed version must be at least the `Aspire.AppHost.Sdk` version pinned in `Cvitlo.AppHost.csproj`.
 
 Bumping the `Aspire.*` packages therefore means bumping the CLI too. Rebuild the AppHost after updating the CLI: the bundle paths are baked into the assembly at build time.
 
@@ -33,20 +33,20 @@ cd faber
 The AppHost reads four required values from .NET user-secrets, never from the repository:
 
 ```bash
-dotnet user-secrets set "Parameters:postgres-username" "<POSTGRES-USERNAME>" --project src/api/Aspire/Faber.AppHost
-dotnet user-secrets set "Parameters:postgres-password" "<POSTGRES-PASSWORD>" --project src/api/Aspire/Faber.AppHost
-dotnet user-secrets set "Parameters:keycloak-admin" "<KEYCLOAK-ADMIN-USERNAME>" --project src/api/Aspire/Faber.AppHost
-dotnet user-secrets set "Parameters:keycloak-password" "<KEYCLOAK-PASSWORD>" --project src/api/Aspire/Faber.AppHost
+dotnet user-secrets set "Parameters:postgres-username" "<POSTGRES-USERNAME>" --project src/api/Aspire/Cvitlo.AppHost
+dotnet user-secrets set "Parameters:postgres-password" "<POSTGRES-PASSWORD>" --project src/api/Aspire/Cvitlo.AppHost
+dotnet user-secrets set "Parameters:keycloak-admin" "<KEYCLOAK-ADMIN-USERNAME>" --project src/api/Aspire/Cvitlo.AppHost
+dotnet user-secrets set "Parameters:keycloak-password" "<KEYCLOAK-PASSWORD>" --project src/api/Aspire/Cvitlo.AppHost
 ```
 
-The user-secret store is keyed by the `<UserSecretsId>` GUID tracked in `Faber.AppHost.csproj`, not by the checkout path, so every clone on the machine reads the same `~/.microsoft/usersecrets/<id>/secrets.json` (Windows: `%APPDATA%\Microsoft\UserSecrets\<id>\secrets.json`). A second clone therefore starts already configured; to check the setup genuinely from scratch, move that file aside first.
+The user-secret store is keyed by the `<UserSecretsId>` GUID tracked in `Cvitlo.AppHost.csproj`, not by the checkout path, so every clone on the machine reads the same `~/.microsoft/usersecrets/<id>/secrets.json` (Windows: `%APPDATA%\Microsoft\UserSecrets\<id>\secrets.json`). A second clone therefore starts already configured; to check the setup genuinely from scratch, move that file aside first.
 
 The Postgres values take effect only when the checkout's database volume is first created; changing them later needs the volume removed — see [Resetting local state](#resetting-local-state).
 
 ### 4. First run
 
 ```bash
-dotnet run --project src/api/Aspire/Faber.AppHost
+dotnet run --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 `aspire run` from the repository root is equivalent — `aspire.config.json` points it at the AppHost. The Aspire dashboard opens automatically at `https://localhost:15xxx` (the port is printed in the console).
@@ -59,7 +59,7 @@ On a clean clone nothing else has to be set by hand: the `faber-api` client secr
 
 The stack brings itself up with no further manual step:
 
-- `Faber.Migrations` applies migrations and creates the `keycloak` schema.
+- `Cvitlo.Migrations` applies migrations and creates the `keycloak` schema.
 - Keycloak (the stock `quay.io/keycloak/keycloak` image) starts, and `keycloak-config` applies the realm from `infra/keycloak/config/faber.json`. It runs on every start, so the realm always matches the repository; users and their data are left alone.
 - `keycloak-passkeys` turns passkeys on by running `infra/keycloak/passkeys.sh` (the config tool cannot express that setting yet). It writes nothing else.
 
@@ -88,19 +88,19 @@ http://localhost:8080/realms/faber/broker/github/endpoint
 3. Store the credentials as AppHost user-secrets. A provider is enabled exactly when its client ID is set; set only the pair you created:
 
 ```bash
-dotnet user-secrets set "Parameters:google-client-id" "<GOOGLE-CLIENT-ID>" --project src/api/Aspire/Faber.AppHost
+dotnet user-secrets set "Parameters:google-client-id" "<GOOGLE-CLIENT-ID>" --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 ```bash
-dotnet user-secrets set "Parameters:google-client-secret" "<GOOGLE-CLIENT-SECRET>" --project src/api/Aspire/Faber.AppHost
+dotnet user-secrets set "Parameters:google-client-secret" "<GOOGLE-CLIENT-SECRET>" --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 ```bash
-dotnet user-secrets set "Parameters:github-client-id" "<GITHUB-CLIENT-ID>" --project src/api/Aspire/Faber.AppHost
+dotnet user-secrets set "Parameters:github-client-id" "<GITHUB-CLIENT-ID>" --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 ```bash
-dotnet user-secrets set "Parameters:github-client-secret" "<GITHUB-CLIENT-SECRET>" --project src/api/Aspire/Faber.AppHost
+dotnet user-secrets set "Parameters:github-client-secret" "<GITHUB-CLIENT-SECRET>" --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 4. Restart the AppHost. `keycloak-config` enables the provider, and Keycloak's sign-in page shows its button.
@@ -158,11 +158,11 @@ rm -rf infra/vault
 On Linux the files under `infra/vault/file` are owned by the container's user, so this may need `sudo`. Remove the stale container and its data volume with `docker ps -a` and `docker volume ls` (look for names starting with `vault`) and then `docker rm -f <CONTAINER>` and `docker volume rm <VOLUME>`. Remove the stale user-secrets:
 
 ```bash
-dotnet user-secrets remove "Parameters:vault-token" --project src/api/Aspire/Faber.AppHost
+dotnet user-secrets remove "Parameters:vault-token" --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 ```bash
-dotnet user-secrets remove "Vault:Token" --project src/api/Aspire/Faber.AppHost
+dotnet user-secrets remove "Vault:Token" --project src/api/Aspire/Cvitlo.AppHost
 ```
 
 Also delete any `VAULT_TOKEN` or `VAULT_ADDR` from your shell profile.
@@ -173,22 +173,22 @@ The Aspire AppHost is the only local orchestration definition tracked here. It i
 
 ## Running the checks
 
-Backend — build the API project (or the whole solution with `Faber.sln`):
+Backend — build the API project (or the whole solution with `Cvitlo.sln`):
 
 ```bash
-dotnet build src/api/Faber.Api/Faber.Api.csproj
+dotnet build src/api/Cvitlo.Api/Cvitlo.Api.csproj
 ```
 
 Backend integration tests (Docker required):
 
 ```bash
-dotnet run --project tests/Integration/Modules/Auth/Faber.Modules.Auth.Application.Tests
+dotnet run --project tests/Modules/Auth/Cvitlo.Auth.Application.IntegrationTests
 ```
 
 Backend unit tests (no Docker required):
 
 ```bash
-dotnet run --project tests/Unit/Modules/Resumes/Faber.Modules.Resumes.Application.UnitTests
+dotnet run --project tests/Modules/Resumes/Cvitlo.Resumes.Application.UnitTests
 ```
 
 Frontend:
@@ -205,8 +205,8 @@ The three images CI builds without pushing:
 
 ```bash
 cd ../../..
-docker build -f src/api/Faber.Api/Dockerfile -t faber-api:local .
-docker build -f src/api/Jobs/Faber.Migrations/Dockerfile -t faber-migrations:local .
+docker build -f src/api/Cvitlo.Api/Dockerfile -t faber-api:local .
+docker build -f src/api/Jobs/Cvitlo.Migrations/Dockerfile -t faber-migrations:local .
 docker build -f src/web/faber-app/Dockerfile -t faber-web:local src/web/faber-app
 ```
 

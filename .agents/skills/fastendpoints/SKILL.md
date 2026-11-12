@@ -8,11 +8,11 @@ description: FastEndpoints patterns for Faber — Endpoint, Group, SubGroup, Val
 FastEndpoints replaces Controllers and MinimalAPI in Faber. Most features follow the **Request → Command → Handler → Response** pipeline.
 
 Canonical sources to mirror before generating new code:
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/CreateEducation/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/DeleteEducation/`
-- `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/User/` (no request) and `Features/Login/` (challenge result)
-- `src/api/Modules/Auth/Faber.Modules.Auth.Application/Groups/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Groups/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/CreateEducation/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/DeleteEducation/`
+- `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/User/` (no request) and `Features/Login/` (challenge result)
+- `src/api/Modules/Auth/Cvitlo.Auth.Application/Groups/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Groups/`
 
 ---
 
@@ -316,7 +316,7 @@ var userId = HttpContext.User.FindFirst(JwtClaimTypes.Aliases.UserId)?.Value;
 var resumeId = HttpContext.GetRouteValue("ResumeId")?.ToString();
 ```
 
-`JwtClaimTypes` lives in `Faber.Modules.Auth.PublicApi`. `GetRouteValue("ResumeId")` is used notably
+`JwtClaimTypes` lives in `Cvitlo.Auth.PublicApi`. `GetRouteValue("ResumeId")` is used notably
 inside resume-ownership authorization, not only in endpoints.
 
 ---

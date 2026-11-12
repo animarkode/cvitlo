@@ -11,10 +11,10 @@ A feature is a **self-contained vertical slice** inside a module. Most new featu
 > See `error-or` skill for ErrorOr usage.
 
 Canonical sources to mirror before generating new code:
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/CreateEducation/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/DeleteEducation/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Persons/CreatePerson/`
-- `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/Logout/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/CreateEducation/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/DeleteEducation/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Persons/CreatePerson/`
+- `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/Logout/`
 
 ---
 
@@ -31,7 +31,7 @@ Features/{FeatureName}/
 └── {Feature}Endpoint.cs
 ```
 
-Location: `src/api/Modules/{Module}/Faber.Modules.{Module}.Application/Features/{FeatureName}/`
+Location: `src/api/Modules/{Module}/Cvitlo.{Module}.Application/Features/{FeatureName}/`
 
 Notes:
 - physical file order in folders is usually alphabetical, not “request-first”
@@ -43,7 +43,7 @@ Notes:
 
 ```csharp
 // {Feature}Request.cs
-namespace Faber.Modules.Resumes.Application.Features.Educations.DeleteEducation;
+namespace Cvitlo.Resumes.Application.Features.Educations.DeleteEducation;
 
 public record DeleteEducationRequest(Guid ResumeId, Guid Id);
 ```
@@ -68,7 +68,7 @@ public class BackchannelLogoutRequest
 
 ```csharp
 // {Feature}Command.cs
-namespace Faber.Modules.Resumes.Application.Features.Educations.DeleteEducation;
+namespace Cvitlo.Resumes.Application.Features.Educations.DeleteEducation;
 
 public record DeleteEducationCommand(Guid ResumeId, Guid Id)
     : ICommand<ErrorOr<bool>>;
@@ -83,7 +83,7 @@ Use `ErrorOr<Success>` when the endpoint returns no body but the handler is sema
 
 ```csharp
 // {Feature}Response.cs
-namespace Faber.Modules.Resumes.Application.Features.Educations.CreateEducation;
+namespace Cvitlo.Resumes.Application.Features.Educations.CreateEducation;
 
 public record CreateEducationResponse(Guid Id, string Institution, string Degree, DateOnly? StartDate);
 ```
@@ -96,7 +96,7 @@ If the module already has a suitable shared response type, prefer reusing it ove
 
 ```csharp
 // {Feature}Validator.cs
-namespace Faber.Modules.Resumes.Application.Features.Educations.CreateEducation;
+namespace Cvitlo.Resumes.Application.Features.Educations.CreateEducation;
 
 public class CreateEducationValidator : Validator<CreateEducationRequest>
 {
@@ -124,7 +124,7 @@ public class CreateEducationValidator : Validator<CreateEducationRequest>
 
 ```csharp
 // {Feature}Mapper.cs
-namespace Faber.Modules.Resumes.Application.Features.Educations.DeleteEducation;
+namespace Cvitlo.Resumes.Application.Features.Educations.DeleteEducation;
 
 public static class DeleteEducationMapper
 {
@@ -160,7 +160,7 @@ Real Faber patterns:
 
 ```csharp
 // {Feature}CommandHandler.cs
-namespace Faber.Modules.Resumes.Application.Features.Educations.DeleteEducation;
+namespace Cvitlo.Resumes.Application.Features.Educations.DeleteEducation;
 
 public class DeleteEducationCommandHandler(
     ResumesDbContext dbContext,
@@ -205,7 +205,7 @@ Handler guidance:
 
 ```csharp
 // {Feature}Endpoint.cs
-namespace Faber.Modules.Resumes.Application.Features.Educations.DeleteEducation;
+namespace Cvitlo.Resumes.Application.Features.Educations.DeleteEducation;
 
 public class DeleteEducationEndpoint(ILogger<DeleteEducationEndpoint> logger)
     : Endpoint<DeleteEducationRequest, Results<NoContent, NotFound>>
@@ -354,9 +354,9 @@ Most new features inside an existing module do **not** require `DependencyInject
 - [ ] Handler implements `ICommandHandler<TCommand, ErrorOr<T>>`
 - [ ] Endpoint uses correct Group and HTTP verb
 - [ ] Logging uses `[START]`/`[STEP]`/`[FAIL]`/`[SUCCESS]` pattern
-- [ ] Build passes: `dotnet build src/api/Faber.Api/Faber.Api.csproj`
+- [ ] Build passes: `dotnet build src/api/Cvitlo.Api/Cvitlo.Api.csproj`
 - [ ] Endpoint appears in Swagger/Scalar: check `/swagger` or `/scalar/v1`
-- [ ] Integration test added in `tests/Integration/Modules/{Module}/` when that module already has test coverage infrastructure
+- [ ] Integration test added in `tests/Modules/{Module}/` when that module already has test coverage infrastructure
 
 ## Current Repository Nuances
 
