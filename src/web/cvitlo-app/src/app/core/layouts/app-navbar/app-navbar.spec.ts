@@ -124,8 +124,8 @@ describe('AppNavbar', () => {
     expect(hrefs).toContain(API_ROUTES.auth.register);
   });
 
-  it('should default title to "microcivi.com"', () => {
-    expect(component.title()).toBe('microcivi.com');
+  it('should default title to "Cvitlo"', () => {
+    expect(component.title()).toBe('Cvitlo');
   });
 
   it('should accept custom title input', () => {

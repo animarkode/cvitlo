@@ -39,7 +39,7 @@ body {
   --color-accent-foreground: oklch(14.5% 0.025 264);
   --color-line: oklch(90% 0.01 264);
   /* Outline of the Google/GitHub sign-in buttons, reused by the theme toggle; same values as the
-     Keycloak login theme (faber.css) so both toolbars match. */
+     Keycloak login theme (cvitlo.css) so both toolbars match. */
   --color-provider-border: #747775;
   --color-input: oklch(93% 0.01 264);
   --color-ring: oklch(60% 0.18 250);

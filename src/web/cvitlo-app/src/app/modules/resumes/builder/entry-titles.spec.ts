@@ -60,8 +60,8 @@ describe('EntryTitles', () => {
   });
 
   it('formats a project name and tagline with the standard entry label', () => {
-    expect(host.titles.resolve('project-1', ['Faber', 'Lead developer']))
-      .toBe('Faber at Lead developer');
+    expect(host.titles.resolve('project-1', ['Cvitlo', 'Lead developer']))
+      .toBe('Cvitlo at Lead developer');
   });
 
   it('uses the live form value over the store-model fallback once registered', () => {

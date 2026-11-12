@@ -9,7 +9,7 @@ import { environment } from '../../../../environments/environment';
 const CSRF_HEADER = 'X-CSRF';
 
 /**
- * Marks calls to Faber's own API with the CSRF header, and re-checks the session when the API answers 401
+ * Marks calls to Cvitlo's own API with the CSRF header, and re-checks the session when the API answers 401
  * (the session ended elsewhere: signed out in another tab, in Keycloak's account console, or expired).
  */
 export const csrfInterceptor: HttpInterceptorFn = (req, next) => {

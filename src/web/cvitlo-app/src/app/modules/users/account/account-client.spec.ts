@@ -100,7 +100,7 @@ describe('AccountClient navigation', () => {
 
     TestBed.inject(AccountClient).leaveDeletedAccount();
 
-    expect(sessionStorage.setItem).toHaveBeenCalledWith('faber.accountDeleted', 'true');
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('cvitlo.accountDeleted', 'true');
     expect(assign).toHaveBeenCalledWith('/account-deleted');
   });
 });

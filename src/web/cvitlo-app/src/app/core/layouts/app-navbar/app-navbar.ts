@@ -46,7 +46,7 @@ export class AppNavbar implements OnInit {
   isDrawerOpen = signal(false);
   /** Set by the shell from its scroll container: the window itself never scrolls. */
   scrolled = input(false);
-  title = input('microcivi.com');
+  title = input('Cvitlo');
 
   private readonly userMenuAnchor = viewChild<ElementRef>('userMenuAnchor');
   private readonly anchorRect = signal<DOMRect | null>(null);

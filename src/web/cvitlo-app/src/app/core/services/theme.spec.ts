@@ -18,7 +18,7 @@ function mockMatchMedia(prefersDark: boolean): void {
 }
 
 function clearThemeCookie(): void {
-  document.cookie = 'faber-theme=; Path=/; Max-Age=0';
+  document.cookie = 'cvitlo-theme=; Path=/; Max-Age=0';
 }
 
 describe('ThemeService', () => {
@@ -65,44 +65,44 @@ describe('ThemeService', () => {
 
   describe('initial state — stored preference', () => {
     it('reads dark from the old localStorage key regardless of system preference', () => {
-      localStorage.setItem('faber-theme', 'dark');
+      localStorage.setItem('cvitlo-theme', 'dark');
       mockMatchMedia(false);
       expect(TestBed.inject(ThemeService).isDark()).toBe(true);
     });
 
     it('reads light from the old localStorage key regardless of system preference', () => {
-      localStorage.setItem('faber-theme', 'light');
+      localStorage.setItem('cvitlo-theme', 'light');
       mockMatchMedia(true);
       expect(TestBed.inject(ThemeService).isDark()).toBe(false);
     });
 
     it('moves a localStorage-only choice into the cookie and clears the old key', () => {
-      localStorage.setItem('faber-theme', 'dark');
+      localStorage.setItem('cvitlo-theme', 'dark');
       TestBed.inject(ThemeService);
-      expect(document.cookie).toContain('faber-theme=dark');
-      expect(localStorage.getItem('faber-theme')).toBeNull();
+      expect(document.cookie).toContain('cvitlo-theme=dark');
+      expect(localStorage.getItem('cvitlo-theme')).toBeNull();
     });
 
     it('leaves the cookie unwritten when nothing was stored', () => {
       TestBed.inject(ThemeService);
-      expect(document.cookie).not.toContain('faber-theme=');
+      expect(document.cookie).not.toContain('cvitlo-theme=');
     });
 
     it('reads dark from the cookie regardless of system preference', () => {
-      document.cookie = 'faber-theme=dark; Path=/';
+      document.cookie = 'cvitlo-theme=dark; Path=/';
       mockMatchMedia(false);
       expect(TestBed.inject(ThemeService).isDark()).toBe(true);
     });
 
     it('prefers the cookie over localStorage', () => {
-      document.cookie = 'faber-theme=light; Path=/';
-      localStorage.setItem('faber-theme', 'dark');
+      document.cookie = 'cvitlo-theme=light; Path=/';
+      localStorage.setItem('cvitlo-theme', 'dark');
       expect(TestBed.inject(ThemeService).isDark()).toBe(false);
     });
 
     it('ignores an invalid cookie value and falls back to localStorage', () => {
-      document.cookie = 'faber-theme=purple; Path=/';
-      localStorage.setItem('faber-theme', 'dark');
+      document.cookie = 'cvitlo-theme=purple; Path=/';
+      localStorage.setItem('cvitlo-theme', 'dark');
       expect(TestBed.inject(ThemeService).isDark()).toBe(true);
     });
   });
@@ -119,12 +119,12 @@ describe('ThemeService', () => {
     it('writes a host-only cookie on toggle', () => {
       const writes = spyOnCookieWrites();
       TestBed.inject(ThemeService).toggle();
-      expect(writes).toEqual(['faber-theme=dark; Path=/; SameSite=Lax; Max-Age=31536000']);
+      expect(writes).toEqual(['cvitlo-theme=dark; Path=/; SameSite=Lax; Max-Age=31536000']);
     });
 
     it('persists the cookie so a new service reads it', () => {
       TestBed.inject(ThemeService).toggle();
-      expect(document.cookie).toContain('faber-theme=dark');
+      expect(document.cookie).toContain('cvitlo-theme=dark');
     });
 
   });
@@ -162,18 +162,18 @@ describe('ThemeService', () => {
 
     it('persists "dark" to the cookie', () => {
       service.toggle();
-      expect(document.cookie).toContain('faber-theme=dark');
+      expect(document.cookie).toContain('cvitlo-theme=dark');
     });
 
     it('persists "light" to the cookie on second toggle', () => {
       service.toggle();
       service.toggle();
-      expect(document.cookie).toContain('faber-theme=light');
+      expect(document.cookie).toContain('cvitlo-theme=light');
     });
 
     it('no longer writes localStorage', () => {
       service.toggle();
-      expect(localStorage.getItem('faber-theme')).toBeNull();
+      expect(localStorage.getItem('cvitlo-theme')).toBeNull();
     });
   });
 

@@ -63,7 +63,7 @@ describe('ResumesStore projects', () => {
   let httpMock: HttpTestingController;
 
   const project = {
-    id: 'project-1', order: 0, tagline: 'SaaS resume builder', name: 'Faber', url: 'https://faber.example',
+    id: 'project-1', order: 0, tagline: 'SaaS resume builder', name: 'Cvitlo', url: 'https://cvitlo.example',
     startDate: '2025-01-01', endDate: '', description: '<p>Resume builder</p>',
   };
 
@@ -96,15 +96,15 @@ describe('ResumesStore projects', () => {
   });
 
   it('updates a project only after the debounced server request succeeds', () => {
-    store.updateProject({ ...project, name: 'Faber CV' });
-    expect(store.projects()[0].name).toBe('Faber');
+    store.updateProject({ ...project, name: 'Cvitlo CV' });
+    expect(store.projects()[0].name).toBe('Cvitlo');
 
     vi.advanceTimersByTime(DEBOUNCE_MS);
     const request = httpMock.expectOne(API_ROUTES.resumes.projects.byId(RESUME_ID, project.id));
-    expect(request.request.body).toMatchObject({ name: 'Faber CV' });
+    expect(request.request.body).toMatchObject({ name: 'Cvitlo CV' });
     request.flush(null);
 
-    expect(store.projects()[0].name).toBe('Faber CV');
+    expect(store.projects()[0].name).toBe('Cvitlo CV');
   });
 });
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke-tests a built faber-web image: the PDF.js worker must be in the image
+# Smoke-tests a built cvitlo-web image: the PDF.js worker must be in the image
 # and served as JavaScript, and a missing static file must be a 404 rather
 # than the SPA fallback.
 #

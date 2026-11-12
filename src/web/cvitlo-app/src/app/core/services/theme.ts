@@ -4,14 +4,14 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 type Theme = 'dark' | 'light';
 
 /**
- * Light or dark theme, kept in the `faber-theme` cookie so the Keycloak login pages, served on the
+ * Light or dark theme, kept in the `cvitlo-theme` cookie so the Keycloak login pages, served on the
  * same host, read the same choice. The cookie is host-only: cookies are not port-scoped, so in dev
  * localhost:4200 and Keycloak on localhost:8080 share it too.
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
-  private readonly key = 'faber-theme';
+  private readonly key = 'cvitlo-theme';
   private readonly oneYearInSeconds = 31536000;
   private readonly _isDark = signal(this.getInitial());
   readonly isDark = this._isDark.asReadonly();

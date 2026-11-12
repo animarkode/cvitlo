@@ -248,7 +248,7 @@
               "id": "oadyo",
               "name": "brand",
               "fill": "$text-primary",
-              "content": "microcivi.com",
+              "content": "Cvitlo",
               "fontFamily": "$font-body",
               "fontSize": 22,
               "fontWeight": "600"
@@ -376,7 +376,7 @@
               "fill": "$text-secondary",
               "textGrowth": "fixed-width",
               "width": 600,
-              "content": "Create a professional CV in minutes with microcivi.com — completely free.",
+              "content": "Create a professional CV in minutes with Cvitlo — completely free.",
               "textAlign": "center",
               "fontFamily": "$font-body",
               "fontSize": 20
@@ -663,7 +663,7 @@
                           "fill": "$text-secondary",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "Join microcivi.com and build beautiful CVs",
+                          "content": "Join Cvitlo and build beautiful CVs",
                           "fontFamily": "$font-body",
                           "fontSize": 15,
                           "fontWeight": "normal"
@@ -1106,7 +1106,7 @@
                   "fill": "$text-secondary",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Please wait while we confirm your email with microcivi.com",
+                  "content": "Please wait while we confirm your email with Cvitlo",
                   "textAlign": "center",
                   "fontFamily": "$font-body",
                   "fontSize": 15,

@@ -16,7 +16,7 @@ describe('Project', () => {
 
   const seed: ProjectModel[] = [
     {
-      id: 'p1', order: 0, name: 'Faber', tagline: 'SaaS resume builder', url: 'https://faber.example',
+      id: 'p1', order: 0, name: 'Cvitlo', tagline: 'SaaS resume builder', url: 'https://cvitlo.example',
       startDate: '2025-01-01', endDate: '', description: '<p>Resume builder</p>',
     },
     {
@@ -46,7 +46,7 @@ describe('Project', () => {
 
   it('labels a project with its name and tagline', () => {
     const title = fixture.componentInstance['projectTitle'];
-    expect(title(seed[0])).toBe('Faber — SaaS resume builder');
+    expect(title(seed[0])).toBe('Cvitlo — SaaS resume builder');
     expect(title({ ...seed[0], name: '', tagline: 'Designer' })).toBe('Designer');
   });
 

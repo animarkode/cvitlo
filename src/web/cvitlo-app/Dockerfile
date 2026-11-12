@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 
-# Production image for the Faber SPA — replaces src/web/Faber.NgApp/faber-ngapp
+# Production image for the Cvitlo SPA
 # (issue #429). Build context is this directory, NOT the repo root.
 #
-#   docker build -t faber-web src/web/cvitlo-app
+#   docker build -t cvitlo-web src/web/cvitlo-app
 
 # ---------------------------------------------------------------- build stage
 # node:24 satisfies Angular 21's ^20.19 || ^22.12 || ^24 engine floor. The old
