@@ -4,7 +4,7 @@
 
   <!--
     xunit.analyzers is a PackageReference rather than a global one because it only
-    makes sense where xunit is used. Faber.Testing.Shared is a library that holds
+    makes sense where xunit is used. Cvitlo.Common.Testing is a library that holds
     xunit-based helpers, so it gets the analyzers as well.
   -->
   <ItemGroup>

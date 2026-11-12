@@ -1,7 +1,7 @@
 # Rate Limiting
 
-Faber.Api uses the built-in ASP.NET Core `RateLimiter` middleware (`Microsoft.AspNetCore.RateLimiting`),
-wired in `src/api/Faber.Api/RateLimiting/RateLimitingExtensions.cs` and `Program.cs`.
+Cvitlo.Api uses the built-in ASP.NET Core `RateLimiter` middleware (`Microsoft.AspNetCore.RateLimiting`),
+wired in `src/api/Cvitlo.Api/RateLimiting/RateLimitingExtensions.cs` and `Program.cs`.
 
 ## Naming convention (issue #385)
 
@@ -13,13 +13,13 @@ BCL-aligned — the same split `System.Threading.RateLimiting` itself uses:
 | `RateLimit` | an *artifact* of the area | `RateLimitPolicies`, `RateLimitRejection`, `RateLimitPartitions` |
 | `RateLimiter` | an *actor* that limits | `PartitionedRateLimiter` (the BCL's) |
 
-Layout: `Faber.Api/RateLimiting/` holds `Options/` (binding), `Policies/` (one
+Layout: `Cvitlo.Api/RateLimiting/` holds `Options/` (binding), `Policies/` (one
 `IRateLimiterPolicy<string>` class per named policy, DI-activated so each gets `IOptions<RateLimitingOptions>`
 injected), `RateLimitPartitions` (partition keys + limiter factories), `RateLimitRejectionHandler` (the
 `OnRejected` pipeline) and a composition-only `RateLimitingExtensions`. Adding a policy needs one new
 options property on `RateLimitingOptions`, one new name constant in `RateLimitPolicies`, one new class
 under `Policies/`, and one `AddPolicy` line in `RateLimitingExtensions`. Trust configuration for
-`X-Forwarded-For` lives in `Faber.Api/Http/ForwardedHeadersExtensions.cs` — a networking concern the
+`X-Forwarded-For` lives in `Cvitlo.Api/Http/ForwardedHeadersExtensions.cs` — a networking concern the
 rate limiter depends on, registered explicitly in `Program.cs`.
 
 ## Hosted login (2026-10-29)
@@ -47,7 +47,7 @@ section 6). A per-recipient limit needs a Keycloak extension and is a follow-up.
 
 A **global limiter** applies to every endpoint as a baseline: authenticated requests are partitioned
 by the JWT `sub` claim, anonymous requests by client IP. On top of that, four named policies are
-registered (names in `Faber.Modules.Common.PublicApi.RateLimiting.RateLimitPolicies`) for endpoints
+registered (names in `Cvitlo.Common.RateLimiting.RateLimitPolicies`) for endpoints
 to opt into via `RequireRateLimiting` in the per-module issues:
 
 | Policy | Partition | Limiter | Default |
@@ -72,16 +72,16 @@ the middleware entirely; integration test fixtures use this.
 reset emails to the same victim address. This cannot be a named `RequireRateLimiting` policy: the
 ASP.NET Core `RateLimiter` middleware resolves partitions before the request body is parsed, and the
 target email only exists in the body. Instead it is a small in-process
-`PartitionedRateLimiter<string>` token bucket (`Faber.Modules.Auth.Application.Features.ForgotPassword.
+`PartitionedRateLimiter<string>` token bucket (`Cvitlo.Auth.Application.Features.ForgotPassword.
 RateLimiting.TargetEmailRateLimiter`), keyed on the normalized (trimmed, lowercased) email, checked inside
 `ForgotPasswordEndpoint.ExecuteAsync` **before** any `IUserModuleApi`/Keycloak lookup — so throttling
 never correlates with whether the account is real. On rejection it returns the same
-`RateLimitRejection.Problem(...)` result the middleware writes (`Faber.Modules.Common.PublicApi.
+`RateLimitRejection.Problem(...)` result the middleware writes (`Cvitlo.Common.
 RateLimiting`), so the two paths cannot drift, and a caller cannot
 distinguish "throttled by IP" from "throttled by email" from the response shape.
 
-Lives in the Auth module's `ForgotPassword` slice (not `Faber.Api.RateLimiting`) because
-`Faber.Modules.Auth.Application` must not depend on `Faber.Api` (Api → Modules is the only allowed
+Lives in the Auth module's `ForgotPassword` slice (not `Cvitlo.Api.RateLimiting`) because
+`Cvitlo.Auth.Application` must not depend on `Cvitlo.Api` (Api → Modules is the only allowed
 direction). Its `Enabled` switch defaults from the shared `RateLimiting:Enabled` flag, so the existing
 test-environment relaxation (`RateLimiting:Enabled=false` in Testcontainers-based module suites)
 disables it too with no extra per-suite configuration; it can still be tuned independently via
@@ -251,7 +251,7 @@ and endpoint-level limiters.
 ## Observability
 
 Every rejection increments counter `faber.api.rate_limiting.rejections` (tag: `policy`) on meter
-`Faber.Api.RateLimiting` (registered in `Faber.ServiceDefaults`, instrument defined in
+`Faber.Api.RateLimiting` (registered in `Cvitlo.ServiceDefaults`, instrument defined in
 `RateLimitingMetrics`) and logs a structured warning under category `Faber.Api.RateLimiting` — both
 visible in the Aspire dashboard.
 
@@ -314,7 +314,7 @@ OpenTelemetry — the middleware provides all of these and keeps limits config-t
 
 ## Tests
 
-`tests/Integration/Faber.Api.Tests` verifies the 429 + `Retry-After` contract, no-leak body, per-IP
+`tests/Cvitlo.Api.IntegrationTests` verifies the 429 + `Retry-After` contract, no-leak body, per-IP
 and per-user partition isolation, trusted-proxy forwarding, and spoof resistance.
 `AuthEndpointsRateLimitingTests` covers the hosted-login endpoints: exceeding `auth-external` on
 `auth/login` and `auth-session` on `auth/logout` returns 429. Tokens for the authenticated suites come

@@ -16,10 +16,10 @@ jobs:
         include:
           - image: faber-api
             context: .
-            dockerfile: src/api/Faber.Api/Dockerfile
+            dockerfile: src/api/Cvitlo.Api/Dockerfile
           - image: faber-migrations
             context: .
-            dockerfile: src/api/Jobs/Faber.Migrations/Dockerfile
+            dockerfile: src/api/Jobs/Cvitlo.Migrations/Dockerfile
           - image: faber-web
             context: src/web/faber-app
             dockerfile: src/web/faber-app/Dockerfile

@@ -26,8 +26,8 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 cd "$repo_root"
 
-apphost="src/api/Aspire/Faber.AppHost/Program.cs"
-fixture="tests/Integration/Modules/Common/Faber.Testing.Shared/Containers/FaberKeycloak.cs"
+apphost="src/api/Aspire/Cvitlo.AppHost/Program.cs"
+fixture="tests/Common/Cvitlo.Common.Testing/Containers/FaberKeycloak.cs"
 dockerfile="infra/keycloak/Dockerfile"
 operations_doc="docs/operations/keycloak.md"
 

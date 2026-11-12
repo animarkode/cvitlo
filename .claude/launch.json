@@ -11,7 +11,7 @@
     {
       "name": "apphost",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "src/api/Aspire/Faber.AppHost", "--launch-profile", "http"],
+      "runtimeArgs": ["run", "--project", "src/api/Aspire/Cvitlo.AppHost", "--launch-profile", "http"],
       "port": 15288
     }
   ]

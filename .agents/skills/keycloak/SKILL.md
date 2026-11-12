@@ -12,16 +12,16 @@ Keycloak owns every credential and every sign-in page. The API is a backend-for-
 | Piece | Location |
 |---|---|
 | Realm configuration (the whole realm, as code) | `infra/keycloak/config/faber.json` |
-| AppHost wiring (stock Keycloak, `keycloak-config`, providers from user-secrets) | `src/api/Aspire/Faber.AppHost/Program.cs`, `SocialProviderExtensions.cs` |
+| AppHost wiring (stock Keycloak, `keycloak-config`, providers from user-secrets) | `src/api/Aspire/Cvitlo.AppHost/Program.cs`, `SocialProviderExtensions.cs` |
 | Passkeys toggle (`keycloak-passkeys` step) | `infra/keycloak/passkeys.sh` |
-| Schemes, cookie, OIDC and JWT bearer options | `src/api/Modules/Auth/Faber.Modules.Auth.Application/Authentication/` |
+| Schemes, cookie, OIDC and JWT bearer options | `src/api/Modules/Auth/Cvitlo.Auth.Application/Authentication/` |
 | Session store, refresh, Keycloak back-channel calls | `.../Auth.Application/Sessions/` |
 | Endpoints (`login`, `register`, `user`, `logout`, `backchannel-logout`, `account-action`) | `.../Auth.Application/Features/` |
 | Account actions allow-list, lock-out guard | `.../Features/AccountAction/AccountActions.cs`, `.../Features/Account/LastSignInMethodGuard.cs` |
 | Account REST client (user's access token) | `.../Auth.Application/Sessions/KeycloakAccountClient.cs` |
-| Sessions + Data Protection keys (`auth` schema) | `src/api/Modules/Auth/Faber.Modules.Auth.Infrastructure/Database/` |
-| JWT claim names, plan roles | `src/api/Modules/Auth/Faber.Modules.Auth.PublicApi/` |
-| Test fixture, login driver, back-channel relay | `tests/Integration/Modules/Common/Faber.Testing.Shared/` |
+| Sessions + Data Protection keys (`auth` schema) | `src/api/Modules/Auth/Cvitlo.Auth.Infrastructure/Database/` |
+| JWT claim names, plan roles | `src/api/Modules/Auth/Cvitlo.Auth.PublicApi/` |
+| Test fixture, login driver, back-channel relay | `tests/Common/Cvitlo.Common.Testing/` |
 
 ## Rules
 

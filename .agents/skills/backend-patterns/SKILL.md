@@ -14,14 +14,13 @@ Faber is a **modular monolith with vertical slices** on ASP.NET Core + FastEndpo
 
 Canonical sources to mirror before changing backend code:
 - `AGENTS.md`
-- `src/api/Faber.Api/Program.cs`
-- `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/SignIn/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/DeleteEducation/`
-- `src/api/Modules/Users/Faber.Modules.Users.Application/Features/GetUserById/`
-- `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/DependencyInjection.cs`
-- `src/api/Modules/Identity/Faber.Modules.Identity.Application/DependencyInjection.cs`
-- `tests/Integration/Modules/Auth/Faber.Modules.Auth.Application.Tests/`
-- `tests/Integration/Modules/Resumes/Faber.Modules.Resumes.Application.Tests/`
+- `src/api/Cvitlo.Api/Program.cs`
+- `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/Login/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/DeleteEducation/`
+- `src/api/Modules/Resumes/Cvitlo.Resumes.Application/DependencyInjection.cs`
+- `src/api/Modules/Auth/Cvitlo.Auth.Application/DependencyInjection.cs`
+- `tests/Modules/Auth/Cvitlo.Auth.Application.IntegrationTests/`
+- `tests/Modules/Resumes/Cvitlo.Resumes.Application.IntegrationTests/`
 
 > The code under `src/api` still logs `[START]`/`[SUCCESS]`/`[HTTP …]` lines until the sweeps (#119, #120, #115) remove them. Mirror its structure, not its logging: follow `## Logging` in `.agents/rules/backend-patterns.md`.
 
@@ -31,19 +30,24 @@ Canonical sources to mirror before changing backend code:
 
 ```text
 src/api/
-├── Faber.Api/                    # API host: FastEndpoints, JWT, middleware
+├── Cvitlo.Api/                    # API host: FastEndpoints, JWT, middleware
 ├── Aspire/
-│   ├── Faber.AppHost/            # Orchestrator: Keycloak, Postgres, Redis, Mailpit
-│   └── Faber.ServiceDefaults/    # Shared telemetry / resilience
+│   ├── Cvitlo.AppHost/            # Orchestrator: Keycloak, Postgres, Redis, Mailpit
+│   └── Cvitlo.ServiceDefaults/    # Shared telemetry / resilience
+├── Common/
+│   └── Cvitlo.Common/             # What two or more modules need (not a module)
+├── Jobs/
+│   └── Cvitlo.Migrations/         # Applies every module's EF Core migrations
 └── Modules/
-    ├── Auth/
-    ├── Users/
-    ├── Identity/
-    ├── Notifications/
-    ├── Resumes/
-    ├── Documents/
-    └── Common/
+    ├── Auth/                      # Cvitlo.Auth.{Application, Infrastructure, PublicApi}
+    ├── Documents/                 # Cvitlo.Documents.{Application, PublicApi}
+    └── Resumes/                   # Cvitlo.Resumes.{Application, Domain, Infrastructure, PublicApi}
 ```
+
+Rule: folder name = `.csproj` name = assembly name = root namespace. Common holds what two or
+more modules need; the host (`Cvitlo.Api`) holds how the app is assembled. Tests live in
+`tests/`, mirroring `src/api/`: test project = tested project + `.UnitTests` or
+`.IntegrationTests`.
 
 ### Important reality
 - Faber is **not** pure Clean Architecture
@@ -58,10 +62,9 @@ Current modules do **not** all follow a fixed 4-layer template.
 
 | Module | Shape |
 |---|---|
-| `Identity` | `Application` + `Domain` + `Infrastructure` + `PublicApi` |
+| `Auth` | `Application` + `Infrastructure` + `PublicApi` |
 | `Resumes` | `Application` + `Domain` + `Infrastructure` + `PublicApi` |
-| `Users` | `Application` + `Domain` + `PublicApi` |
-| `Notifications` | `Application` + `PublicApi` |
+| `Documents` | `Application` + `PublicApi` |
 
 Rule:
 - `PublicApi` for cross-module contracts

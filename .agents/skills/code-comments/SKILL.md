@@ -27,13 +27,13 @@ non-obvious order or invariant). Anything else is deleted.
 
 ## Bad -> good
 
-1. Param restates the name. `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Caching/ResumesCacheKeys.cs:18`
+1. Param restates the name. `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Caching/ResumesCacheKeys.cs:18`
    - Bad: `/// <param name="userId">The id of the user whose resume list is cached.</param>`
    - Good: delete the whole block (lines 17-19): the class is in `Application`, not `PublicApi`, so no `///` belongs there. A why worth keeping, like the `Build` field's summary on line 14 (the build id busts stale entries), becomes a `//` line.
-2. Summary restates the type, outside `PublicApi`. `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/Account/UnlinkAccount/UnlinkAccountRequest.cs:3`
+2. Summary restates the type, outside `PublicApi`. `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/Account/UnlinkAccount/UnlinkAccountRequest.cs:3`
    - Bad: `/// <summary>Represents a request to unlink an identity provider.</summary>`
    - Good: delete the whole block (lines 3-4); the type name already says it.
-3. Record with a `<param>` per property, outside `PublicApi`. `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/Account/GetProfile/GetProfileResponse.cs:3-9`
+3. Record with a `<param>` per property, outside `PublicApi`. `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/Account/GetProfile/GetProfileResponse.cs:3-9`
    - Bad: `/// <summary>Describes the user's profile.</summary>` followed by `/// <param name="FirstName">The user's first name.</param>` and five more like it.
    - Good: delete the whole block (lines 3-9), `<summary>` included; it is an `Application` type. If one property is truly non-obvious, say it in a `//` on that line.
 4. Comment restates the code. `src/web/faber-app/src/app/core/services/theme.ts:74`
@@ -50,8 +50,8 @@ non-obvious order or invariant). Anything else is deleted.
 ## Keep these (good comments)
 
 - Workaround with the issue: `src/web/faber-app/src/app/shared/components/fb-rich-text/fb-rich-text.ts:228-230` explains why `emitUpdate:false` is needed (Tiptap fires `onUpdate`, which dirties the control, #423).
-- Order / consequence: `src/api/Modules/Auth/Faber.Modules.Auth.Application/Sessions/SessionRefresher.cs:121` says why the refused token is not handled here (`ValidateAsync` ends the session).
-- Public contract with an invariant: `src/api/Modules/Auth/Faber.Modules.Auth.PublicApi/Events/UserDeleted.cs:8-10` (the event may arrive more than once, so handlers must be idempotent).
+- Order / consequence: `src/api/Modules/Auth/Cvitlo.Auth.Application/Sessions/SessionRefresher.cs:121` says why the refused token is not handled here (`ValidateAsync` ends the session).
+- Public contract with an invariant: `src/api/Modules/Auth/Cvitlo.Auth.PublicApi/Events/UserDeleted.cs:8-10` (the event may arrive more than once, so handlers must be idempotent).
 
 ## Review checklist
 

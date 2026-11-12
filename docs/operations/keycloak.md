@@ -164,7 +164,7 @@ Keycloak__AdminClientSecret=<FABER-ADMIN-CLIENT-SECRET>
 
 Serve the web app and the API on **one origin**, `https://<APP-HOST>`, with `/api` routed to the API. The session cookie is `SameSite=Strict` and the API grants no CORS, so a split origin does not work.
 
-Sessions and Data Protection keys live in the `auth` schema of `faberdb`, created by `Faber.Migrations`. Every API replica shares them, so no sticky sessions are needed. Redis stays an optional cache; an outage there signs nobody out.
+Sessions and Data Protection keys live in the `auth` schema of `faberdb`, created by `Cvitlo.Migrations`. Every API replica shares them, so no sticky sessions are needed. Redis stays an optional cache; an outage there signs nobody out.
 
 - Session rows are keyed by the SHA-256 of the cookie's key, so a copy of the table does not yield working cookies. The Data Protection key ring that encrypts the tickets is in the same database and is not yet encrypted with a key held elsewhere; treat database backups as secrets.
 - An hourly job deletes expired session rows.

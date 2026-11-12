@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+
+        <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FastEndpoints.Testing" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NSubstitute" />
+        <PackageReference Include="Shouldly"/>
+        <PackageReference Include="Testcontainers.Keycloak" />
+        <PackageReference Include="Testcontainers.PostgreSql" />
+        <PackageReference Include="xunit.v3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\api\Cvitlo.Api\Cvitlo.Api.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Auth\Cvitlo.Auth.Application\Cvitlo.Auth.Application.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Documents\Cvitlo.Documents.PublicApi\Cvitlo.Documents.PublicApi.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Application\Cvitlo.Resumes.Application.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Infrastructure\Cvitlo.Resumes.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Auth\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Common\Cvitlo.Common.Testing\Cvitlo.Common.Testing.csproj"/>
+    </ItemGroup>
+
+</Project>

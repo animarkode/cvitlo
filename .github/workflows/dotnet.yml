@@ -37,10 +37,10 @@ jobs:
         run: dotnet tool restore
 
       - name: Restore
-        run: dotnet restore Faber.sln
+        run: dotnet restore Cvitlo.sln
 
       - name: Build
-        run: dotnet build Faber.sln --no-restore
+        run: dotnet build Cvitlo.sln --no-restore
 
       # Loads each design-time DbContext through the repository-pinned dotnet-ef, so a package
       # bump that breaks the migration tooling (EF Tools 10.x on net8.0, #555) fails here on the
@@ -50,13 +50,13 @@ jobs:
         env:
           ConnectionStrings__faberdb: Host=localhost;Port=5432;Database=faberdb;Username=faber;Password=faber
         run: |
-          dotnet ef migrations list --no-connect --no-build --project src/api/Modules/Auth/Faber.Modules.Auth.Infrastructure
-          dotnet ef migrations list --no-connect --no-build --project src/api/Modules/Resumes/Faber.Modules.Resumes.Infrastructure
+          dotnet ef migrations list --no-connect --no-build --project src/api/Modules/Auth/Cvitlo.Auth.Infrastructure
+          dotnet ef migrations list --no-connect --no-build --project src/api/Modules/Resumes/Cvitlo.Resumes.Infrastructure
 
       - name: Install Playwright browser
         # Document rendering launches Playwright's default headless Chromium.
         # The browser binary is versioned separately from its NuGet package.
-        run: pwsh src/api/Faber.Api/bin/Debug/net8.0/playwright.ps1 install --with-deps --only-shell
+        run: pwsh src/api/Cvitlo.Api/bin/Debug/net8.0/playwright.ps1 install --with-deps --only-shell
 
       - name: Test
-        run: dotnet test --solution Faber.sln --no-build --no-restore
+        run: dotnet test --solution Cvitlo.sln --no-build --no-restore

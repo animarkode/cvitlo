@@ -8,7 +8,7 @@ paths:
 
 ## Module Feature Structure
 
-Canonical example: `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/CreateEducation/`
+Canonical example: `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/CreateEducation/`
 
 ```text
 Features/{Feature}/
@@ -31,7 +31,7 @@ Features/{Feature}/
 - `Auth` has no Domain project: its persisted types (sessions, keys) are infrastructure.
 - `Resumes` and `Auth` read required configuration at registration and fail on start when it is missing.
 - Existing project references are not perfectly pure: prefer `PublicApi` boundaries and check neighbouring precedent first.
-- A module that owns a `DbContext` must also be registered with `Faber.Migrations` (see `docs/operations/migrations.md`).
+- A module that owns a `DbContext` must also be registered with `Cvitlo.Migrations` (see `docs/operations/migrations.md`).
 
 ## Naming Conventions
 
@@ -92,6 +92,10 @@ Features/{Feature}/
 
 - **No `DisplayName`** on `[Fact]`/`[Theory]`: the method name is the only name (a second name drifts; `-method`/`--filter` match the method name; xUnit shows `[Theory]` row values).
 - Existing tests are migrated to this rule in #118; rationale in `docs/decisions/agent-skills.md`.
+
+**Test project layout:** test project = tested project + `.UnitTests` or `.IntegrationTests`, in the folder mirroring the tested project's folder under `tests/`; inside it, folders/namespaces mirror production (e.g. `Features/Skills/UpdateSkill/UpdateSkillTests.cs`).
+
+**Common vs host:** `Cvitlo.Common` holds what two or more modules need; the host (`Cvitlo.Api`) holds how the app is assembled.
 
 **Test file structure:** `Features/{Feature}/{Feature}Tests.cs`, `{Feature}Constants.cs` (imported via `using static`), `Data/{Description}Data.cs` + `{Feature}Faker.cs`
 
