@@ -185,7 +185,7 @@ body {
 
 /*
  * Shared frosted-glass surface (#371). Lives in @layer components so Tailwind
- * utilities still win — fb-toast overrides the background with tinted bg-*\/10
+ * utilities still win — cv-toast overrides the background with tinted bg-*\/10
  * variants.
  *
  * No border by design (#408): the solid 1px ring read as heavy, so edge
@@ -236,7 +236,7 @@ body {
  * mat-calendar), so it can't carry the .glass-surface class itself.
  * Keep these declarations in lockstep with .glass-surface above.
  */
-.mat-datepicker-content:has(.fb-date-picker-panel) {
+.mat-datepicker-content:has(.cv-date-picker-panel) {
   position: relative;
   background: var(--color-glass);
   box-shadow: var(--glass-shadow);
@@ -244,7 +244,7 @@ body {
   backdrop-filter: var(--glass-filter);
 }
 
-.mat-datepicker-content:has(.fb-date-picker-panel)::after {
+.mat-datepicker-content:has(.cv-date-picker-panel)::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -296,11 +296,11 @@ body {
   }
 }
 
-.fb-dialog-panel {
+.cv-dialog-panel {
   outline: none;
 }
 
-.fb-dialog-backdrop {
+.cv-dialog-backdrop {
   background: rgb(0 0 0 / 0.4);
 }
 
@@ -309,29 +309,29 @@ body {
    `align-self` controls the vertical edge: `flex-end` overrides the dialog's
    default centring and pins the sheet to the bottom with no custom position
    strategy. */
-.fb-sheet-panel {
+.cv-sheet-panel {
   outline: none;
   width: 100%;
   max-width: 100%;
   align-self: flex-end;
 }
 
-@keyframes fb-toast-enter {
+@keyframes cv-toast-enter {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fb-toast-leave {
+@keyframes cv-toast-leave {
   from { opacity: 1; transform: translateY(0); }
   to   { opacity: 0; transform: translateY(16px); }
 }
 
-.fb-toast-enter { animation: fb-toast-enter 200ms ease both; }
-.fb-toast-leave { animation: fb-toast-leave 200ms ease both; }
+.cv-toast-enter { animation: cv-toast-enter 200ms ease both; }
+.cv-toast-leave { animation: cv-toast-leave 200ms ease both; }
 
 /*
- * fb-theme-toggle icon swap: moon enters from the top / leaves upward;
- * sun enters from the bottom / leaves downward. Mirrors the fb-toast
+ * cv-theme-toggle icon swap: moon enters from the top / leaves upward;
+ * sun enters from the bottom / leaves downward. Mirrors the cv-toast
  * animate.enter/animate.leave pattern above, with a bouncier entrance
  * (overshoot easing + scale pop) for a more expressive swap.
  */
@@ -376,17 +376,17 @@ body {
 }
 
 /*
- * fb-date-picker calendar overlay (rendered in a CDK overlay, outside the
+ * cv-date-picker calendar overlay (rendered in a CDK overlay, outside the
  * component view — must be styled globally). Drop only the expanding click
  * ripple on the header buttons (left = period/view switcher, right =
  * previous/next navigation); the hover/focus state-layer background stays.
  */
-.fb-date-picker-panel .mat-calendar-controls .mat-ripple-element {
+.cv-date-picker-panel .mat-calendar-controls .mat-ripple-element {
   display: none;
 }
 
 /* period button (left, view switcher): denser, brand-tinted hover */
-.fb-date-picker-panel .mat-calendar-period-button {
+.cv-date-picker-panel .mat-calendar-period-button {
   --mat-button-text-state-layer-color: var(--color-primary);
   --mat-button-text-hover-state-layer-opacity: 0.22;
 }
@@ -398,7 +398,7 @@ body {
  * month-precision pickers only ever show the shorter year / multi-year views,
  * leaving a big empty band below the grid — let the calendar shrink-wrap instead.
  */
-.mat-datepicker-content:has(.fb-date-picker-panel) .mat-calendar {
+.mat-datepicker-content:has(.cv-date-picker-panel) .mat-calendar {
   height: auto;
 }
 
@@ -408,7 +408,7 @@ body {
  * Keep Material's 8px side padding so the switch lines up with the calendar's
  * content edges; only flip alignment and shrink the top gap.
  */
-.mat-datepicker-content:has(.fb-date-picker-panel) .mat-datepicker-actions {
+.mat-datepicker-content:has(.cv-date-picker-panel) .mat-datepicker-actions {
   justify-content: flex-start;
   min-height: 0;
   /* match the calendar's inner inset so the switch lines up with the year
@@ -421,7 +421,7 @@ body {
  * While "Present" is on, the end date is N/A — dim the calendar and block its
  * clicks. The Present switch lives in the footer (a sibling), so it stays live.
  */
-.mat-datepicker-content:has(.fb-present-on) .fb-date-picker-panel {
+.mat-datepicker-content:has(.cv-present-on) .cv-date-picker-panel {
   pointer-events: none;
   opacity: 0.45;
 }

@@ -17,22 +17,22 @@ import {
   Trash2,
 } from 'lucide-angular';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
-import { FbIconButton } from '../../../../shared/components/fb-icon-button/fb-icon-button';
-import { FbAccordion } from '../../../../shared/components/fb-accordion/fb-accordion';
-import { FbAccordionItem } from '../../../../shared/components/fb-accordion-item/fb-accordion-item';
+import { CvIconButton } from '../../../../shared/components/cv-icon-button/cv-icon-button';
+import { CvAccordion } from '../../../../shared/components/cv-accordion/cv-accordion';
+import { CvAccordionItem } from '../../../../shared/components/cv-accordion-item/cv-accordion-item';
 import { Orderly } from '../../orderly';
 
 @Component({
   selector: 'app-orderable-list',
   imports: [
     NgTemplateOutlet,
-    FbIconButton,
+    CvIconButton,
     LucideAngularModule,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
-    FbAccordion,
-    FbAccordionItem,
+    CvAccordion,
+    CvAccordionItem,
   ],
   providers: [
     { provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({ Plus, GripVertical, Trash2 }) },

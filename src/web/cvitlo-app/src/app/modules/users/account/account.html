@@ -1,7 +1,7 @@
 <div class="max-w-screen-xl mx-auto px-4 pt-6 pb-16 flex flex-col gap-6">
   <div class="flex items-center gap-3 min-w-0">
     @if (user(); as u) {
-      <fb-initials [firstName]="u.firstName" [lastName]="u.lastName" [hoverable]="false" size="lg" aria-hidden="true" />
+      <cv-initials [firstName]="u.firstName" [lastName]="u.lastName" [hoverable]="false" size="lg" aria-hidden="true" />
     }
     <div class="flex flex-col min-w-0">
       <span class="text-lg font-bold text-foreground truncate" data-test="user-name">{{ fullName() }}</span>
@@ -30,7 +30,7 @@
         }
       </nav>
 
-      <button type="button" fb-button variant="outline" class="h-11 w-full font-semibold" data-test="sign-out" (click)="signOut()">
+      <button type="button" cv-button variant="outline" class="h-11 w-full font-semibold" data-test="sign-out" (click)="signOut()">
         <lucide-icon name="log-out" [size]="18" [strokeWidth]="1.8" aria-hidden="true" />
         Sign out
       </button>

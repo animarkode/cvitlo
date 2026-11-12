@@ -1,6 +1,6 @@
 @if (store.isLoading()) {
   <div class="builder-canvas flex h-dvh items-center justify-center" role="status" aria-label="Loading resume">
-    <fb-spinner class="h-10 w-10 text-primary" />
+    <cv-spinner class="h-10 w-10 text-primary" />
   </div>
 } @else {
   <div class="builder-canvas flex h-dvh flex-col overflow-hidden">
@@ -61,14 +61,14 @@
       <!-- Pill 3 — theme toggle + user avatar (user menu trigger) -->
       @if (authStore.user(); as user) {
         <div class="flex items-center gap-3">
-          <fb-theme-toggle />
+          <cv-theme-toggle />
           <button
             #profileAnchor
             type="button"
             aria-label="Open user menu"
             class="flex bg-transparent rounded-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             (click)="toggleUserMenu()">
-            <fb-initials [firstName]="user.firstName" [lastName]="user.lastName" />
+            <cv-initials [firstName]="user.firstName" [lastName]="user.lastName" />
           </button>
         </div>
       }
@@ -203,7 +203,7 @@
       </div>
     }
 
-    <fb-toast
+    <cv-toast
       [message]="store.error()"
       [variant]="store.noticeVariant()"
       (dismissed)="store.clearError()" />

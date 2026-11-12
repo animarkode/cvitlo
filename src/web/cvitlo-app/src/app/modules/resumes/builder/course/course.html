@@ -16,16 +16,16 @@
         class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-3"
         (focusin)="onTitleFocusIn(item)"
         (focusout)="onTitleFocusOut(item, $event)">
-        <fb-field label="Course name" placeholder="e.g. Advanced React" formControlName="name" />
-        <fb-field label="Institution" placeholder="e.g. Frontend Masters" formControlName="school" />
+        <cv-field label="Course name" placeholder="e.g. Advanced React" formControlName="name" />
+        <cv-field label="Institution" placeholder="e.g. Frontend Masters" formControlName="school" />
       </div>
       <div class="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
-        <fb-date-picker
+        <cv-date-picker
           label="Start date"
           precision="month"
           [locale]="store.localization()"
           formControlName="startDate" />
-        <fb-date-picker
+        <cv-date-picker
           label="End date"
           precision="month"
           [allowPresent]="true"
@@ -34,7 +34,7 @@
       </div>
       <div class="flex flex-col gap-1.5">
         <span class="text-sm font-medium text-muted-foreground">Description</span>
-        <fb-rich-text formControlName="description" placeholder="Describe what you learned…" />
+        <cv-rich-text formControlName="description" placeholder="Describe what you learned…" />
       </div>
     </form>
   </ng-template>

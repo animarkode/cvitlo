@@ -13,11 +13,11 @@ import { DatePipe } from '@angular/common';
 import { AccountClient, problemDetail } from '../account-client';
 import { AccountConfirm } from '../account-confirm';
 import { AccountDevice } from '../account-contracts';
-import { FbButton } from '../../../../shared/components/fb-button/fb-button';
+import { CvButton } from '../../../../shared/components/cv-button/cv-button';
 
 @Component({
   selector: 'app-device-activity',
-  imports: [DatePipe, FbButton],
+  imports: [DatePipe, CvButton],
   templateUrl: './device-activity.html',
   styleUrl: './device-activity.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

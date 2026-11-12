@@ -42,7 +42,7 @@ export type PreviewStatus = 'generating' | 'ready' | 'unavailable';
 
 /**
  * How a store notice should read to the user: `'warning'` for a throttled request the user can
- * recover from by pausing, `'error'` for a genuine failure. Maps onto `FbToast`'s variant.
+ * recover from by pausing, `'error'` for a genuine failure. Maps onto `CvToast`'s variant.
  */
 export type NoticeVariant = 'error' | 'warning';
 

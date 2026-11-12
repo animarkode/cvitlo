@@ -12,11 +12,11 @@ import {
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule, LucideIconProvider, LUCIDE_ICONS, SquarePen, Trash2, Pencil } from 'lucide-angular';
 import { Resume } from '../../resume-response';
-import { FbButton } from '../../../../shared/components/fb-button/fb-button';
+import { CvButton } from '../../../../shared/components/cv-button/cv-button';
 
 @Component({
   selector: 'app-resume-card',
-  imports: [DatePipe, LucideAngularModule, FbButton],
+  imports: [DatePipe, LucideAngularModule, CvButton],
   providers: [{ provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({ SquarePen, Trash2, Pencil }) }],
   templateUrl: './resume-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

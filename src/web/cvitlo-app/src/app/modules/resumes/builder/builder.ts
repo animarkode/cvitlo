@@ -45,17 +45,17 @@ import { Editor } from './editor/editor';
 import { Preview } from './preview/preview';
 import { BuilderActions } from './builder-actions/builder-actions';
 import { SectionSheet, SECTION_SHEET_ITEMS } from './section-sheet/section-sheet';
-import { FbSpinner } from '../../../shared/components/fb-spinner/fb-spinner';
-import { FbToast } from '../../../shared/components/fb-toast/fb-toast';
-import { FbThemeToggle } from '../../../shared/components/fb-theme-toggle/fb-theme-toggle';
-import { FbInitials } from '../../../shared/components/fb-initials/fb-initials';
+import { CvSpinner } from '../../../shared/components/cv-spinner/cv-spinner';
+import { CvToast } from '../../../shared/components/cv-toast/cv-toast';
+import { CvThemeToggle } from '../../../shared/components/cv-theme-toggle/cv-theme-toggle';
+import { CvInitials } from '../../../shared/components/cv-initials/cv-initials';
 import { AppUserMenu } from '../../../core/layouts/app-navbar/app-user-menu/app-user-menu';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { APP_ROUTES } from '../../../core/routes/app-routes';
 
 @Component({
   selector: 'app-builder',
-  imports: [Editor, Preview, BuilderActions, FbSpinner, LucideAngularModule, FbToast, FbThemeToggle, FbInitials, AppUserMenu],
+  imports: [Editor, Preview, BuilderActions, CvSpinner, LucideAngularModule, CvToast, CvThemeToggle, CvInitials, AppUserMenu],
   providers: [
     {
       provide: LUCIDE_ICONS,
@@ -217,8 +217,8 @@ export class Builder implements OnInit {
       // injecting `ResumesStore` throws NG0201 the moment it's attached,
       // aborting the panel after the backdrop is already up (#425 follow-up).
       injector: this.injector,
-      panelClass: 'fb-sheet-panel',
-      backdropClass: 'fb-dialog-backdrop',
+      panelClass: 'cv-sheet-panel',
+      backdropClass: 'cv-dialog-backdrop',
       width: '100%',
       maxWidth: '100%',
       ariaLabel: 'Resume sections',

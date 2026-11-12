@@ -135,9 +135,9 @@ describe('surface icon-button contrast (#479)', () => {
 });
 
 /**
- * #370 dark-mode button contrast — the soft-destructive / default fb-button
+ * #370 dark-mode button contrast — the soft-destructive / default cv-button
  * fills must not collapse into the same gray. Alpha fills are banned in
- * fb-button; these opaque per-theme tokens are the replacement. The chroma
+ * cv-button; these opaque per-theme tokens are the replacement. The chroma
  * floor is what keeps Delete visibly red next to Edit's gray bg-muted —
  * luminance ratio cannot capture red-vs-gray at equal lightness.
  */
@@ -301,7 +301,7 @@ describe('Add button hover fill (#407)', () => {
 
 /**
  * #405 section-rail icon chip — `--color-lavender` is the 42px chip behind each
- * section icon in `fb-accordion-item`, sitting on the editor pane's `bg-card`.
+ * section icon in `cv-accordion-item`, sitting on the editor pane's `bg-card`.
  *
  * The chip is a neutral surface, NOT an accent, and it carries the same fill as
  * the chevron's hover state sitting beside it in the same row. Light mode

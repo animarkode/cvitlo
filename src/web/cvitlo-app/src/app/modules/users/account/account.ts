@@ -16,8 +16,8 @@ import { AuthClient } from '../../../core/auth/auth-client';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { ACCOUNT_SECTIONS, APP_ROUTES } from '../../../core/routes/app-routes';
 import { AccountClient } from './account-client';
-import { FbButton } from '../../../shared/components/fb-button/fb-button';
-import { FbInitials } from '../../../shared/components/fb-initials/fb-initials';
+import { CvButton } from '../../../shared/components/cv-button/cv-button';
+import { CvInitials } from '../../../shared/components/cv-initials/cv-initials';
 
 const SUCCESS_MESSAGES: Record<string, string> = {
   password: 'Password updated',
@@ -49,7 +49,7 @@ const SECTION_LINKS: readonly AccountSectionLink[] = [
  */
 @Component({
   selector: 'app-account',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, LucideAngularModule, FbButton, FbInitials],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, LucideAngularModule, CvButton, CvInitials],
   providers: [
     { provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({ User, KeyRound, Monitor, Link, LogOut }) },
   ],

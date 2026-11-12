@@ -18,9 +18,9 @@
       </ul>
 
       <div class="flex items-center space-x-3 rtl:space-x-reverse">
-        <fb-theme-toggle />
+        <cv-theme-toggle />
         @if (authStore.loading() && !authStore.authenticated()) {
-          <fb-spinner class="h-10 w-10 text-primary" />
+          <cv-spinner class="h-10 w-10 text-primary" />
         } @else {
           @if (authStore.authenticated()) {
             <div class="relative">
@@ -30,7 +30,7 @@
                 type="button"
                 class="flex text-sm bg-transparent rounded-full md:me-0 cursor-pointer focus:outline-none">
                 <span class="sr-only">Open user menu</span>
-                <fb-initials [firstName]="authStore.user()!.firstName"
+                <cv-initials [firstName]="authStore.user()!.firstName"
                              [lastName]="authStore.user()!.lastName" />
               </button>
             </div>
@@ -43,7 +43,7 @@
             </div>
           }
         }
-        <fb-toggle-button (clicked)="toggleDrawer()" [isOpen]="isDrawerOpen()" />
+        <cv-toggle-button (clicked)="toggleDrawer()" [isOpen]="isDrawerOpen()" />
       </div>
     </div>
   </nav>

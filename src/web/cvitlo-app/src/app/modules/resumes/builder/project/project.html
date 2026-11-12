@@ -13,17 +13,17 @@
         class="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-3"
         (focusin)="onTitleFocusIn(item)"
         (focusout)="onTitleFocusOut(item, $event)">
-        <fb-field label="Project name" placeholder="e.g. Faber" formControlName="name" />
-        <fb-field label="Project tagline" placeholder="e.g. SaaS resume builder" formControlName="tagline" />
+        <cv-field label="Project name" placeholder="e.g. Faber" formControlName="name" />
+        <cv-field label="Project tagline" placeholder="e.g. SaaS resume builder" formControlName="tagline" />
       </div>
-      <fb-field label="Project URL" type="url" placeholder="https://…" formControlName="url" />
+      <cv-field label="Project URL" type="url" placeholder="https://…" formControlName="url" />
       <div class="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
-        <fb-date-picker
+        <cv-date-picker
           label="Start date"
           precision="month"
           [locale]="store.localization()"
           formControlName="startDate" />
-        <fb-date-picker
+        <cv-date-picker
           label="End date"
           precision="month"
           [allowPresent]="true"
@@ -32,7 +32,7 @@
       </div>
       <div class="flex flex-col gap-1.5">
         <span class="text-sm font-medium text-muted-foreground">Description</span>
-        <fb-rich-text formControlName="description" placeholder="Describe the project and your contribution…" />
+        <cv-rich-text formControlName="description" placeholder="Describe the project and your contribution…" />
       </div>
     </form>
   </ng-template>

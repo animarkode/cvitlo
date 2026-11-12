@@ -12,9 +12,9 @@
       <div
         (focusin)="onTitleFocusIn(item)"
         (focusout)="onTitleFocusOut(item, $event)">
-        <fb-field label="Language" placeholder="e.g. English" formControlName="name" />
+        <cv-field label="Language" placeholder="e.g. English" formControlName="name" />
       </div>
-      <fb-select label="Level" placeholder="Select level" [options]="languageLevels" formControlName="level" />
+      <cv-select label="Level" placeholder="Select level" [options]="languageLevels" formControlName="level" />
     </form>
   </ng-template>
 </app-orderable-list>

@@ -4,13 +4,13 @@
   }
 
   @if (items().length) {
-    <fb-accordion
+    <cv-accordion
       class="orderable-drop rounded-xl border-[0.5px] border-line overflow-hidden"
       cdkDropList
       [cdkDropListData]="items()"
       (cdkDropListDropped)="onDrop($event)">
       @for (item of items(); track item.id) {
-        <fb-accordion-item
+        <cv-accordion-item
           #ai
           roundChevron
           cdkDrag
@@ -27,7 +27,7 @@
           </span>
           <button
             fbAccordionSuffix
-            fb-icon-button
+            cv-icon-button
             intent="destructive"
             size="lg"
             type="button"
@@ -39,9 +39,9 @@
           <ng-container
             [ngTemplateOutlet]="itemTemplate()"
             [ngTemplateOutletContext]="{ $implicit: item }" />
-        </fb-accordion-item>
+        </cv-accordion-item>
       }
-    </fb-accordion>
+    </cv-accordion>
   }
 
   <!-- #407 — the two themes are treated separately because --color-primary

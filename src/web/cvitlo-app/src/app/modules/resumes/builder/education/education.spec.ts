@@ -86,11 +86,11 @@ describe('Education', () => {
     }
   });
 
-  it('should render a form per education with fb-field, fb-date-picker and fb-rich-text', () => {
+  it('should render a form per education with cv-field, cv-date-picker and cv-rich-text', () => {
     expect(fixture.nativeElement.querySelectorAll('form').length).toBe(seed.length);
-    expect(fixture.nativeElement.querySelector('fb-field')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('fb-date-picker')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('fb-rich-text')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('cv-field')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('cv-date-picker')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('cv-rich-text')).toBeTruthy();
   });
 
   it('should compose the collapsed title as "degree at school"', () => {

@@ -12,8 +12,8 @@
         class="absolute inset-0 flex items-center justify-center rounded-full text-muted-foreground"
         data-testid="save-status-saving"
         title="Saving…"
-        [animate.enter]="animationsReady() ? 'fb-save-spinner-enter' : ''"
-        [animate.leave]="animationsReady() ? 'fb-save-spinner-leave' : ''">
+        [animate.enter]="animationsReady() ? 'cv-save-spinner-enter' : ''"
+        [animate.leave]="animationsReady() ? 'cv-save-spinner-leave' : ''">
         <span class="block size-4 rounded-full border-2 border-line border-t-foreground animate-spin"></span>
       </span>
     }
@@ -22,12 +22,12 @@
         class="absolute inset-0 flex items-center justify-center rounded-full bg-success/15 text-success-text"
         data-testid="save-status-saved"
         title="Saved"
-        [animate.enter]="animationsReady() ? 'fb-save-circle-enter' : ''">
+        [animate.enter]="animationsReady() ? 'cv-save-circle-enter' : ''">
         <lucide-icon
           name="check"
           [size]="20"
           [strokeWidth]="2.5"
-          [animate.enter]="animationsReady() ? 'fb-save-tick-enter' : ''" />
+          [animate.enter]="animationsReady() ? 'cv-save-tick-enter' : ''" />
       </span>
     }
     @case ('error') {
@@ -35,7 +35,7 @@
         class="absolute inset-0 flex items-center justify-center rounded-full bg-destructive/15 text-destructive-text"
         data-testid="save-status-error"
         [title]="errorLabel()"
-        [animate.enter]="animationsReady() ? 'fb-save-error-enter' : ''">
+        [animate.enter]="animationsReady() ? 'cv-save-error-enter' : ''">
         <lucide-icon name="circle-alert" [size]="20" [strokeWidth]="2" />
       </span>
     }

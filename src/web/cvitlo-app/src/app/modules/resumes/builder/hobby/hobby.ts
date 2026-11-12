@@ -3,11 +3,11 @@ import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { ResumesStore } from '../../resumes-store';
-import { FbRichText } from '../../../../shared/components/fb-rich-text/fb-rich-text';
+import { CvRichText } from '../../../../shared/components/cv-rich-text/cv-rich-text';
 
 @Component({
   selector: 'app-hobby',
-  imports: [ReactiveFormsModule, FbRichText],
+  imports: [ReactiveFormsModule, CvRichText],
   templateUrl: './hobby.html',
   styleUrl: './hobby.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

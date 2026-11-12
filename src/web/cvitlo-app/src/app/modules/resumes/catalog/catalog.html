@@ -1,7 +1,7 @@
 <div class="dotted-background min-h-[calc(100vh-var(--navbar-height))]">
   @if (loading()) {
     <div class="flex min-h-[calc(100vh-var(--navbar-height))] items-center justify-center" role="status" aria-label="Loading resumes">
-      <fb-spinner class="h-10 w-10 text-primary" />
+      <cv-spinner class="h-10 w-10 text-primary" />
     </div>
   } @else {
     <div class="max-w-screen-xl mx-auto px-4 py-10">
@@ -11,7 +11,7 @@
         @if (resumes().length > 0) {
           <button
             type="button"
-            fb-button variant="primary" size="md"
+            cv-button variant="primary" size="md"
             (click)="createResume()">
             <lucide-icon name="badge-plus" [size]="16" [strokeWidth]="2" aria-hidden="true" />
             New Resume
@@ -24,7 +24,7 @@
           <p class="text-base text-muted-foreground">You have no resumes yet.</p>
           <button
             type="button"
-            fb-button variant="primary" size="md"
+            cv-button variant="primary" size="md"
             (click)="createResume()">
             <lucide-icon name="badge-plus" [size]="16" [strokeWidth]="2" aria-hidden="true" />
             Create your first resume
@@ -46,5 +46,5 @@
   }
 </div>
 
-<fb-toast [message]="error()" (dismissed)="error.set(null)" />
+<cv-toast [message]="error()" (dismissed)="error.set(null)" />
 

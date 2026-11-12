@@ -8,7 +8,7 @@ import {
 import { vi } from 'vitest';
 import { SectionList } from './section-list';
 import { ResumesStore, SectionBulkRequest } from '../../resumes-store';
-import { FbAccordionItem } from '../../../../shared/components/fb-accordion-item/fb-accordion-item';
+import { CvAccordionItem } from '../../../../shared/components/cv-accordion-item/cv-accordion-item';
 import { mockResumesStore } from '../../../../shared/testing/mock-resumes-store';
 
 describe('SectionList', () => {
@@ -16,15 +16,15 @@ describe('SectionList', () => {
   let fixture: ComponentFixture<SectionList>;
 
   function getItems() {
-    return fixture.debugElement.queryAll(By.directive(FbAccordionItem));
+    return fixture.debugElement.queryAll(By.directive(CvAccordionItem));
   }
 
   function getItem(index: number) {
     return getItems()[index];
   }
 
-  function getItemComponent(index: number): FbAccordionItem {
-    return getItem(index).componentInstance as FbAccordionItem;
+  function getItemComponent(index: number): CvAccordionItem {
+    return getItem(index).componentInstance as CvAccordionItem;
   }
 
   function getTrigger(index: number): HTMLButtonElement {
@@ -125,13 +125,13 @@ describe('SectionList', () => {
     it('opens every section on an expand request', async () => {
       requestedAllSections.set({ action: 'expand' });
       await settle();
-      expect(getItems().every(item => (item.componentInstance as FbAccordionItem).open())).toBe(true);
+      expect(getItems().every(item => (item.componentInstance as CvAccordionItem).open())).toBe(true);
     });
 
     it('closes every section on a collapse request', async () => {
       requestedAllSections.set({ action: 'collapse' });
       await settle();
-      expect(getItems().some(item => (item.componentInstance as FbAccordionItem).open())).toBe(false);
+      expect(getItems().some(item => (item.componentInstance as CvAccordionItem).open())).toBe(false);
     });
 
     it('re-applies a repeated expand request after a section was closed by hand', async () => {

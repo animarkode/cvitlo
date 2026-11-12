@@ -398,7 +398,7 @@ export class Preview implements OnDestroy {
     // to the CSS resting value of 1 (preview.css), animated by the class's
     // `transition: opacity` (disabled under prefers-reduced-motion) — a
     // crossfade in from 0 to 1, stacked ABOVE the outgoing canvas via
-    // `.fb-preview-buffer-front`'s z-index. The outgoing canvas's own opacity
+    // `.cv-preview-buffer-front`'s z-index. The outgoing canvas's own opacity
     // is never touched here: it stays fully opaque underneath for the whole
     // transition, which is what keeps composite alpha at 1 throughout instead
     // of letting `--color-card` bleed through a concurrent fade-out (#456

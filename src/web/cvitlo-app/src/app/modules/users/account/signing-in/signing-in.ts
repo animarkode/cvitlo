@@ -14,11 +14,11 @@ import { AccountClient, problemDetail } from '../account-client';
 import { AccountConfirm } from '../account-confirm';
 import { AccountAction, CredentialGroup, StoredCredential } from '../account-contracts';
 import { helpText, humanize } from '../account-labels';
-import { FbButton } from '../../../../shared/components/fb-button/fb-button';
+import { CvButton } from '../../../../shared/components/cv-button/cv-button';
 
 @Component({
   selector: 'app-signing-in',
-  imports: [DatePipe, FbButton],
+  imports: [DatePipe, CvButton],
   templateUrl: './signing-in.html',
   styleUrl: './signing-in.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

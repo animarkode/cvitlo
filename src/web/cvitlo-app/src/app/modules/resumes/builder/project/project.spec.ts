@@ -40,8 +40,8 @@ describe('Project', () => {
   it('creates an accessible project editor with rich text', () => {
     expect(fixture.componentInstance).toBeTruthy();
     expect(fixture.nativeElement.querySelectorAll('form').length).toBe(seed.length);
-    expect(fixture.nativeElement.querySelector('fb-rich-text')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('fb-field[type="url"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('cv-rich-text')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('cv-field[type="url"]')).toBeTruthy();
   });
 
   it('labels a project with its name and tagline', () => {

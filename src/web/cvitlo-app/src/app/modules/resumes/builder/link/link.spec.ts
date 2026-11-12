@@ -49,11 +49,11 @@ describe('Link', () => {
     }
   });
 
-  it('should render two fb-field inputs per link', () => {
+  it('should render two cv-field inputs per link', () => {
     expect(fixture.nativeElement.querySelectorAll('form').length).toBe(seed.length);
     const firstForm = fixture.nativeElement.querySelector('form') as HTMLFormElement;
-    expect(firstForm.querySelectorAll('fb-field').length).toBe(2);
-    expect(firstForm.querySelector('fb-form-field')).toBeNull();
+    expect(firstForm.querySelectorAll('cv-field').length).toBe(2);
+    expect(firstForm.querySelector('cv-form-field')).toBeNull();
   });
 
   it('uses label before URI, falling back to either available value', () => {

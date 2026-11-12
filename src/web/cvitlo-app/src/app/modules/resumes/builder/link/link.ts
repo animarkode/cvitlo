@@ -5,12 +5,12 @@ import { ResumesStore } from '../../resumes-store';
 import { Link as LinkModel } from './link-response';
 import { UpdateLinkRequest } from './update-link-request';
 import { OrderableList } from '../orderable-list/orderable-list';
-import { FbField } from '../../../../shared/components/fb-field/fb-field';
+import { CvField } from '../../../../shared/components/cv-field/cv-field';
 import { EntryTitles, firstNonEmptyTitlePart } from '../entry-titles';
 
 @Component({
   selector: 'app-link',
-  imports: [ReactiveFormsModule, OrderableList, FbField],
+  imports: [ReactiveFormsModule, OrderableList, CvField],
   templateUrl: './link.html',
   styleUrl: './link.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

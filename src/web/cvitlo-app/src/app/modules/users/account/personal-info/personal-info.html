@@ -22,7 +22,7 @@
           <span class="text-sm leading-normal text-muted-foreground" data-test="email-verified">Not verified yet</span>
         }
       </div>
-      <button type="button" fb-button variant="outline" data-test="change-email" (click)="changeEmail()">
+      <button type="button" cv-button variant="outline" data-test="change-email" (click)="changeEmail()">
         Change e-mail
       </button>
     </div>
@@ -30,20 +30,20 @@
     @if (form(); as form) {
       <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col" novalidate>
         <div class="py-3">
-          <fb-input layout="inline" label="First name" autocomplete="given-name" formControlName="firstName" />
+          <cv-input layout="inline" label="First name" autocomplete="given-name" formControlName="firstName" />
           @for (message of errorsFor('firstName'); track message) {
             <p class="mt-1 text-sm leading-normal text-destructive-text" role="alert" data-test="server-error">{{ message }}</p>
           }
         </div>
         <div class="py-3">
-          <fb-input layout="inline" label="Last name" autocomplete="family-name" formControlName="lastName" />
+          <cv-input layout="inline" label="Last name" autocomplete="family-name" formControlName="lastName" />
           @for (message of errorsFor('lastName'); track message) {
             <p class="mt-1 text-sm leading-normal text-destructive-text" role="alert" data-test="server-error">{{ message }}</p>
           }
         </div>
         @for (field of extraFields(); track field.name) {
           <div class="py-3">
-            <fb-input layout="inline" [label]="field.label" [formControlName]="field.name" />
+            <cv-input layout="inline" [label]="field.label" [formControlName]="field.name" />
             @for (message of errorsFor(field.name); track message) {
               <p class="mt-1 text-sm leading-normal text-destructive-text" role="alert" data-test="server-error">{{ message }}</p>
             }
@@ -56,7 +56,7 @@
         <p role="status" class="sr-only" data-test="saved">{{ saved() ? 'Details saved' : '' }}</p>
 
         <div class="pt-1 pb-4">
-          <button type="submit" fb-button variant="primary" class="font-bold" [disabled]="saving()" data-test="save">
+          <button type="submit" cv-button variant="primary" class="font-bold" [disabled]="saving()" data-test="save">
             {{ saving() ? 'Updating…' : 'Update profile' }}
           </button>
         </div>
@@ -74,7 +74,7 @@
     @if (deleteError(); as message) {
       <p role="alert" class="basis-full text-base text-destructive-text" data-test="delete-error">{{ message }}</p>
     }
-    <button type="button" fb-button variant="soft-destructive" [disabled]="deleting()" data-test="delete-account" (click)="deleteAccount()">
+    <button type="button" cv-button variant="soft-destructive" [disabled]="deleting()" data-test="delete-account" (click)="deleteAccount()">
       <lucide-icon name="trash-2" [size]="16" [strokeWidth]="2" aria-hidden="true" />
       Delete account
     </button>

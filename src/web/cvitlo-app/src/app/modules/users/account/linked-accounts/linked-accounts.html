@@ -34,12 +34,12 @@
             </div>
           </div>
           @if (account.connected) {
-            <button type="button" fb-button variant="soft-destructive" size="sm" data-test="unlink"
+            <button type="button" cv-button variant="soft-destructive" size="sm" data-test="unlink"
                     [attr.aria-label]="'Unlink ' + account.displayName" (click)="unlink(account)">
               Unlink
             </button>
           } @else if (account.linkAction) {
-            <button type="button" fb-button variant="outline" size="sm" data-test="link"
+            <button type="button" cv-button variant="outline" size="sm" data-test="link"
                     [attr.aria-label]="'Link ' + account.displayName" (click)="link(account)">
               Link
             </button>

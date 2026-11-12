@@ -189,7 +189,7 @@ describe('Builder', () => {
     it('shows spinner when loading', () => {
       mockStore.isLoading.set(true);
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('fb-spinner')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('cv-spinner')).toBeTruthy();
     });
   });
 

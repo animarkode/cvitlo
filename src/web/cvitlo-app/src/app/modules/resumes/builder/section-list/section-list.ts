@@ -20,8 +20,8 @@ import { Link } from '../link/link';
 import { Course } from '../course/course';
 import { Project } from '../project/project';
 import { Hobby } from '../hobby/hobby';
-import { FbAccordion } from '../../../../shared/components/fb-accordion/fb-accordion';
-import { FbAccordionItem } from '../../../../shared/components/fb-accordion-item/fb-accordion-item';
+import { CvAccordion } from '../../../../shared/components/cv-accordion/cv-accordion';
+import { CvAccordionItem } from '../../../../shared/components/cv-accordion-item/cv-accordion-item';
 
 interface SectionDef {
   id: string;
@@ -33,7 +33,7 @@ interface SectionDef {
 
 @Component({
   selector: 'app-section-list',
-  imports: [NgComponentOutlet, FbAccordion, FbAccordionItem],
+  imports: [NgComponentOutlet, CvAccordion, CvAccordionItem],
   templateUrl: './section-list.html',
   styleUrl: './section-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

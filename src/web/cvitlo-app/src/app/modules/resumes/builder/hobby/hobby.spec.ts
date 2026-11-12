@@ -5,7 +5,7 @@ import { Hobby } from './hobby';
 import { ResumesStore } from '../../resumes-store';
 import { mockResumesStore } from '../../../../shared/testing/mock-resumes-store';
 import { expectNoAxeViolations } from '../../../../shared/testing/axe';
-import { FbRichText } from '../../../../shared/components/fb-rich-text/fb-rich-text';
+import { CvRichText } from '../../../../shared/components/cv-rich-text/cv-rich-text';
 
 describe('Hobby', () => {
   let fixture: ComponentFixture<Hobby>;
@@ -33,8 +33,8 @@ describe('Hobby', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should render the fb-rich-text editor', () => {
-    expect(fixture.nativeElement.querySelector('fb-rich-text')).toBeTruthy();
+  it('should render the cv-rich-text editor', () => {
+    expect(fixture.nativeElement.querySelector('cv-rich-text')).toBeTruthy();
   });
 
   it('should sync the store value into the control', async () => {
@@ -49,8 +49,8 @@ describe('Hobby', () => {
     expect(store.updateHobbies).toHaveBeenCalledWith('<p>Hiking</p>');
   });
 
-  it('does not persist hobbies that exceed the limit through fb-rich-text validation', async () => {
-    const richText = fixture.debugElement.query(By.directive(FbRichText)).componentInstance as FbRichText;
+  it('does not persist hobbies that exceed the limit through cv-rich-text validation', async () => {
+    const richText = fixture.debugElement.query(By.directive(CvRichText)).componentInstance as CvRichText;
     const editor = (richText as unknown as {
       editor: { commands: { setContent: (content: string) => boolean } };
     }).editor;

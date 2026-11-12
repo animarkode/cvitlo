@@ -15,8 +15,8 @@ import { AccountClient, problemCode } from '../account-client';
 import { AccountConfirm } from '../account-confirm';
 import { AccountProfile, ProfileField } from '../account-contracts';
 import { humanize } from '../account-labels';
-import { FbButton } from '../../../../shared/components/fb-button/fb-button';
-import { FbInput } from '../../../../shared/components/fb-input/fb-input';
+import { CvButton } from '../../../../shared/components/cv-button/cv-button';
+import { CvInput } from '../../../../shared/components/cv-input/cv-input';
 
 const CORE_FIELDS = ['firstName', 'lastName', 'email', 'username'];
 
@@ -28,7 +28,7 @@ interface EditableField {
 
 @Component({
   selector: 'app-personal-info',
-  imports: [ReactiveFormsModule, LucideAngularModule, FbButton, FbInput],
+  imports: [ReactiveFormsModule, LucideAngularModule, CvButton, CvInput],
   providers: [{ provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({ Check, Trash2 }) }],
   templateUrl: './personal-info.html',
   styleUrl: './personal-info.css',

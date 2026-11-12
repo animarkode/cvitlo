@@ -4,7 +4,7 @@ import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import { Router } from '@angular/router';
 import { Catalog } from './catalog';
 import { ResumesClient } from '../resumes-client';
-import { FbConfirmDialog } from '../../../shared/components/fb-confirm-dialog/fb-confirm-dialog';
+import { CvConfirmDialog } from '../../../shared/components/cv-confirm-dialog/cv-confirm-dialog';
 import { Resume } from '../resume-response';
 import { toastHarness } from '../../../shared/testing/toast-harness';
 
@@ -106,21 +106,21 @@ describe('Catalog', () => {
   });
 
   describe('deleteResume', () => {
-    it('opens FbConfirmDialog when delete is triggered', () => {
+    it('opens CvConfirmDialog when delete is triggered', () => {
       mockDialog.open.mockReturnValue({ closed: of(undefined) } as unknown as DialogRef<boolean>);
 
       component.deleteResume('r1');
 
       expect(mockDialog.open).toHaveBeenCalledWith(
-        FbConfirmDialog,
+        CvConfirmDialog,
         expect.objectContaining({
           data: expect.objectContaining({
             title: expect.any(String),
             message: expect.any(String),
             confirmLabel: 'Delete',
           }),
-          panelClass: 'fb-dialog-panel',
-          backdropClass: 'fb-dialog-backdrop',
+          panelClass: 'cv-dialog-panel',
+          backdropClass: 'cv-dialog-backdrop',
         })
       );
     });

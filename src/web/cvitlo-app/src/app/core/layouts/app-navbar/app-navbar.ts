@@ -18,15 +18,15 @@ import { LucideAngularModule } from 'lucide-angular';
 import { AuthStore } from '../../auth/auth-store';
 import { API_ROUTES } from '../../routes/api-routes';
 import { APP_ROUTES } from '../../routes/app-routes';
-import { FbSpinner } from '../../../shared/components/fb-spinner/fb-spinner';
-import { FbInitials } from '../../../shared/components/fb-initials/fb-initials';
-import { FbToggleButton } from '../../../shared/components/fb-toggle-button/fb-toggle-button';
-import { FbThemeToggle } from '../../../shared/components/fb-theme-toggle/fb-theme-toggle';
+import { CvSpinner } from '../../../shared/components/cv-spinner/cv-spinner';
+import { CvInitials } from '../../../shared/components/cv-initials/cv-initials';
+import { CvToggleButton } from '../../../shared/components/cv-toggle-button/cv-toggle-button';
+import { CvThemeToggle } from '../../../shared/components/cv-theme-toggle/cv-theme-toggle';
 import { AppUserMenu } from './app-user-menu/app-user-menu';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule, FbSpinner, FbInitials, FbToggleButton, FbThemeToggle, AppUserMenu],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule, CvSpinner, CvInitials, CvToggleButton, CvThemeToggle, AppUserMenu],
   templateUrl: './app-navbar.html',
   styleUrl: './app-navbar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

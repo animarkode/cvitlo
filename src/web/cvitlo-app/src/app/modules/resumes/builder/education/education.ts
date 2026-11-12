@@ -5,15 +5,15 @@ import { ResumesStore } from '../../resumes-store';
 import { Education as EducationModel } from './education-response';
 import { UpdateEducationRequest } from './update-education-request';
 import { OrderableList } from '../orderable-list/orderable-list';
-import { FbField } from '../../../../shared/components/fb-field/fb-field';
-import { FbDatePicker } from '../../../../shared/components/fb-date-picker/fb-date-picker';
-import { FbRichText } from '../../../../shared/components/fb-rich-text/fb-rich-text';
+import { CvField } from '../../../../shared/components/cv-field/cv-field';
+import { CvDatePicker } from '../../../../shared/components/cv-date-picker/cv-date-picker';
+import { CvRichText } from '../../../../shared/components/cv-rich-text/cv-rich-text';
 import { dateRangeValidator } from '../../../../shared/validators/date-range.validator';
 import { EntryTitles } from '../entry-titles';
 
 @Component({
   selector: 'app-education',
-  imports: [ReactiveFormsModule, OrderableList, FbField, FbDatePicker, FbRichText],
+  imports: [ReactiveFormsModule, OrderableList, CvField, CvDatePicker, CvRichText],
   templateUrl: './education.html',
   styleUrl: './education.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

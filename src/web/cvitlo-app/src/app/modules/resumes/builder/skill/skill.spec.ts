@@ -49,10 +49,10 @@ describe('Skill', () => {
     }
   });
 
-  it('should render a row with fb-field and fb-select per skill', () => {
+  it('should render a row with cv-field and cv-select per skill', () => {
     expect(fixture.nativeElement.querySelectorAll('form').length).toBe(seed.length);
-    expect(fixture.nativeElement.querySelector('fb-field')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('fb-select')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('cv-field')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('cv-select')).toBeTruthy();
   });
 
   it('updates the title synchronously from the live form value', () => {

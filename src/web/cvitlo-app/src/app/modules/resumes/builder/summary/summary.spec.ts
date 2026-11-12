@@ -4,7 +4,7 @@ import { By } from '@angular/platform-browser';
 import { Summary } from './summary';
 import { ResumesStore } from '../../resumes-store';
 import { mockResumesStore } from '../../../../shared/testing/mock-resumes-store';
-import { FbRichText } from '../../../../shared/components/fb-rich-text/fb-rich-text';
+import { CvRichText } from '../../../../shared/components/cv-rich-text/cv-rich-text';
 
 describe('Summary', () => {
   let component: Summary;
@@ -56,12 +56,12 @@ describe('Summary', () => {
     }
   }, 20_000);
 
-  it('does not persist a summary that exceeds the limit through fb-rich-text validation', async () => {
+  it('does not persist a summary that exceeds the limit through cv-rich-text validation', async () => {
     const store = TestBed.inject(ResumesStore);
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const richText = fixture.debugElement.query(By.directive(FbRichText)).componentInstance as FbRichText;
+    const richText = fixture.debugElement.query(By.directive(CvRichText)).componentInstance as CvRichText;
     const editor = (richText as unknown as {
       editor: { commands: { setContent: (content: string) => boolean } };
     }).editor;

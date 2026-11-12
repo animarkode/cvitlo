@@ -5,9 +5,9 @@ import { ResumesStore } from '../../resumes-store';
 import { Project as ProjectModel } from './project-response';
 import { UpdateProjectRequest } from './update-project-request';
 import { OrderableList } from '../orderable-list/orderable-list';
-import { FbField } from '../../../../shared/components/fb-field/fb-field';
-import { FbDatePicker } from '../../../../shared/components/fb-date-picker/fb-date-picker';
-import { FbRichText } from '../../../../shared/components/fb-rich-text/fb-rich-text';
+import { CvField } from '../../../../shared/components/cv-field/cv-field';
+import { CvDatePicker } from '../../../../shared/components/cv-date-picker/cv-date-picker';
+import { CvRichText } from '../../../../shared/components/cv-rich-text/cv-rich-text';
 import { dateRangeValidator } from '../../../../shared/validators/date-range.validator';
 import { EntryTitles, TitleFormatter } from '../entry-titles';
 
@@ -19,7 +19,7 @@ const projectTitleFormatter: TitleFormatter = parts =>
 
 @Component({
   selector: 'app-project',
-  imports: [ReactiveFormsModule, OrderableList, FbField, FbDatePicker, FbRichText],
+  imports: [ReactiveFormsModule, OrderableList, CvField, CvDatePicker, CvRichText],
   templateUrl: './project.html',
   styleUrl: './project.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

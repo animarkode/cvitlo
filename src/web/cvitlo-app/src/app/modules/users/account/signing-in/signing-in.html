@@ -20,13 +20,13 @@
         <h3 class="font-semibold text-foreground">{{ typeName(group) }}</h3>
         <div class="flex gap-2">
           @if (group.updateAction; as update) {
-            <button type="button" fb-button variant="outline" size="sm" data-test="update"
+            <button type="button" cv-button variant="outline" size="sm" data-test="update"
                     [attr.aria-label]="'Update ' + typeName(group).toLowerCase()" (click)="start(update)">
               Update
             </button>
           }
           @if (group.createAction; as create) {
-            <button type="button" fb-button variant="outline" size="sm" data-test="create"
+            <button type="button" cv-button variant="outline" size="sm" data-test="create"
                     [attr.aria-label]="createLabel(group)"
                     (click)="start(create)">
               {{ createVerb(group) }}
@@ -52,7 +52,7 @@
                 }
               </div>
               @if (group.removeable) {
-                <button type="button" fb-button variant="soft-destructive" size="sm" data-test="remove"
+                <button type="button" cv-button variant="soft-destructive" size="sm" data-test="remove"
                         [attr.aria-label]="removeLabel(group, item)" (click)="remove(group, item)">
                   Remove
                 </button>

@@ -12,13 +12,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AccountClient, problemDetail } from '../account-client';
 import { AccountConfirm } from '../account-confirm';
 import { LinkedAccount } from '../account-contracts';
-import { FbButton } from '../../../../shared/components/fb-button/fb-button';
+import { CvButton } from '../../../../shared/components/cv-button/cv-button';
 
 const PROVIDER_ICONS = new Set(['google', 'github']);
 
 @Component({
   selector: 'app-linked-accounts',
-  imports: [FbButton, NgOptimizedImage],
+  imports: [CvButton, NgOptimizedImage],
   templateUrl: './linked-accounts.html',
   styleUrl: './linked-accounts.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

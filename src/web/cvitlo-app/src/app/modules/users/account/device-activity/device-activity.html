@@ -5,7 +5,7 @@
       <p class="max-w-prose text-base text-muted-foreground">Devices signed in to your account.</p>
     </div>
     @if (hasOthers()) {
-      <button type="button" fb-button variant="outline" size="sm" data-test="sign-out-others" (click)="signOutOthers()">
+      <button type="button" cv-button variant="outline" size="sm" data-test="sign-out-others" (click)="signOutOthers()">
         Sign out all other devices
       </button>
     }
@@ -39,7 +39,7 @@
             </span>
           </div>
           @if (!device.current) {
-            <button type="button" fb-button variant="soft-destructive" size="sm" data-test="sign-out"
+            <button type="button" cv-button variant="soft-destructive" size="sm" data-test="sign-out"
                     [attr.aria-label]="'Sign out ' + title(device)" (click)="signOut(device)">
               Sign out
             </button>

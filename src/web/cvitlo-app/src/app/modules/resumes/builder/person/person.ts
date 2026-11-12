@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject } from '
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ResumesStore } from '../../resumes-store';
-import { FbField } from '../../../../shared/components/fb-field/fb-field';
-import { FbDatePicker } from '../../../../shared/components/fb-date-picker/fb-date-picker';
+import { CvField } from '../../../../shared/components/cv-field/cv-field';
+import { CvDatePicker } from '../../../../shared/components/cv-date-picker/cv-date-picker';
 
 @Component({
   selector: 'app-person',
-  imports: [ReactiveFormsModule, FbField, FbDatePicker],
+  imports: [ReactiveFormsModule, CvField, CvDatePicker],
   templateUrl: './person.html',
   styleUrl: './person.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

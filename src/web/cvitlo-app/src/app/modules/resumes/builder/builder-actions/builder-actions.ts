@@ -56,7 +56,7 @@ export class BuilderActions {
   // component normally mounts after the resume has loaded, with `saveStatus`
   // already 'saved'. Without this gate the initial server-backed state would
   // play the same success animation as a freshly completed edit, even though
-  // no transition happened on screen. This mirrors fb-theme-toggle's guard.
+  // no transition happened on screen. This mirrors cv-theme-toggle's guard.
   protected readonly animationsReady = signal(false);
 
   /** The single, persistent announcement for the save indicator. Empty for

@@ -189,7 +189,7 @@ describe('Preview', () => {
       previewStatus.set('generating');
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector('.fb-preview-skeleton')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.cv-preview-skeleton')).toBeTruthy();
       expect(fixture.nativeElement.textContent).not.toContain('No preview available');
     });
 
@@ -197,7 +197,7 @@ describe('Preview', () => {
       previewStatus.set('unavailable');
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector('.fb-preview-skeleton')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.cv-preview-skeleton')).toBeFalsy();
       expect(fixture.nativeElement.textContent).toContain('No preview available');
     });
 
@@ -207,32 +207,32 @@ describe('Preview', () => {
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('canvas')).toBeTruthy();
-      expect(fixture.nativeElement.querySelector('.fb-preview-skeleton')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.cv-preview-skeleton')).toBeFalsy();
     });
 
     it('fills the visible preview area without constraining the skeleton to A4 (#456)', () => {
       previewStatus.set('generating');
       fixture.detectChanges();
 
-      const skeleton = fixture.nativeElement.querySelector('.fb-preview-skeleton') as HTMLElement;
+      const skeleton = fixture.nativeElement.querySelector('.cv-preview-skeleton') as HTMLElement;
 
       expect(skeleton.classList.contains('absolute')).toBe(true);
       expect(skeleton.classList.contains('inset-0')).toBe(true);
       expect(skeleton.classList.contains('w-full')).toBe(true);
       expect(skeleton.classList.contains('h-full')).toBe(true);
       expect(skeleton.className).not.toContain('aspect-');
-      expect(fixture.nativeElement.querySelector('.fb-preview-skeleton-stage')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.cv-preview-skeleton-stage')).toBeFalsy();
     });
 
     it('animates individual skeleton lines without a page-wide sweep layer', () => {
       previewStatus.set('generating');
       fixture.detectChanges();
 
-      const skeleton = fixture.nativeElement.querySelector('.fb-preview-skeleton') as HTMLElement;
-      const lines = skeleton.querySelectorAll('.fb-preview-skeleton-line');
+      const skeleton = fixture.nativeElement.querySelector('.cv-preview-skeleton') as HTMLElement;
+      const lines = skeleton.querySelectorAll('.cv-preview-skeleton-line');
 
       expect(lines.length).toBeGreaterThan(1);
-      expect(skeleton.querySelector('.fb-preview-skeleton-sweep')).toBeFalsy();
+      expect(skeleton.querySelector('.cv-preview-skeleton-sweep')).toBeFalsy();
     });
 
     it('has no AXE violations while the skeleton is showing', async () => {
@@ -400,8 +400,8 @@ describe('Preview', () => {
 
       const canvases = () =>
         Array.from(fixture.nativeElement.querySelectorAll('canvas')) as HTMLCanvasElement[];
-      const frontBefore = canvases().find(c => c.classList.contains('fb-preview-buffer-front'))!;
-      const backBefore = canvases().find(c => !c.classList.contains('fb-preview-buffer-front'))!;
+      const frontBefore = canvases().find(c => c.classList.contains('cv-preview-buffer-front'))!;
+      const backBefore = canvases().find(c => !c.classList.contains('cv-preview-buffer-front'))!;
 
       const widthSetSpy = vi.spyOn(frontBefore, 'width', 'set');
       const heightSetSpy = vi.spyOn(frontBefore, 'height', 'set');
@@ -432,11 +432,11 @@ describe('Preview', () => {
       // while the render is still in flight.
       expect(widthSetSpy).not.toHaveBeenCalled();
       expect(heightSetSpy).not.toHaveBeenCalled();
-      expect(frontBefore.classList.contains('fb-preview-buffer-front')).toBe(true);
+      expect(frontBefore.classList.contains('cv-preview-buffer-front')).toBe(true);
 
       resolveRender();
       await vi.waitFor(() =>
-        expect(backBefore.classList.contains('fb-preview-buffer-front')).toBe(true),
+        expect(backBefore.classList.contains('cv-preview-buffer-front')).toBe(true),
       );
     });
 
@@ -448,12 +448,12 @@ describe('Preview', () => {
       preview.set(new Blob(['pdf-bytes'], { type: 'application/pdf' }));
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector('.fb-preview-skeleton')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.cv-preview-skeleton')).toBeTruthy();
       await vi.waitFor(() => expect(confirmPreviewRendered).toHaveBeenCalledWith(7, 3));
 
       hasRenderedPreview.set(true);
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('.fb-preview-skeleton')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.cv-preview-skeleton')).toBeFalsy();
     });
 
     it('does not confirm a manual refresh when the previous document repaints while it is loading', async () => {
@@ -514,8 +514,8 @@ describe('Preview', () => {
 
       const canvases = () =>
         Array.from(fixture.nativeElement.querySelectorAll('canvas')) as HTMLCanvasElement[];
-      const frontBefore = canvases().find(c => c.classList.contains('fb-preview-buffer-front'))!;
-      const backBefore = canvases().find(c => !c.classList.contains('fb-preview-buffer-front'))!;
+      const frontBefore = canvases().find(c => c.classList.contains('cv-preview-buffer-front'))!;
+      const backBefore = canvases().find(c => !c.classList.contains('cv-preview-buffer-front'))!;
 
       const doc = await lastMockedDoc();
       let resolveRender!: () => void;
@@ -544,7 +544,7 @@ describe('Preview', () => {
 
       resolveRender();
       await vi.waitFor(() =>
-        expect(backBefore.classList.contains('fb-preview-buffer-front')).toBe(true),
+        expect(backBefore.classList.contains('cv-preview-buffer-front')).toBe(true),
       );
 
       // After promotion: the newly promoted canvas has its inline override
@@ -661,7 +661,7 @@ describe('Preview', () => {
 
       const canvases = () =>
         Array.from(fixture.nativeElement.querySelectorAll('canvas')) as HTMLCanvasElement[];
-      const largeFrameCanvas = canvases().find(c => c.classList.contains('fb-preview-buffer-front'))!;
+      const largeFrameCanvas = canvases().find(c => c.classList.contains('cv-preview-buffer-front'))!;
       // natural.width (595) * fit (800 / 595) == 800 — the page fills the 800px card.
       expect(parseFloat(largeFrameCanvas.style.width)).toBeCloseTo(800, 0);
 
@@ -675,7 +675,7 @@ describe('Preview', () => {
 
       // The render always targets the OTHER canvas and promotes it on completion, so
       // `largeFrameCanvas` — on screen a moment ago at 800px — is now the demoted one.
-      expect(largeFrameCanvas.classList.contains('fb-preview-buffer-front')).toBe(false);
+      expect(largeFrameCanvas.classList.contains('cv-preview-buffer-front')).toBe(false);
       // It must have been snapped down to the new, smaller frame size — not left at
       // its stale 800px width, which would stick out past the new 200px `#frame` and
       // inflate `#paper`'s scroll extent with nothing visible ever needing it.
@@ -787,11 +787,11 @@ describe('Preview', () => {
 
       expect(taskA!.cancel).toHaveBeenCalledTimes(1);
 
-      // The buffer flip is reflected via a `[class.fb-preview-buffer-front]`
+      // The buffer flip is reflected via a `[class.cv-preview-buffer-front]`
       // template binding, which only updates the DOM on change detection.
       fixture.detectChanges();
       const frontCanvas = fixture.nativeElement.querySelector(
-        'canvas.fb-preview-buffer-front',
+        'canvas.cv-preview-buffer-front',
       ) as HTMLCanvasElement;
       expect(frontCanvas.width).toBe(222);
     });
@@ -915,7 +915,7 @@ describe('Preview', () => {
       await vi.waitFor(() => expect(component.totalPages()).toBe(3));
 
       const frontBefore = fixture.nativeElement.querySelector(
-        'canvas.fb-preview-buffer-front',
+        'canvas.cv-preview-buffer-front',
       ) as HTMLCanvasElement;
       const frameEl = (
         component as unknown as { frame: () => { nativeElement: HTMLDivElement } | undefined }
@@ -956,7 +956,7 @@ describe('Preview', () => {
 
       expect(frameEl.style.width).toBe(widthBefore);
       expect(frameEl.style.height).toBe(heightBefore);
-      expect(frontBefore.classList.contains('fb-preview-buffer-front')).toBe(true);
+      expect(frontBefore.classList.contains('cv-preview-buffer-front')).toBe(true);
     });
   });
 

@@ -5,15 +5,15 @@ import { ResumesStore } from '../../resumes-store';
 import { Skill as SkillModel } from './skill-response';
 import { UpdateSkillRequest } from './update-skill-request';
 import { OrderableList } from '../orderable-list/orderable-list';
-import { FbField } from '../../../../shared/components/fb-field/fb-field';
-import { FbSelect } from '../../../../shared/components/fb-select/fb-select';
+import { CvField } from '../../../../shared/components/cv-field/cv-field';
+import { CvSelect } from '../../../../shared/components/cv-select/cv-select';
 import { EntryTitles } from '../entry-titles';
 
 const SKILL_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
 @Component({
   selector: 'app-skill',
-  imports: [ReactiveFormsModule, OrderableList, FbField, FbSelect],
+  imports: [ReactiveFormsModule, OrderableList, CvField, CvSelect],
   templateUrl: './skill.html',
   styleUrl: './skill.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

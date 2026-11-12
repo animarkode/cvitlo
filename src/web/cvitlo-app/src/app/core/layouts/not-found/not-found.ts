@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { ArrowLeft, LUCIDE_ICONS, LucideAngularModule, LucideIconProvider } from 'lucide-angular';
-import { FbButton } from '../../../shared/components/fb-button/fb-button';
+import { CvButton } from '../../../shared/components/cv-button/cv-button';
 
 @Component({
   selector: 'app-not-found',
-  imports: [LucideAngularModule, FbButton],
+  imports: [LucideAngularModule, CvButton],
   providers: [
     {
       provide: LUCIDE_ICONS,

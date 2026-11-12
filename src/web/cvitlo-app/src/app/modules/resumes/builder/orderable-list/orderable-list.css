@@ -1,10 +1,10 @@
 /* Inset separator between draggable items — matches the section-list divider
  * (1px, var(--color-line), 1.25rem horizontal inset so it doesn't touch edges). */
-fb-accordion-item {
+cv-accordion-item {
   position: relative;
 }
 
-fb-accordion-item:not(:last-child)::after {
+cv-accordion-item:not(:last-child)::after {
   content: '';
   position: absolute;
   left: 1.25rem;

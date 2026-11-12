@@ -5,15 +5,15 @@ import { ResumesStore } from '../../resumes-store';
 import { Course as CourseModel } from './course-response';
 import { UpdateCourseRequest } from './update-course-request';
 import { OrderableList } from '../orderable-list/orderable-list';
-import { FbField } from '../../../../shared/components/fb-field/fb-field';
-import { FbDatePicker } from '../../../../shared/components/fb-date-picker/fb-date-picker';
-import { FbRichText } from '../../../../shared/components/fb-rich-text/fb-rich-text';
+import { CvField } from '../../../../shared/components/cv-field/cv-field';
+import { CvDatePicker } from '../../../../shared/components/cv-date-picker/cv-date-picker';
+import { CvRichText } from '../../../../shared/components/cv-rich-text/cv-rich-text';
 import { dateRangeValidator } from '../../../../shared/validators/date-range.validator';
 import { EntryTitles } from '../entry-titles';
 
 @Component({
   selector: 'app-course',
-  imports: [ReactiveFormsModule, OrderableList, FbField, FbDatePicker, FbRichText],
+  imports: [ReactiveFormsModule, OrderableList, CvField, CvDatePicker, CvRichText],
   templateUrl: './course.html',
   styleUrl: './course.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

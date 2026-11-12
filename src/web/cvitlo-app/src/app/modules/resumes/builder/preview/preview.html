@@ -36,15 +36,15 @@
       <div #frame class="relative">
         <canvas
           #canvasA
-          class="fb-preview-buffer absolute inset-0 block"
-          [class.fb-preview-buffer-front]="frontBuffer() === 'a'"
+          class="cv-preview-buffer absolute inset-0 block"
+          [class.cv-preview-buffer-front]="frontBuffer() === 'a'"
           [attr.role]="frontBuffer() === 'a' ? 'img' : null"
           [attr.aria-label]="frontBuffer() === 'a' ? 'Resume preview' : null"
           [attr.aria-hidden]="frontBuffer() === 'a' ? null : true"></canvas>
         <canvas
           #canvasB
-          class="fb-preview-buffer absolute inset-0 block"
-          [class.fb-preview-buffer-front]="frontBuffer() === 'b'"
+          class="cv-preview-buffer absolute inset-0 block"
+          [class.cv-preview-buffer-front]="frontBuffer() === 'b'"
           [attr.role]="frontBuffer() === 'b' ? 'img' : null"
           [attr.aria-label]="frontBuffer() === 'b' ? 'Resume preview' : null"
           [attr.aria-hidden]="frontBuffer() === 'b' ? null : true"></canvas>
@@ -79,27 +79,27 @@
          has painted and promoted the first real frame. -->
     @if (!store.hasRenderedPreview()) {
       <div
-        class="fb-preview-skeleton absolute inset-0 z-20 h-full w-full overflow-hidden bg-card p-8 max-sm:p-6"
+        class="cv-preview-skeleton absolute inset-0 z-20 h-full w-full overflow-hidden bg-card p-8 max-sm:p-6"
         aria-hidden="true">
-        <div class="fb-preview-skeleton-line h-6 w-3/5 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-3 h-3 w-1/3 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-2.5 w-1/2 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-10 h-4 w-1/4 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-11/12 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-8 h-4 w-1/3 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-4 h-3 w-5/6 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-8 h-4 w-1/5 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-4 h-3 w-4/5 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-1/2 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-3/5 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-8 h-4 w-1/4 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-5/6 rounded bg-muted"></div>
-        <div class="fb-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line h-6 w-3/5 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-3 h-3 w-1/3 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-2.5 w-1/2 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-10 h-4 w-1/4 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-11/12 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-8 h-4 w-1/3 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-4 h-3 w-5/6 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-8 h-4 w-1/5 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-4 h-3 w-4/5 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-1/2 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-3/5 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-8 h-4 w-1/4 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-5/6 rounded bg-muted"></div>
+        <div class="cv-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
       </div>
     }
 
@@ -114,31 +114,31 @@
          The persistent live region carries the state for screen readers; the skeleton
          itself is decorative. -->
     <div
-      class="fb-preview-skeleton absolute inset-0 h-full w-full overflow-hidden bg-card p-8 max-sm:p-6"
+      class="cv-preview-skeleton absolute inset-0 h-full w-full overflow-hidden bg-card p-8 max-sm:p-6"
       aria-hidden="true">
-      <div class="fb-preview-skeleton-line h-6 w-3/5 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-3 h-3 w-1/3 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-2.5 w-1/2 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line h-6 w-3/5 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-3 h-3 w-1/3 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-2.5 w-1/2 rounded bg-muted"></div>
 
-      <div class="fb-preview-skeleton-line mt-10 h-4 w-1/4 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-11/12 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-10 h-4 w-1/4 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-11/12 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
 
-      <div class="fb-preview-skeleton-line mt-8 h-4 w-1/3 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-4 h-3 w-5/6 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-8 h-4 w-1/3 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-4 h-3 w-5/6 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-3/4 rounded bg-muted"></div>
 
-      <div class="fb-preview-skeleton-line mt-8 h-4 w-1/5 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-4 h-3 w-4/5 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-1/2 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-3/5 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-8 h-4 w-1/5 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-4 h-3 w-4/5 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-1/2 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-3/5 rounded bg-muted"></div>
 
-      <div class="fb-preview-skeleton-line mt-8 h-4 w-1/4 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-5/6 rounded bg-muted"></div>
-      <div class="fb-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-8 h-4 w-1/4 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-4 h-3 w-full rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-5/6 rounded bg-muted"></div>
+      <div class="cv-preview-skeleton-line mt-2 h-3 w-2/3 rounded bg-muted"></div>
     </div>
 
   } @else {

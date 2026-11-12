@@ -6,14 +6,14 @@ import { LucideAngularModule, LucideIconProvider, LUCIDE_ICONS, BadgePlus } from
 import { ResumesClient } from '../resumes-client';
 import { Resume } from '../resume-response';
 import { ResumeCard } from './resume-card/resume-card';
-import { FbButton } from '../../../shared/components/fb-button/fb-button';
-import { FbSpinner } from '../../../shared/components/fb-spinner/fb-spinner';
-import { FbConfirmDialog } from '../../../shared/components/fb-confirm-dialog/fb-confirm-dialog';
-import { FbToast } from '../../../shared/components/fb-toast/fb-toast';
+import { CvButton } from '../../../shared/components/cv-button/cv-button';
+import { CvSpinner } from '../../../shared/components/cv-spinner/cv-spinner';
+import { CvConfirmDialog } from '../../../shared/components/cv-confirm-dialog/cv-confirm-dialog';
+import { CvToast } from '../../../shared/components/cv-toast/cv-toast';
 
 @Component({
   selector: 'app-catalog',
-  imports: [ResumeCard, LucideAngularModule, FbButton, FbSpinner, FbToast],
+  imports: [ResumeCard, LucideAngularModule, CvButton, CvSpinner, CvToast],
   providers: [{ provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider({ BadgePlus }) }],
   templateUrl: './catalog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,14 +54,14 @@ export class Catalog implements OnInit {
   }
 
   deleteResume(id: string): void {
-    const dialogRef = this.dialog.open(FbConfirmDialog, {
+    const dialogRef = this.dialog.open(CvConfirmDialog, {
       data: {
         title: 'Delete Resume',
         message: 'Are you sure you want to delete this resume? This action cannot be undone.',
         confirmLabel: 'Delete',
       },
-      panelClass: 'fb-dialog-panel',
-      backdropClass: 'fb-dialog-backdrop',
+      panelClass: 'cv-dialog-panel',
+      backdropClass: 'cv-dialog-backdrop',
     });
 
     dialogRef.closed.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {

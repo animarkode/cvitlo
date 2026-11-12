@@ -5,15 +5,15 @@ import { ResumesStore } from '../../resumes-store';
 import { Language as LanguageModel } from './language-response';
 import { UpdateLanguageRequest } from './update-language-request';
 import { OrderableList } from '../orderable-list/orderable-list';
-import { FbField } from '../../../../shared/components/fb-field/fb-field';
-import { FbSelect } from '../../../../shared/components/fb-select/fb-select';
+import { CvField } from '../../../../shared/components/cv-field/cv-field';
+import { CvSelect } from '../../../../shared/components/cv-select/cv-select';
 import { EntryTitles } from '../entry-titles';
 
 const LANGUAGE_LEVELS = ['Native speaker', 'Highly proficient', 'Very good command', 'Good working knowledge', 'Working knowledge', 'C2', 'C1', 'B2', 'B1', 'A2', 'A1'];
 
 @Component({
   selector: 'app-language',
-  imports: [ReactiveFormsModule, OrderableList, FbField, FbSelect],
+  imports: [ReactiveFormsModule, OrderableList, CvField, CvSelect],
   templateUrl: './language.html',
   styleUrl: './language.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

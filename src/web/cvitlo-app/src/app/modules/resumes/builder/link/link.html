@@ -13,8 +13,8 @@
         class="contents"
         (focusin)="onTitleFocusIn(item)"
         (focusout)="onTitleFocusOut(item, $event)">
-        <fb-field label="Label" placeholder="e.g. LinkedIn" formControlName="label" />
-        <fb-field label="URL" type="url" placeholder="https://…" formControlName="uri" />
+        <cv-field label="Label" placeholder="e.g. LinkedIn" formControlName="label" />
+        <cv-field label="URL" type="url" placeholder="https://…" formControlName="uri" />
       </div>
     </form>
   </ng-template>

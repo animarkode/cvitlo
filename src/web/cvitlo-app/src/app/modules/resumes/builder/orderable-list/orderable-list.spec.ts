@@ -3,8 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { FbAccordion } from '../../../../shared/components/fb-accordion/fb-accordion';
-import { FbAccordionItem } from '../../../../shared/components/fb-accordion-item/fb-accordion-item';
+import { CvAccordion } from '../../../../shared/components/cv-accordion/cv-accordion';
+import { CvAccordionItem } from '../../../../shared/components/cv-accordion-item/cv-accordion-item';
 import { OrderableList } from './orderable-list';
 import { Orderly } from '../../orderly';
 
@@ -68,7 +68,7 @@ describe('OrderableList', () => {
   });
 
   it('should render one accordion item per item', () => {
-    const panels = hostFixture.debugElement.queryAll(By.directive(FbAccordionItem));
+    const panels = hostFixture.debugElement.queryAll(By.directive(CvAccordionItem));
     expect(panels.length).toBe(2);
   });
 
@@ -78,7 +78,7 @@ describe('OrderableList', () => {
     localFixture.detectChanges();
     await localFixture.whenStable();
 
-    expect(localFixture.debugElement.query(By.directive(FbAccordion))).toBeNull();
+    expect(localFixture.debugElement.query(By.directive(CvAccordion))).toBeNull();
     // The add button stays visible so an empty list can still be populated.
     expect(localFixture.debugElement.query(By.css('[aria-label="Add Skills"]'))).toBeTruthy();
   });
@@ -203,7 +203,7 @@ describe('OrderableList', () => {
 
   describe('mobile ergonomics (#425)', () => {
     it('gives the delete button a 44px touch target below md', () => {
-      const del = hostFixture.debugElement.query(By.css('[fb-icon-button][aria-label^="Delete"]'))
+      const del = hostFixture.debugElement.query(By.css('[cv-icon-button][aria-label^="Delete"]'))
         .nativeElement as HTMLElement;
       expect(del).toBeTruthy();
       expect(del.classList.contains('max-md:h-11')).toBe(true);

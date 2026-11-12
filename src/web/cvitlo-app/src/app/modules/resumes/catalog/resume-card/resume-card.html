@@ -54,7 +54,7 @@
     <button
       type="button"
       data-testid="edit-btn"
-      fb-button variant="default" size="md" class="flex-1"
+      cv-button variant="default" size="md" class="flex-1"
       [attr.aria-label]="'Edit resume ' + cardTitle()"
       (click)="$event.stopPropagation(); open.emit(resume().id)">
       <lucide-icon name="square-pen" [size]="16" [strokeWidth]="2" aria-hidden="true" />
@@ -63,7 +63,7 @@
     <button
       type="button"
       data-testid="delete-btn"
-      fb-button variant="soft-destructive" size="md" class="flex-1"
+      cv-button variant="soft-destructive" size="md" class="flex-1"
       [attr.aria-label]="'Delete resume ' + cardTitle()"
       (click)="$event.stopPropagation(); delete.emit(resume().id)">
       <lucide-icon name="trash-2" [size]="16" [strokeWidth]="2" aria-hidden="true" />
