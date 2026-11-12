@@ -7,8 +7,8 @@ description: Step-by-step guide for adding a new feature to an existing Faber mo
 
 A feature is a **self-contained vertical slice** inside a module. Most new features follow the flow below, but Faber also reuses shared requests/responses for some auth and users scenarios.
 
-> See `fastendpoints` skill for detailed FastEndpoints API reference.
-> See `errorOr-patterns` skill for ErrorOr usage.
+> See `faber-fastendpoints` skill for detailed FastEndpoints API reference.
+> See `faber-erroror` skill for ErrorOr usage.
 
 Canonical sources to mirror before generating new code:
 - `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/CreateEducation/`
@@ -360,7 +360,7 @@ Most new features inside an existing module do **not** require `DependencyInject
 
 ## Current Repository Nuances
 
-- `Auth` features are thin: sign-in itself happens on Keycloak's pages, so `login`/`register` return a challenge result and never take credentials (see `keycloak-aspnet-integration`)
+- `Auth` features are thin: sign-in itself happens on Keycloak's pages, so `login`/`register` return a challenge result and never take credentials (see `faber-keycloak`)
 - `Create` endpoints in current Faber usually return `200 OK`, not `201 Created`
 - not every module currently has the same maturity of integration-test coverage; mirror the nearest existing test project rather than inventing a new pattern
 - route-bound nested resources in `Resumes` nearly always use subgroup patterns like `"{ResumeId}/educations"`

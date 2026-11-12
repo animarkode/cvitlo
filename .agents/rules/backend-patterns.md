@@ -67,4 +67,4 @@ Features/{Feature}/
 - `CancellationToken` via `TestContext.Current.CancellationToken`
 
 ---
-Expanded guidance and examples: `dotnet-backend-patterns`, `fastendpoints`, `errorOr-patterns`.
+Expanded guidance and examples: `faber-backend-patterns`, `faber-fastendpoints`, `faber-erroror`.

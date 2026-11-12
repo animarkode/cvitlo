@@ -86,13 +86,13 @@ plain Markdown, no special tooling required:
 
 | When | Read first |
 |---|---|
-| Creating any Endpoint, Group, or Validator | `.agents/skills/fastendpoints/SKILL.md` |
-| Working with ErrorOr, mapping errors to HTTP responses | `.agents/skills/errorOr-patterns/SKILL.md` |
+| Creating any Endpoint, Group, or Validator | `.agents/skills/faber-fastendpoints/SKILL.md` |
+| Working with ErrorOr, mapping errors to HTTP responses | `.agents/skills/faber-erroror/SKILL.md` |
 | Adding a feature to an existing module | `.agents/skills/faber-feature-template/SKILL.md` |
 | Creating a new module from scratch | `.agents/skills/faber-module-bootstrapping/SKILL.md` |
-| Sign-in, sessions, the realm config / Keycloak | `.agents/skills/keycloak-aspnet-integration/SKILL.md` |
-| Implementing a GitHub issue end-to-end | `.agents/skills/impl-gh-issue/SKILL.md` |
-| Creating/labeling issues, opening PRs, handling a release | `.agents/skills/github-workflow/SKILL.md` |
+| Sign-in, sessions, the realm config / Keycloak | `.agents/skills/faber-keycloak/SKILL.md` |
+| Implementing a GitHub issue end-to-end | `.agents/skills/faber-impl-issue/SKILL.md` |
+| Creating/labeling issues, opening PRs, handling a release | `.agents/skills/faber-github-workflow/SKILL.md` |
 
 ## Backend: `src/api/` and `tests/`
 

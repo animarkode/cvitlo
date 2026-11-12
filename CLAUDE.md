@@ -17,12 +17,12 @@ Use the `Skill` tool to invoke these when relevant:
 
 | Skill | When |
 |-------|------|
-| `fastendpoints` | Before creating any new Endpoint, Group, or Validator |
-| `errorOr-patterns` | When working with ErrorOr, mapping errors to HTTP responses |
+| `faber-fastendpoints` | Before creating any new Endpoint, Group, or Validator |
+| `faber-erroror` | When working with ErrorOr, mapping errors to HTTP responses |
 | `faber-feature-template` | When adding a new feature to an existing module |
 | `faber-module-bootstrapping` | When creating a new module from scratch |
-| `keycloak-aspnet-integration` | When working with sign-in, sessions or the Keycloak realm config |
-| `impl-gh-issue` | `/impl-gh-issue <number>` — implement a GitHub issue end-to-end, sized to the issue (user-invoked only) |
+| `faber-keycloak` | When working with sign-in, sessions or the Keycloak realm config |
+| `faber-impl-issue` | `/faber-impl-issue <number>` — implement a GitHub issue end-to-end, sized to the issue (user-invoked only) |
 
 The rest of the skill catalog is auto-tiered via `.claude/settings.json`; scope policy is documented in `docs/ai/skills-inventory-scope.md`. `AGENTS.md` lists the same 6 skills as plain file-path pointers for tools without a `Skill` mechanism (Codex, Junie).
 
@@ -35,4 +35,4 @@ The rest of the skill catalog is auto-tiered via `.claude/settings.json`; scope 
 
 ## GitHub Workflow
 
-Issue labeling, release-please flow, and templates live in the `github-workflow` skill.
+Issue labeling, release-please flow, and templates live in the `faber-github-workflow` skill.

@@ -8,7 +8,7 @@ description: Step-by-step guide for creating a new Faber module from scratch —
 A new Faber module follows **modular monolith boundaries**, but the project count is **module-dependent**, not always a fixed 4-project template.
 
 > See `faber-feature-template` for adding features after bootstrapping.
-> See `dotnet-backend-patterns` for repository-wide conventions.
+> See `faber-backend-patterns` for repository-wide conventions.
 
 Canonical modules to inspect before bootstrapping a new one:
 - `src/api/Modules/Auth/` → `Application` + `Infrastructure` + `PublicApi`

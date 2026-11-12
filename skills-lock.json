@@ -7,12 +7,6 @@
       "skillPath": "skills/opentelementry-dotnet-instrumentation/SKILL.md",
       "computedHash": "693181a5710bc2e365fdff9d81f2d50406b84278b839154549e2493255f2be52"
     },
-    "api-design": {
-      "source": "aaronontheweb/dotnet-skills",
-      "sourceType": "github",
-      "skillPath": "skills/csharp-api-design/SKILL.md",
-      "computedHash": "729ee94914612e5afee2b3543b40fa56353332ff5b690cdbc3605a877414e25a"
-    },
     "angular-component": {
       "source": "analogjs/angular-skills",
       "sourceType": "github",
@@ -22,11 +16,6 @@
       "source": "analogjs/angular-skills",
       "sourceType": "github",
       "computedHash": "4d3dd9ecceec5642eea118aede824501bdec537b6b8735564a68787ec9617b75"
-    },
-    "angular-forms": {
-      "source": "analogjs/angular-skills",
-      "sourceType": "github",
-      "computedHash": "a2e28f7c7c1b9b13f0a8212f403515886f9d23bf13732a355b1f5d01f5cc9d69"
     },
     "angular-http": {
       "source": "analogjs/angular-skills",
@@ -77,81 +66,11 @@
       "skillPath": "skills/aspire-service-defaults/SKILL.md",
       "computedHash": "1a3d750d5107a059e00216b506ee1d0ae2f116c8786b7a09785cc539fb9a3df5"
     },
-    "configuring-opentelemetry-dotnet": {
-      "source": "dotnet/skills",
-      "sourceType": "github",
-      "skillPath": "plugins/dotnet-aspnet/skills/configuring-opentelemetry-dotnet/SKILL.md",
-      "computedHash": "736b7476710267bd46154714f38e16f5bac5498ce6a9aa980eb1d0a214960890"
-    },
-    "cqrs-implementation": {
-      "source": "wshobson/agents",
-      "sourceType": "github",
-      "skillPath": "plugins/backend-development/skills/cqrs-implementation/SKILL.md",
-      "computedHash": "e5cc10b9f389e4744069b7f455923d59ffa56a7fa07d2b8488a5b1ec86d5f305"
-    },
-    "csharp-docs": {
-      "source": "github/awesome-copilot",
-      "sourceType": "github",
-      "computedHash": "93da3063bb770f13feec581efa3ff232c69a5a94b75cddfc4ad6e82909835cfe"
-    },
     "dependency-injection-patterns": {
       "source": "aaronontheweb/dotnet-skills",
       "sourceType": "github",
       "skillPath": "skills/microsoft-extensions-dependency-injection/SKILL.md",
       "computedHash": "bfbf2bc8613dbe292514c0501ca50dfa4f2129cc73b524392b55c27f5315c5f1"
-    },
-    "dotnet-backend-patterns": {
-      "source": "wshobson/agents",
-      "sourceType": "github",
-      "computedHash": "8e3f80d9f1c4fa28d9903ee027fc0ed741b6d0f213532a6b9ef78e192674ce86"
-    },
-    "dotnet-testing-advanced-aspire-testing": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-advanced-aspire-testing/SKILL.md",
-      "computedHash": "c3a1b99977ab51178c756caa8898711bed4c4cf5b2b8a820171c77211e694d8f"
-    },
-    "dotnet-testing-advanced-testcontainers-database": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-advanced-testcontainers-database/SKILL.md",
-      "computedHash": "fe14fd880b015d94d631763acbe66dc71c435e2c6a0d9aac3631137b8c55ca77"
-    },
-    "dotnet-testing-advanced-xunit-upgrade-guide": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-advanced-xunit-upgrade-guide/SKILL.md",
-      "computedHash": "439b15a77651c0dfe8984050645b506b55c3454d93ac5261f1a6d081ee557921"
-    },
-    "dotnet-testing-bogus-fake-data": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-bogus-fake-data/SKILL.md",
-      "computedHash": "6c5f76f506a238fbca3ea47004d4a7f1e5572c201e75349d979a4876020408f0"
-    },
-    "dotnet-testing-fluentvalidation-testing": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-fluentvalidation-testing/SKILL.md",
-      "computedHash": "94f2332c7883f4416363c39e8f389c13c4b9dee749613fb3325d55e298be0c6d"
-    },
-    "dotnet-testing-nsubstitute-mocking": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-nsubstitute-mocking/SKILL.md",
-      "computedHash": "b94f5881305148d3ecde8b42ec58f45407c013c3bbfef594eab0a9409c425ef3"
-    },
-    "dotnet-testing-test-data-builder-pattern": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-test-data-builder-pattern/SKILL.md",
-      "computedHash": "fb01ccd875b3833de8621aa92b92de325ec41efcbec6dca0f376f67e62262ef3"
-    },
-    "dotnet-testing-test-naming-conventions": {
-      "source": "kevintsengtw/dotnet-testing-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/dotnet-testing-test-naming-conventions/SKILL.md",
-      "computedHash": "391950c0157280e0ac024a07d3806776f50c3b3d404a797a39a95cd617c32707"
     },
     "efcore-patterns": {
       "source": "aaronontheweb/dotnet-skills",
@@ -176,12 +95,6 @@
       "sourceType": "github",
       "skillPath": "skills/microsoft-extensions-configuration/SKILL.md",
       "computedHash": "0f1d7973772543fb7680fbd146f2f74eebfb68ab73674d57b1c7215e48ce82a5"
-    },
-    "migrate-xunit-to-xunit-v3": {
-      "source": "dotnet/skills",
-      "sourceType": "github",
-      "skillPath": "plugins/dotnet-test/skills/migrate-xunit-to-xunit-v3/SKILL.md",
-      "computedHash": "65d92b66b78d78b4f1eb0c2943da5314119d333f29bbe8af2e5fe6567aad8e65"
     },
     "modern-csharp-coding-standards": {
       "source": "aaronontheweb/dotnet-skills",
@@ -212,11 +125,23 @@
       "skillPath": "skills/testcontainers/SKILL.md",
       "computedHash": "12064a0fbd71dee63df9843ba24d64ddfd02b5da0d6a430d371bdfd3386f201c"
     },
-    "vertical-slice": {
-      "source": "codewithmukesh/dotnet-claude-kit",
+    "aspire-deployment": {
+      "source": "microsoft/aspire-skills",
       "sourceType": "github",
-      "skillPath": "skills/vertical-slice/SKILL.md",
-      "computedHash": "90b4ba579be9a2e193295ca4fffb3f77a019bd6dae6b2051027c6b3a344f0249"
+      "skillPath": "skills/aspire-deployment/SKILL.md",
+      "computedHash": "232e31bba8b184e090b212ca771d3140b3d6e1b9182eda92ecc7fa8b2e71993a"
+    },
+    "aspire-monitoring": {
+      "source": "microsoft/aspire-skills",
+      "sourceType": "github",
+      "skillPath": "skills/aspire-monitoring/SKILL.md",
+      "computedHash": "961cbcd53e1e3cbea5c930b61f1e7136fd2de7632d5f5cc3a9e2e0c272665635"
+    },
+    "aspire-orchestration": {
+      "source": "microsoft/aspire-skills",
+      "sourceType": "github",
+      "skillPath": "skills/aspire-orchestration/SKILL.md",
+      "computedHash": "c0a9fd45949cd861e84c1960215054bbeb8653ff479c53fecf2bafe6e2bb0801"
     }
   }
 }
