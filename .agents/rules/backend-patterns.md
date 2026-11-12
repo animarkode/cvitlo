@@ -59,7 +59,24 @@ Features/{Feature}/
 
 **Test class pattern:** `[Collection<CollectionResumes>] [Priority(N)] public class {Feature}Tests(WebApp app) : TestBase`
 
-**Test method naming:** `{Scenario}_Should{Outcome}` (e.g. `EmptyUsername_ShouldReturnBadRequest`)
+**Test naming:**
+- **Class:** `{Subject}Tests`, where the subject is what is tested: a feature, a production class, a behaviour, or a configuration (`UpdateSkillTests`, `ResumesCacheKeysTests`, `SessionResilienceTests`, `RealmSecurityTests`).
+- **Method:** `{Subject}_{Condition}_Should{Outcome}`
+  - Subject: what acts — the endpoint action, the method, the actor, or the configured part.
+  - Condition: in which case. Always written, the happy path included (`ValidRequest`).
+  - Outcome: what must happen, after `Should`.
+  - Leave out `{Condition}` only when the outcome holds unconditionally (configuration and invariant tests).
+
+| Subject | Example |
+|---|---|
+| Feature | `UpdateSkillTests.UpdateSkill_NoToken_ShouldReturnUnauthorized` |
+| Feature, happy path | `UpdateSkillTests.UpdateSkill_ValidRequest_ShouldModifyFields` |
+| Production class | `ResumesCacheKeysTests.Pdf_AcronymInTemplateName_ShouldKeepAcronymTogether` |
+| Behaviour | `SessionResilienceTests.Refresh_KeycloakTimesOut_ShouldKeepTheSession` |
+| Configuration | `RealmSecurityTests.WebClient_ShouldRequirePkce` |
+
+- **No `DisplayName`** on `[Fact]`/`[Theory]`: the method name is the only name (a second name drifts; `-method`/`--filter` match the method name; xUnit shows `[Theory]` row values).
+- Existing tests are migrated to this rule in #118; rationale in `docs/decisions/agent-skills.md`.
 
 **Test file structure:** `Features/{Feature}/{Feature}Tests.cs`, `{Feature}Constants.cs` (imported via `using static`), `Data/{Description}Data.cs` + `{Feature}Faker.cs`
 
