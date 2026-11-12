@@ -1,6 +1,6 @@
 # Faber
 
-**Full-stack CV/resume builder** — ASP.NET Core 8.0 backend, Angular 21 frontend, orchestrated by .NET Aspire 13.5.3.
+**Full-stack CV/resume builder** — ASP.NET Core 8.0 backend, Angular 21 frontend, orchestrated by .NET Aspire 13.6.5.
 
 ## Quick Start
 

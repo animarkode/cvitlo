@@ -17,7 +17,7 @@ Faber is a full-stack CV/resume builder:
   start). See `docs/operations/keycloak.md`.
 - Frontend: Angular 21 standalone components, Angular Material, Tailwind CSS,
   and signal-based state.
-- Local orchestration: .NET Aspire 13.5.3. The `Aspire.AppHost.Sdk` version in
+- Local orchestration: .NET Aspire 13.6.5. The `Aspire.AppHost.Sdk` version in
   `Faber.AppHost.csproj` must be bumped together with the `Aspire.*` packages
   (dependabot cannot see it) and the local Aspire CLI must be at least that version.
 
