@@ -33,6 +33,16 @@ Faber is a full-stack CV/resume builder:
   platform's secret store. Never set a secret in both places at once, and never
   in a shell profile.
 
+## Comments
+
+- A comment says only what the code cannot: why, a constraint, a workaround
+  with a link, a non-obvious order or invariant. Never restate a name or signature.
+- `///` and TSDoc only on `PublicApi` contracts, `Common`, and public inputs and
+  outputs of `shared/` components. Add `<param>`/`<returns>` only if they add
+  information; per member all or none (CS1573), prefer none.
+- One to three lines; longer goes to `docs/decisions/` and the comment links it.
+- No change history (git's job) and no commented-out code.
+
 ## Git and PRs
 
 - Commits and PR titles use Conventional Commits: `type(scope): description`.
@@ -93,6 +103,7 @@ must agree, and every skill that is not in `skills-lock.json` is project-authore
 |---|---|---|
 | Creating any Endpoint, Group, or Validator | `fastendpoints` | `.agents/skills/fastendpoints/SKILL.md` |
 | Working with ErrorOr, mapping errors to HTTP responses | `error-or` | `.agents/skills/error-or/SKILL.md` |
+| Writing or reviewing comments, comment sweeps | `code-comments` | `.agents/skills/code-comments/SKILL.md` |
 | Adding a feature to an existing module | `feature-template` | `.agents/skills/feature-template/SKILL.md` |
 | Sign-in, sessions, the realm config, Keycloak | `keycloak` | `.agents/skills/keycloak/SKILL.md` |
 | Backend module, EF Core, DI or integration-test patterns | `backend-patterns` | `.agents/skills/backend-patterns/SKILL.md` |
@@ -116,6 +127,9 @@ tiers live in `.claude/settings.json`.
   Options Pattern.
 - Do not introduce AutoMapper, a repository layer over EF Core, exceptions for
   ordinary control flow, regions, or `if`/`else` chains.
+- Logging: endpoints do not log; handlers log external-system work and unexpected
+  failures, never expected results, markers, credentials, tokens or e-mails
+  (`.agents/rules/backend-patterns.md`).
 - Tests use xUnit v3, Shouldly, NSubstitute, Bogus, and Testcontainers. Mock
   external services only (such as email), never infrastructure or internal abstractions.
 - Test names: class `{Subject}Tests`; method `{Subject}_{Condition}_Should{Outcome}`;

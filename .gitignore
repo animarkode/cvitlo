@@ -488,7 +488,6 @@ $RECYCLE.BIN/
 .playwright-mcp/
 docs/superpowers/
 docs/issues/
-docs/plans/
 .claude/plans/
 
 # Environment files (local secrets)

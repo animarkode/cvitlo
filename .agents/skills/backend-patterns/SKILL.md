@@ -22,6 +22,8 @@ Canonical sources to mirror before changing backend code:
 - `tests/Modules/Auth/Cvitlo.Auth.Application.IntegrationTests/`
 - `tests/Modules/Resumes/Cvitlo.Resumes.Application.IntegrationTests/`
 
+> The code under `src/api` still logs `[START]`/`[SUCCESS]`/`[HTTP …]` lines until the sweeps (#119, #120, #115) remove them. Mirror its structure, not its logging: follow `## Logging` in `.agents/rules/backend-patterns.md`.
+
 ---
 
 ## Architecture Overview
@@ -231,9 +233,7 @@ Patterns in repo:
 Use `DbContext` directly in handlers. No repository layer over EF Core.
 
 ```csharp
-public class DeleteEducationCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<DeleteEducationCommandHandler> logger)
+public class DeleteEducationCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<DeleteEducationCommand, ErrorOr<bool>>
 {
     public async Task<ErrorOr<bool>> ExecuteAsync(DeleteEducationCommand command, CancellationToken ct)
