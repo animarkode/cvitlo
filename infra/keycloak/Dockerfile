@@ -1,6 +1,6 @@
 # Keycloak with the faber login theme baked in. Build context: infra/keycloak.
 #
-# This tag must match keycloakTag in src/api/Aspire/Faber.AppHost/Program.cs and
+# This tag must match keycloakTag in src/api/Aspire/Cvitlo.AppHost/Program.cs and
 # FaberKeycloak.Image in the auth test fixture, so dev, tests and production run
 # the same Keycloak. scripts/verify-keycloak-version.sh checks this in CI.
 ARG KEYCLOAK_VERSION=26.8.1

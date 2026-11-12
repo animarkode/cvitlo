@@ -6,7 +6,7 @@ WORKDIR /src
 COPY ["Directory.Build.props", "Directory.Packages.props", "./"]
 
 COPY ["src/api/Jobs/Cvitlo.Migrations/Cvitlo.Migrations.csproj", "src/api/Jobs/Cvitlo.Migrations/"]
-COPY ["src/api/Aspire/Faber.ServiceDefaults/Faber.ServiceDefaults.csproj", "src/api/Aspire/Faber.ServiceDefaults/"]
+COPY ["src/api/Aspire/Cvitlo.ServiceDefaults/Cvitlo.ServiceDefaults.csproj", "src/api/Aspire/Cvitlo.ServiceDefaults/"]
 COPY ["src/api/Modules/Resumes/Cvitlo.Resumes.Infrastructure/Cvitlo.Resumes.Infrastructure.csproj", "src/api/Modules/Resumes/Cvitlo.Resumes.Infrastructure/"]
 COPY ["src/api/Modules/Resumes/Cvitlo.Resumes.Domain/Cvitlo.Resumes.Domain.csproj", "src/api/Modules/Resumes/Cvitlo.Resumes.Domain/"]
 COPY ["src/api/Modules/Auth/Cvitlo.Auth.Infrastructure/Cvitlo.Auth.Infrastructure.csproj", "src/api/Modules/Auth/Cvitlo.Auth.Infrastructure/"]

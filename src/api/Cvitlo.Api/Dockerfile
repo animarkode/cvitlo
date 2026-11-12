@@ -9,7 +9,7 @@ COPY ["Directory.Build.props", "Directory.Packages.props", "./"]
 COPY ["src/api/Cvitlo.Api/Cvitlo.Api.csproj", "src/api/Cvitlo.Api/"]
 
 # Aspire
-COPY ["src/api/Aspire/Faber.ServiceDefaults/Faber.ServiceDefaults.csproj", "src/api/Aspire/Faber.ServiceDefaults/"]
+COPY ["src/api/Aspire/Cvitlo.ServiceDefaults/Cvitlo.ServiceDefaults.csproj", "src/api/Aspire/Cvitlo.ServiceDefaults/"]
 
 # Auth
 COPY ["src/api/Modules/Auth/Cvitlo.Auth.Infrastructure/Cvitlo.Auth.Infrastructure.csproj", "src/api/Modules/Auth/Cvitlo.Auth.Infrastructure/"]
