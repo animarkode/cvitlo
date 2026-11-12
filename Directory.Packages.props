@@ -16,7 +16,7 @@
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
   </ItemGroup>
 
-  <!-- Aspire: moves together with the Aspire.AppHost.Sdk attribute in Faber.AppHost.csproj -->
+  <!-- Aspire: moves together with the Aspire.AppHost.Sdk attribute in Cvitlo.AppHost.csproj -->
   <ItemGroup>
     <PackageVersion Include="Aspire.Hosting" Version="13.6.5" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.6.5" />

@@ -1,0 +1,22 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.5">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <IsAspireHost>true</IsAspireHost>
+        <UserSecretsId>6b4f7ea5-ceef-4904-87eb-636cd7ce5e8b</UserSecretsId>
+        <AspireUseCliBundle>true</AspireUseCliBundle>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting" />
+        <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+        <PackageReference Include="Aspire.Hosting.Redis" />
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.MailPit" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Cvitlo.Api\Cvitlo.Api.csproj" />
+        <ProjectReference Include="..\..\Jobs\Cvitlo.Migrations\Cvitlo.Migrations.csproj" />
+    </ItemGroup>
+
+</Project>

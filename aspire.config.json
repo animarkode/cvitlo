@@ -1,5 +1,5 @@
 {
   "appHost": {
-    "path": "src/api/Aspire/Faber.AppHost/Faber.AppHost.csproj"
+    "path": "src/api/Aspire/Cvitlo.AppHost/Cvitlo.AppHost.csproj"
   }
 }

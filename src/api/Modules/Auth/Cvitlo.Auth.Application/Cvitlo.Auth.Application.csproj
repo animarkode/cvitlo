@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="ErrorOr" />
+        <PackageReference Include="FastEndpoints" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Common\Cvitlo.Common\Cvitlo.Common.csproj"/>
+        <ProjectReference Include="..\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Cvitlo.Auth.PublicApi\Cvitlo.Auth.PublicApi.csproj"/>
+    </ItemGroup>
+
+</Project>

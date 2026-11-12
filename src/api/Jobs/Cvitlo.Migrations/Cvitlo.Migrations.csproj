@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Serilog.Extensions.Hosting" />
+        <PackageReference Include="Serilog.Sinks.Console" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Aspire\Cvitlo.ServiceDefaults\Cvitlo.ServiceDefaults.csproj"/>
+        <ProjectReference Include="..\..\Modules\Auth\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\Modules\Resumes\Cvitlo.Resumes.Infrastructure\Cvitlo.Resumes.Infrastructure.csproj"/>
+    </ItemGroup>
+
+</Project>
