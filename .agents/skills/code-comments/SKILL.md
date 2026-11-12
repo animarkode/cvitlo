@@ -33,9 +33,9 @@ non-obvious order or invariant). Anything else is deleted.
 2. Summary restates the type, outside `PublicApi`. `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/Account/UnlinkAccount/UnlinkAccountRequest.cs:3`
    - Bad: `/// <summary>Represents a request to unlink an identity provider.</summary>`
    - Good: delete the whole block (lines 3-4); the type name already says it.
-3. Record with a `<param>` per property. `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/Account/GetProfile/GetProfileResponse.cs:5-9`
-   - Bad: `/// <param name="FirstName">The user's first name.</param>` and four more like it.
-   - Good: none. If one property is truly non-obvious, say it in a `//` on that line, not a `<param>`.
+3. Record with a `<param>` per property, outside `PublicApi`. `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/Account/GetProfile/GetProfileResponse.cs:3-9`
+   - Bad: `/// <summary>Describes the user's profile.</summary>` followed by `/// <param name="FirstName">The user's first name.</param>` and five more like it.
+   - Good: delete the whole block (lines 3-9), `<summary>` included; it is an `Application` type. If one property is truly non-obvious, say it in a `//` on that line.
 4. Comment restates the code. `src/web/faber-app/src/app/core/services/theme.ts:74`
    - Bad: `// cookies unavailable` inside `catch { }`
    - Good: delete, or say what happens and why: `// Private mode can block cookies; the theme then just is not remembered.`

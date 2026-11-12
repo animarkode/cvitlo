@@ -14,6 +14,8 @@ Canonical sources to mirror before changing behavior:
 - `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/DeleteEducation/`
 - `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Persons/CreatePerson/`
 
+> The code under `src/api` still logs `[START]`/`[SUCCESS]`/`[HTTP …]` lines until the sweeps (#119, #120, #115) remove them. Mirror its structure, not its logging: follow `## Logging` in `.agents/rules/backend-patterns.md`.
+
 ---
 
 ## 1. Core API
@@ -141,7 +143,7 @@ return TypedResults.Ok(result.Value);
 
 | Feature pattern | Handler error examples | Endpoint mapping |
 |---|---|---|
-| Auth logout | `Error.Failure("Auth.Logout", ...)` | logged; the endpoint still signs out locally and returns `NoContent()` |
+| Auth logout | `Error.Failure("Auth.Logout", ...)` | the handler logs the Keycloak failure; the endpoint still signs out locally and returns `NoContent()` |
 | Auth back-channel logout | `Error.Validation("Auth.BackchannelLogout", ...)` | `TypedResults.BadRequest()` without payload |
 | Resumes delete/get/update | mostly `Error.NotFound(...)` | usually `TypedResults.NotFound()` without payload |
 | Resumes create with conflicts | `Error.NotFound(...)`, `Error.Conflict(...)` | branch on `result.FirstError.Type`, e.g. `Conflict()` or `NotFound()` |
@@ -286,7 +288,7 @@ ErrorOr<ErrorOr<T>>  // always flatten — handlers return ErrorOr<T> directly
 
 These are real repository behaviors, not idealized rules:
 
-- `Error.Failure(...)` is not automatically a `500`: `LogoutEndpoint` logs it and still answers `204`, because the local session is deleted either way
+- `Error.Failure(...)` is not automatically a `500`: `LogoutEndpoint` still answers `204` (the handler has already logged the Keycloak failure), because the local session is deleted either way
 - Resumes endpoints often hide error payloads and return plain `NotFound()` / `Conflict()`
 - FastEndpoints validators handle many input-validation scenarios before handlers run, so not every `400` in tests comes from `Error.Validation`
 
