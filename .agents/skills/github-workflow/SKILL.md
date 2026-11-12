@@ -13,7 +13,8 @@ Every issue must carry exactly one `type:*`, one `priority:*`, and at least one 
 - `area:` — `auth` · `resumes` · `users` · `identity` · `notifications` · `vault` · `infra` · `ui-shared` · `ux` · `tests-infra`
 
 **Release flow:** Conventional Commit titles on squash-merged PRs feed [release-please](https://github.com/googleapis/release-please). After merging to `main`, the bot opens (or updates) a release PR with the proposed semver bump and `CHANGELOG.md`. Merge the release PR to ship — this creates the git tag and GitHub Release automatically.
-- `feat` → minor bump · `fix`/`perf` → patch · `feat!` / `BREAKING CHANGE:` → major
+- `feat` → minor bump · `fix`/`perf` → patch · `feat!` / `BREAKING CHANGE:` → major, or minor while the version is below 1.0 (`bump-minor-pre-major`)
+- `last-release-sha` in `release-please-config.json` is there only because the tag prefix changed to `cvitlo-v*`, which release-please would not match to the last release. It overrides that lookup on every run, so remove it in the first `cvitlo-v*` release PR, or the next changelog repeats that release's entries.
 - PR titles are linted by `amannn/action-semantic-pull-request` on every PR (`.github/workflows/pr-title-lint.yml`)
 
 ## Pull request preflight

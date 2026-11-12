@@ -225,7 +225,7 @@ fix(auth): reject refresh tokens issued before a password change
 
 Split your work into commits by logical concern. A commit that renames files and changes behavior at the same time is hard to review and harder to revert.
 
-**Pull request titles use the same format** and are linted by CI — a prose-only title fails the build. Squash-merged PR titles feed [release-please](https://github.com/googleapis/release-please), which computes the version bump and writes `CHANGELOG.md`: `feat` → minor, `fix`/`perf` → patch, `feat!` or `BREAKING CHANGE:` → major.
+**Pull request titles use the same format** and are linted by CI — a prose-only title fails the build. Squash-merged PR titles feed [release-please](https://github.com/googleapis/release-please), which computes the version bump and writes `CHANGELOG.md`: `feat` → minor, `fix`/`perf` → patch, `feat!` or `BREAKING CHANGE:` → major, or minor while the version is below 1.0.
 
 The PR body must contain `Closes #N` so the linked issue closes on merge.
 
