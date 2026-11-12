@@ -1,11 +1,11 @@
 <#-- Page illustrations, ported from the design artboards. Decorative: always aria-hidden.
-     Animations are one-shot and switched off under prefers-reduced-motion (faber.css). -->
+     Animations are one-shot and switched off under prefers-reduced-motion (cvitlo.css). -->
 
 <#macro envelope>
-<div class="fb-envelope" aria-hidden="true">
+<div class="cv-envelope" aria-hidden="true">
   <svg width="120" height="100" viewBox="0 0 120 100" focusable="false">
     <rect x="12" y="40" width="96" height="56" rx="10" style="fill: var(--color-surface)"></rect>
-    <g class="fb-envelope__letter">
+    <g class="cv-envelope__letter">
       <rect x="28" y="6" width="64" height="60" rx="8" style="fill: var(--color-primary)"></rect>
       <rect x="38" y="18" width="44" height="5" rx="2.5" style="fill: var(--color-primary-foreground)"></rect>
       <rect x="38" y="29" width="32" height="5" rx="2.5" style="fill: var(--color-primary-foreground); opacity: 0.55"></rect>
@@ -43,26 +43,26 @@
 
 <#-- Two tiles joined by a yellow bridge. bridge: link | check | cross | dashed | dots -->
 <#macro linkart left right bridge="link">
-<div class="fb-linkart" aria-hidden="true">
+<div class="cv-linkart" aria-hidden="true">
   <svg width="160" height="100" viewBox="0 0 160 100" focusable="false">
     <#if bridge = "link">
-      <rect class="fb-linkart__bridge" x="52" y="44" width="56" height="12" rx="6" style="fill: var(--color-primary)"></rect>
+      <rect class="cv-linkart__bridge" x="52" y="44" width="56" height="12" rx="6" style="fill: var(--color-primary)"></rect>
     <#elseif bridge = "check">
       <rect x="52" y="44" width="56" height="12" rx="6" style="fill: var(--color-primary)"></rect>
-      <g class="fb-linkart__cross" style="fill: none; stroke: var(--color-success-ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round"><path d="M70 50 L77 57 L91 43"></path></g>
+      <g class="cv-linkart__cross" style="fill: none; stroke: var(--color-success-ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round"><path d="M70 50 L77 57 L91 43"></path></g>
     <#elseif bridge = "cross">
       <rect x="52" y="44" width="56" height="12" rx="6" style="fill: var(--color-primary)"></rect>
-      <g class="fb-linkart__cross" style="stroke: var(--color-destructive-text); stroke-width: 4.5; stroke-linecap: round"><path d="M71 41 L89 59"></path><path d="M89 41 L71 59"></path></g>
+      <g class="cv-linkart__cross" style="stroke: var(--color-destructive-text); stroke-width: 4.5; stroke-linecap: round"><path d="M71 41 L89 59"></path><path d="M89 41 L71 59"></path></g>
     <#elseif bridge = "dashed">
-      <g class="fb-linkart__bridge" style="fill: var(--color-primary)"><rect x="66" y="44" width="8" height="12" rx="4"></rect><rect x="78" y="44" width="8" height="12" rx="4"></rect><rect x="90" y="44" width="8" height="12" rx="4"></rect></g>
+      <g class="cv-linkart__bridge" style="fill: var(--color-primary)"><rect x="66" y="44" width="8" height="12" rx="4"></rect><rect x="78" y="44" width="8" height="12" rx="4"></rect><rect x="90" y="44" width="8" height="12" rx="4"></rect></g>
     <#elseif bridge = "dots">
-      <g class="fb-linkart__cross" style="fill: var(--color-muted-foreground)"><circle cx="72" cy="50" r="3"></circle><circle cx="80" cy="50" r="3"></circle><circle cx="88" cy="50" r="3"></circle></g>
+      <g class="cv-linkart__cross" style="fill: var(--color-muted-foreground)"><circle cx="72" cy="50" r="3"></circle><circle cx="80" cy="50" r="3"></circle><circle cx="88" cy="50" r="3"></circle></g>
     </#if>
-    <g class="fb-linkart__left">
+    <g class="cv-linkart__left">
       <rect x="8" y="22" width="56" height="56" rx="16" style="fill: var(--color-card); stroke: var(--color-field-border); stroke-width: 1.5"></rect>
       <@glyph left 22 />
     </g>
-    <g class="fb-linkart__right">
+    <g class="cv-linkart__right">
       <rect x="96" y="22" width="56" height="56" rx="16" style="fill: var(--color-card); stroke: var(--color-field-border); stroke-width: 1.5"></rect>
       <@glyph right 110 />
     </g>

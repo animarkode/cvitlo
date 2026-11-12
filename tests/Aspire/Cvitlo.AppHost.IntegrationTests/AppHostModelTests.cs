@@ -16,8 +16,8 @@ public class AppHostModelTests
         "--Parameters:postgres-password=test-postgres-password",
         "--Parameters:keycloak-admin=test-keycloak-admin",
         "--Parameters:keycloak-password=test-keycloak-password",
-        "--Parameters:faber-api-client-secret=test-faber-api-client-secret",
-        "--Parameters:faber-admin-client-secret=test-faber-admin-client-secret"
+        "--Parameters:cvitlo-api-client-secret=test-cvitlo-api-client-secret",
+        "--Parameters:cvitlo-admin-client-secret=test-cvitlo-admin-client-secret"
     ];
 
     [Fact]
@@ -27,14 +27,14 @@ public class AppHostModelTests
             TestConfiguration,
             TestContext.Current.CancellationToken);
 
-        var faberDb = builder.Resources.Single(resource => string.Equals(resource.Name, "faberdb", StringComparison.Ordinal));
+        var cvitloDb = builder.Resources.Single(resource => string.Equals(resource.Name, "cvitlodb", StringComparison.Ordinal));
         var migrations = builder.Resources.Single(resource => string.Equals(resource.Name, "migrations", StringComparison.Ordinal));
         var keycloak = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak", StringComparison.Ordinal));
         var keycloakConfig = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-config", StringComparison.Ordinal));
         var keycloakPasskeys = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-passkeys", StringComparison.Ordinal));
         var api = builder.Resources.Single(resource => string.Equals(resource.Name, "faberapi", StringComparison.Ordinal));
 
-        migrations.ShouldWaitFor(faberDb, WaitType.WaitUntilHealthy);
+        migrations.ShouldWaitFor(cvitloDb, WaitType.WaitUntilHealthy);
         keycloak.ShouldWaitFor(migrations, WaitType.WaitForCompletion);
         keycloakConfig.ShouldWaitFor(keycloak, WaitType.WaitUntilHealthy);
         keycloakPasskeys.ShouldWaitFor(keycloakConfig, WaitType.WaitForCompletion);
@@ -58,9 +58,9 @@ public class AppHostModelTests
         var mount = keycloak.Annotations.OfType<ContainerMountAnnotation>().Single();
         mount.Type.ShouldBe(ContainerMountType.BindMount);
         mount.IsReadOnly.ShouldBeTrue();
-        mount.Target.ShouldBe("/opt/keycloak/themes/faber");
+        mount.Target.ShouldBe("/opt/keycloak/themes/cvitlo");
         Path.GetFullPath(mount.Source!).ShouldBe(Path.GetFullPath(Path.Combine(
-            builder.AppHostDirectory, "..", "..", "..", "..", "infra", "keycloak", "themes", "faber")));
+            builder.AppHostDirectory, "..", "..", "..", "..", "infra", "keycloak", "themes", "cvitlo")));
 
         var configuration = await ExecutionConfigurationBuilder
             .Create(keycloak)
@@ -77,12 +77,12 @@ public class AppHostModelTests
         var environment = configuration.EnvironmentVariables.ToDictionary(variable => variable.Key, variable => variable.Value, StringComparer.Ordinal);
         environment["KC_DB"].ShouldBe("postgres");
         environment["KC_DB_SCHEMA"].ShouldBe("keycloak");
-        environment["FABER_APP_URL"].ShouldBe("http://localhost:4200");
+        environment["CVITLO_APP_URL"].ShouldBe("http://localhost:4200");
         // Keycloak must use the database the migration service created its schema in. Asserted by
         // database name rather than the full JDBC URL, which the public-snapshot secret scan flags
         // and has reviewed once, in Program.cs.
-        var faberDb = builder.Resources.OfType<PostgresDatabaseResource>().Single();
-        environment["KC_DB_URL"].ShouldEndWith($"/{faberDb.DatabaseName}");
+        var cvitloDb = builder.Resources.OfType<PostgresDatabaseResource>().Single();
+        environment["KC_DB_URL"].ShouldEndWith($"/{cvitloDb.DatabaseName}");
     }
 
     [Fact]
@@ -104,8 +104,8 @@ public class AppHostModelTests
         var environment = await GetDeclaredEnvironmentAsync(keycloakConfig);
         environment["IMPORT_FILES_LOCATIONS"].ShouldBe("/config/*");
         environment["IMPORT_VARSUBSTITUTION_ENABLED"].ShouldBe("true");
-        environment["FABER_APP_URL"].ShouldBe("http://localhost:4200");
-        environment["FABER_BACKCHANNEL_LOGOUT_URL"]
+        environment["CVITLO_APP_URL"].ShouldBe("http://localhost:4200");
+        environment["CVITLO_BACKCHANNEL_LOGOUT_URL"]
             .ShouldBe("http://host.docker.internal:5020/api/v1/auth/backchannel-logout");
         environment["KC_SMTP_HOST"].ShouldBe("mailpit");
     }
@@ -148,7 +148,7 @@ public class AppHostModelTests
     }
 
     [Fact]
-    public async Task FaberApiClientSecret_ShouldReachKeycloakConfigAndTheApi()
+    public async Task CvitloApiClientSecret_ShouldReachKeycloakConfigAndTheApi()
     {
         var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Cvitlo_AppHost>(
             TestConfiguration,
@@ -157,13 +157,13 @@ public class AppHostModelTests
         var api = builder.Resources.Single(resource => string.Equals(resource.Name, "faberapi", StringComparison.Ordinal));
 
         var secret = builder.Resources.OfType<ParameterResource>()
-            .Single(resource => string.Equals(resource.Name, "faber-api-client-secret", StringComparison.Ordinal));
+            .Single(resource => string.Equals(resource.Name, "cvitlo-api-client-secret", StringComparison.Ordinal));
 
         var configEnvironment = await GetDeclaredEnvironmentAsync(keycloakConfig);
         var apiEnvironment = await GetDeclaredEnvironmentAsync(api);
 
         secret.Secret.ShouldBeTrue();
-        configEnvironment["FABER_API_CLIENT_SECRET"].ShouldBeSameAs(secret);
+        configEnvironment["CVITLO_API_CLIENT_SECRET"].ShouldBeSameAs(secret);
         apiEnvironment["Keycloak__ClientSecret"].ShouldBeSameAs(secret);
         apiEnvironment.Keys.ShouldNotContain("Keycloak__ClientId", StringComparer.Ordinal, "the client ID comes from the API's appsettings.json");
     }

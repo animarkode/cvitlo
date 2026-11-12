@@ -1,8 +1,8 @@
 {
-  "realm": "faber",
-  "displayName": "Faber",
+  "realm": "cvitlo",
+  "displayName": "Cvitlo",
   "enabled": true,
-  "loginTheme": "faber",
+  "loginTheme": "cvitlo",
   "internationalizationEnabled": false,
   "supportedLocales": ["en"],
   "defaultLocale": "en",
@@ -46,15 +46,15 @@
   "adminEventsEnabled": true,
   "adminEventsDetailsEnabled": false,
 
-  "webAuthnPolicyRpEntityName": "Faber",
-  "webAuthnPolicyPasswordlessRpEntityName": "Faber",
+  "webAuthnPolicyRpEntityName": "Cvitlo",
+  "webAuthnPolicyPasswordlessRpEntityName": "Cvitlo",
   "webAuthnPolicyPasswordlessUserVerificationRequirement": "required",
 
   "smtpServer": {
     "host": "$(env:KC_SMTP_HOST)",
     "port": "$(env:KC_SMTP_PORT)",
     "from": "$(env:KC_SMTP_FROM)",
-    "fromDisplayName": "Faber",
+    "fromDisplayName": "Cvitlo",
     "auth": "$(env:KC_SMTP_AUTH:-false)",
     "user": "$(env:KC_SMTP_USER:-)",
     "password": "$(env:KC_SMTP_PASSWORD:-)",
@@ -67,7 +67,7 @@
       { "name": "regular", "description": "Default plan" },
       { "name": "premium", "description": "Paid plan" },
       {
-        "name": "default-roles-faber",
+        "name": "default-roles-cvitlo",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -80,23 +80,23 @@
 
   "users": [
     {
-      "username": "service-account-faber-admin",
+      "username": "service-account-cvitlo-admin",
       "enabled": true,
-      "serviceAccountClientId": "faber-admin",
+      "serviceAccountClientId": "cvitlo-admin",
       "clientRoles": { "realm-management": ["manage-users"] }
     }
   ],
 
   "clients": [
     {
-      "clientId": "faber-api",
-      "name": "Faber",
-      "description": "The Faber API, which signs web users in as a backend-for-frontend.",
+      "clientId": "cvitlo-api",
+      "name": "Cvitlo",
+      "description": "The Cvitlo API, which signs web users in as a backend-for-frontend.",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "$(env:FABER_API_CLIENT_SECRET)",
+      "secret": "$(env:CVITLO_API_CLIENT_SECRET)",
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
@@ -104,14 +104,14 @@
       "frontchannelLogout": false,
       "consentRequired": false,
       "fullScopeAllowed": true,
-      "rootUrl": "$(env:FABER_APP_URL)",
-      "baseUrl": "$(env:FABER_APP_URL)",
-      "redirectUris": ["$(env:FABER_APP_URL)/api/v1/auth/callback"],
+      "rootUrl": "$(env:CVITLO_APP_URL)",
+      "baseUrl": "$(env:CVITLO_APP_URL)",
+      "redirectUris": ["$(env:CVITLO_APP_URL)/api/v1/auth/callback"],
       "webOrigins": [],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "$(env:FABER_APP_URL)",
-        "backchannel.logout.url": "$(env:FABER_BACKCHANNEL_LOGOUT_URL)",
+        "post.logout.redirect.uris": "$(env:CVITLO_APP_URL)",
+        "backchannel.logout.url": "$(env:CVITLO_BACKCHANNEL_LOGOUT_URL)",
         "backchannel.logout.session.required": "true",
         "backchannel.logout.revoke.offline.tokens": "true",
         "use.refresh.tokens": "true",
@@ -123,12 +123,12 @@
       "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"],
       "protocolMappers": [
         {
-          "name": "faber-api-audience",
+          "name": "cvitlo-api-audience",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.client.audience": "faber-api",
+            "included.client.audience": "cvitlo-api",
             "access.token.claim": "true",
             "id.token.claim": "false",
             "introspection.token.claim": "true",
@@ -138,14 +138,14 @@
       ]
     },
     {
-      "clientId": "faber-admin",
-      "name": "Faber admin",
+      "clientId": "cvitlo-admin",
+      "name": "Cvitlo admin",
       "description": "Service account the API uses to delete a user's own account. It can only manage users and has no sign-in flow.",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "$(env:FABER_ADMIN_CLIENT_SECRET)",
+      "secret": "$(env:CVITLO_ADMIN_CLIENT_SECRET)",
       "standardFlowEnabled": false,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
@@ -184,7 +184,7 @@
       "addReadTokenRoleOnCreate": false,
       "linkOnly": false,
       "hideOnLogin": false,
-      "firstBrokerLoginFlowAlias": "faber first broker login",
+      "firstBrokerLoginFlowAlias": "cvitlo first broker login",
       "config": {
         "clientId": "$(env:GOOGLE_CLIENT_ID:-unset)",
         "clientSecret": "$(env:GOOGLE_CLIENT_SECRET:-unset)",
@@ -207,7 +207,7 @@
       "addReadTokenRoleOnCreate": false,
       "linkOnly": false,
       "hideOnLogin": false,
-      "firstBrokerLoginFlowAlias": "faber first broker login",
+      "firstBrokerLoginFlowAlias": "cvitlo first broker login",
       "config": {
         "clientId": "$(env:GITHUB_CLIENT_ID:-unset)",
         "clientSecret": "$(env:GITHUB_CLIENT_SECRET:-unset)",
@@ -288,22 +288,22 @@
 
   "authenticatorConfig": [
     {
-      "alias": "faber review profile config",
+      "alias": "cvitlo review profile config",
       "config": { "update.profile.on.first.login": "missing" }
     },
     {
-      "alias": "faber create unique user config",
+      "alias": "cvitlo create unique user config",
       "config": { "require.password.update.after.registration": "false" }
     },
     {
-      "alias": "faber reauthentication conditional credential",
+      "alias": "cvitlo reauthentication conditional credential",
       "config": { "credentials": "webauthn-passwordless" }
     }
   ],
 
   "authenticationFlows": [
     {
-      "alias": "faber first broker login",
+      "alias": "cvitlo first broker login",
       "description": "First sign-in through Google or GitHub: create the user when the e-mail is new; otherwise link only after the person re-authenticates to the existing account.",
       "providerId": "basic-flow",
       "topLevel": true,
@@ -311,14 +311,14 @@
       "authenticationExecutions": [
         {
           "authenticator": "idp-review-profile",
-          "authenticatorConfig": "faber review profile config",
+          "authenticatorConfig": "cvitlo review profile config",
           "authenticatorFlow": false,
           "requirement": "REQUIRED",
           "priority": 10,
           "userSetupAllowed": false
         },
         {
-          "flowAlias": "faber user creation or linking",
+          "flowAlias": "cvitlo user creation or linking",
           "authenticatorFlow": true,
           "requirement": "REQUIRED",
           "priority": 20,
@@ -327,7 +327,7 @@
       ]
     },
     {
-      "alias": "faber user creation or linking",
+      "alias": "cvitlo user creation or linking",
       "description": "Create the user when the e-mail is unique, otherwise handle the existing account.",
       "providerId": "basic-flow",
       "topLevel": false,
@@ -335,14 +335,14 @@
       "authenticationExecutions": [
         {
           "authenticator": "idp-create-user-if-unique",
-          "authenticatorConfig": "faber create unique user config",
+          "authenticatorConfig": "cvitlo create unique user config",
           "authenticatorFlow": false,
           "requirement": "ALTERNATIVE",
           "priority": 10,
           "userSetupAllowed": false
         },
         {
-          "flowAlias": "faber handle existing account",
+          "flowAlias": "cvitlo handle existing account",
           "authenticatorFlow": true,
           "requirement": "ALTERNATIVE",
           "priority": 20,
@@ -351,7 +351,7 @@
       ]
     },
     {
-      "alias": "faber handle existing account",
+      "alias": "cvitlo handle existing account",
       "description": "An account with this e-mail exists: confirm the link, then prove ownership by signing in to it.",
       "providerId": "basic-flow",
       "topLevel": false,
@@ -365,7 +365,7 @@
           "userSetupAllowed": false
         },
         {
-          "flowAlias": "faber verify existing account by re-authentication",
+          "flowAlias": "cvitlo verify existing account by re-authentication",
           "authenticatorFlow": true,
           "requirement": "REQUIRED",
           "priority": 20,
@@ -374,7 +374,7 @@
       ]
     },
     {
-      "alias": "faber verify existing account by re-authentication",
+      "alias": "cvitlo verify existing account by re-authentication",
       "description": "Sign in to the existing account with its password or another linked provider, plus 2FA when set up. No e-mail-link alternative.",
       "providerId": "basic-flow",
       "topLevel": false,
@@ -388,7 +388,7 @@
           "userSetupAllowed": false
         },
         {
-          "flowAlias": "faber reauthentication conditional 2fa",
+          "flowAlias": "cvitlo reauthentication conditional 2fa",
           "authenticatorFlow": true,
           "requirement": "CONDITIONAL",
           "priority": 20,
@@ -397,7 +397,7 @@
       ]
     },
     {
-      "alias": "faber reauthentication conditional 2fa",
+      "alias": "cvitlo reauthentication conditional 2fa",
       "description": "Ask for the second factor the user has set up, unless a passkey was used.",
       "providerId": "basic-flow",
       "topLevel": false,
@@ -412,7 +412,7 @@
         },
         {
           "authenticator": "conditional-credential",
-          "authenticatorConfig": "faber reauthentication conditional credential",
+          "authenticatorConfig": "cvitlo reauthentication conditional credential",
           "authenticatorFlow": false,
           "requirement": "REQUIRED",
           "priority": 20,
@@ -429,5 +429,5 @@
     }
   ],
 
-  "firstBrokerLoginFlow": "faber first broker login"
+  "firstBrokerLoginFlow": "cvitlo first broker login"
 }

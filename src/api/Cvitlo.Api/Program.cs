@@ -96,7 +96,7 @@ if (app.Environment.IsProduction())
         branch => branch.UseHttpsRedirection());
 }
 
-app.UseFaberCsrfProtection();
+app.UseCvitloCsrfProtection();
 
 app.UseAuthentication();
 

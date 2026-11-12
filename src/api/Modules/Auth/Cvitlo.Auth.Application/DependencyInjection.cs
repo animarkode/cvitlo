@@ -17,7 +17,7 @@ namespace Cvitlo.Auth.Application;
 public static class DependencyInjection
 {
     /// <summary>The application name all API instances share, so each can read the others' cookies and sessions.</summary>
-    private const string DataProtectionApplicationName = "Faber";
+    private const string DataProtectionApplicationName = "Cvitlo";
 
     public static IServiceCollection AddAuthModule(this IServiceCollection services, IConfiguration configuration)
     {
@@ -35,7 +35,7 @@ public static class DependencyInjection
             .ValidateOnStart();
         services.TryAddSingleton(TimeProvider.System);
 
-        var connectionString = configuration.GetRequiredConnectionString("faberdb");
+        var connectionString = configuration.GetRequiredConnectionString("cvitlodb");
 
         services.AddDbContext<AuthDbContext>(o => o
             .UseNpgsql(connectionString, npgsql =>
@@ -59,13 +59,13 @@ public static class DependencyInjection
         services.AddHttpClient<KeycloakAccountClient>(client => client.Timeout = TimeSpan.FromSeconds(5));
         services.AddHttpClient<KeycloakAdminClient>(client => client.Timeout = TimeSpan.FromSeconds(5));
 
-        services.AddFaberAuthentication();
+        services.AddCvitloAuthentication();
 
         return services;
     }
 
     /// <summary>Requires the CSRF header on cookie-authenticated API calls. Call before authentication.</summary>
-    public static IApplicationBuilder UseFaberCsrfProtection(this IApplicationBuilder app)
+    public static IApplicationBuilder UseCvitloCsrfProtection(this IApplicationBuilder app)
     {
         return app.UseMiddleware<CsrfHeaderMiddleware>();
     }

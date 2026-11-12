@@ -1,7 +1,7 @@
-# Keycloak with the faber login theme baked in. Build context: infra/keycloak.
+# Keycloak with the cvitlo login theme baked in. Build context: infra/keycloak.
 #
 # This tag must match keycloakTag in src/api/Aspire/Cvitlo.AppHost/Program.cs and
-# FaberKeycloak.Image in the auth test fixture, so dev, tests and production run
+# CvitloKeycloak.Image in the auth test fixture, so dev, tests and production run
 # the same Keycloak. scripts/verify-keycloak-version.sh checks this in CI.
 ARG KEYCLOAK_VERSION=26.8.1
 
@@ -13,7 +13,7 @@ FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
 ENV KC_DB=postgres
 ENV KC_HEALTH_ENABLED=true
 
-COPY themes/faber /opt/keycloak/themes/faber
+COPY themes/cvitlo /opt/keycloak/themes/cvitlo
 
 RUN /opt/keycloak/bin/kc.sh build
 

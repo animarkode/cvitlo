@@ -38,7 +38,7 @@ public static class DependencyInjection
                 p =>
                     p.Requirements.Add(new ResumeOwnershipRequirement()));
 
-        var connectionString = configuration.GetRequiredConnectionString("faberdb");
+        var connectionString = configuration.GetRequiredConnectionString("cvitlodb");
 
         services.AddDbContext<ResumesDbContext>((sp, o) => o
             .UseNpgsql(

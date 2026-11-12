@@ -68,8 +68,8 @@
         </form>
 
         <#-- v2 always adds the password-policy script, which throws when the page has no password field
-             (Faber registers without one; the password is asked for once the e-mail link is followed,
-             because VERIFY_EMAIL has the lowest required-action priority in faber.json). -->
+             (Cvitlo registers without one; the password is asked for once the e-mail link is followed,
+             because VERIFY_EMAIL has the lowest required-action priority in cvitlo.json). -->
         <#if passwordRequired??>
         <@validator.templates/>
         <@validator.script field="password"/>

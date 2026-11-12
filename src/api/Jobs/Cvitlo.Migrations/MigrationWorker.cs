@@ -61,7 +61,7 @@ public class MigrationWorker(
         }
 
         using var scope = scopeFactory.CreateScope();
-        // Every context shares the faberdb connection; this one is only the way to reach it.
+        // Every context shares the cvitlodb connection; this one is only the way to reach it.
         var db = scope.ServiceProvider.GetRequiredService<ResumesDbContext>();
 
         try

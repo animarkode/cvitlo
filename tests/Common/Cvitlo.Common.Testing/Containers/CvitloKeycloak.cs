@@ -11,12 +11,12 @@ namespace Cvitlo.Common.Testing.Containers;
 
 /// <summary>
 /// A throwaway Keycloak configured exactly like the real one: the stock image the AppHost runs, with
-/// <c>infra/keycloak/config/faber.json</c> applied by the same keycloak-config-cli image, and the <c>faber</c>
+/// <c>infra/keycloak/config/cvitlo.json</c> applied by the same keycloak-config-cli image, and the <c>cvitlo</c>
 /// login theme mounted (the realm selects it, so it must exist), sending mail to a throwaway Mailpit as the
-/// AppHost's Keycloak does. Only the variables differ (URLs, a known <c>faber-api</c> secret passed the way the
+/// AppHost's Keycloak does. Only the variables differ (URLs, a known <c>cvitlo-api</c> secret passed the way the
 /// AppHost passes it) and a test-only client for bearer tokens.
 /// </summary>
-public sealed class FaberKeycloak : IAsyncDisposable
+public sealed class CvitloKeycloak : IAsyncDisposable
 {
     public const string Image = "quay.io/keycloak/keycloak:26.8.1";
     public const string ConfigCliImage = "adorsys/keycloak-config-cli:6.5.1-26.1.0";
@@ -26,18 +26,18 @@ public sealed class FaberKeycloak : IAsyncDisposable
 
     public const string AdminUsername = "admin";
     public const string AdminPassword = "admin";
-    public const string Realm = "faber";
-    public const string ClientId = "faber-api";
+    public const string Realm = "cvitlo";
+    public const string ClientId = "cvitlo-api";
     public const string ClientSecret = "secret-secret";
-    public const string AdminClientId = "faber-admin";
+    public const string AdminClientId = "cvitlo-admin";
     public const string AdminClientSecret = "admin-secret-secret";
 
     /// <summary>
     /// A public client with the password grant that exists only in tests. It stands in for the planned mobile
-    /// client: its access tokens carry <c>aud=faber-api</c>, and so do its ID tokens, which lets tests prove
+    /// client: its access tokens carry <c>aud=cvitlo-api</c>, and so do its ID tokens, which lets tests prove
     /// the API refuses an ID token used as a bearer token.
     /// </summary>
-    public const string TestClientId = "faber-tests";
+    public const string TestClientId = "cvitlo-tests";
 
     private const string NetworkAlias = "keycloak";
     private const string MailpitAlias = "mailpit";
@@ -47,7 +47,7 @@ public sealed class FaberKeycloak : IAsyncDisposable
     // Without a mail server Keycloak shows "Failed to send email" where the verify-e-mail page belongs.
     private readonly IContainer _mailpit;
 
-    private FaberKeycloak(KeycloakContainer container, IContainer mailpit)
+    private CvitloKeycloak(KeycloakContainer container, IContainer mailpit)
     {
         Container = container;
         _mailpit = mailpit;
@@ -68,7 +68,7 @@ public sealed class FaberKeycloak : IAsyncDisposable
     /// <param name="appUrl">The web app's origin as the browser sees it (the API callback lives under it).</param>
     /// <param name="backchannelLogoutUrl">Where Keycloak posts logout tokens, as seen from inside the container.</param>
     /// <param name="ct">A token to cancel the operation.</param>
-    public static async Task<FaberKeycloak> StartAsync(
+    public static async Task<CvitloKeycloak> StartAsync(
         INetwork network,
         string appUrl,
         string backchannelLogoutUrl,
@@ -89,7 +89,7 @@ public sealed class FaberKeycloak : IAsyncDisposable
             .WithNetwork(network)
             .WithNetworkAliases(NetworkAlias)
             .WithExtraHost("host.docker.internal", "host-gateway")
-            .WithBindMount(RepositoryFile("infra", "keycloak", "themes", "faber"), "/opt/keycloak/themes/faber", AccessMode.ReadOnly)
+            .WithBindMount(RepositoryFile("infra", "keycloak", "themes", "cvitlo"), "/opt/keycloak/themes/cvitlo", AccessMode.ReadOnly)
             .WithUsername(AdminUsername)
             .WithPassword(AdminPassword)
             .Build();
@@ -99,7 +99,7 @@ public sealed class FaberKeycloak : IAsyncDisposable
         await ApplyRealmConfigurationAsync(network, appUrl, backchannelLogoutUrl, ct);
         await EnablePasskeysAsync(network, ct);
 
-        var keycloak = new FaberKeycloak(container, mailpit);
+        var keycloak = new CvitloKeycloak(container, mailpit);
         await container.DisableSslRequirementAsync(AdminUsername, AdminPassword, ["master", Realm], ct);
         await keycloak.CreateTestClientAsync(ct);
 
@@ -166,13 +166,13 @@ public sealed class FaberKeycloak : IAsyncDisposable
             .WithEnvironment("IMPORT_FILES_LOCATIONS", "/config/*")
             .WithEnvironment("IMPORT_VARSUBSTITUTION_ENABLED", "true")
             .WithEnvironment("IMPORT_CACHE_ENABLED", "false")
-            .WithEnvironment("FABER_API_CLIENT_SECRET", ClientSecret)
-            .WithEnvironment("FABER_ADMIN_CLIENT_SECRET", AdminClientSecret)
-            .WithEnvironment("FABER_APP_URL", appUrl)
-            .WithEnvironment("FABER_BACKCHANNEL_LOGOUT_URL", backchannelLogoutUrl)
+            .WithEnvironment("CVITLO_API_CLIENT_SECRET", ClientSecret)
+            .WithEnvironment("CVITLO_ADMIN_CLIENT_SECRET", AdminClientSecret)
+            .WithEnvironment("CVITLO_APP_URL", appUrl)
+            .WithEnvironment("CVITLO_BACKCHANNEL_LOGOUT_URL", backchannelLogoutUrl)
             .WithEnvironment("KC_SMTP_HOST", MailpitAlias)
             .WithEnvironment("KC_SMTP_PORT", MailpitSmtpPort.ToString(CultureInfo.InvariantCulture))
-            .WithEnvironment("KC_SMTP_FROM", "no-reply@faber.test")
+            .WithEnvironment("KC_SMTP_FROM", "no-reply@cvitlo.test")
             .WithWaitStrategy(Wait.ForUnixContainer())
             .Build();
 
@@ -235,7 +235,7 @@ public sealed class FaberKeycloak : IAsyncDisposable
             publicClient = true,
             standardFlowEnabled = false,
             directAccessGrantsEnabled = true,
-            protocolMappers = new[] { AudienceMapper("faber-api-audience", idToken: true) }
+            protocolMappers = new[] { AudienceMapper("cvitlo-api-audience", idToken: true) }
         }, ct);
     }
 

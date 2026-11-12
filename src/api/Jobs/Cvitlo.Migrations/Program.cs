@@ -14,8 +14,8 @@ builder.AddServiceDefaults();
 
 builder.Services.AddSerilog((_, config) => config.WriteTo.Console(formatProvider: CultureInfo.InvariantCulture), writeToProviders: true);
 
-var connectionString = builder.Configuration.GetConnectionString("faberdb")
-    ?? throw new InvalidOperationException("Connection string 'faberdb' is required.");
+var connectionString = builder.Configuration.GetConnectionString("cvitlodb")
+    ?? throw new InvalidOperationException("Connection string 'cvitlodb' is required.");
 
 builder.Services.AddDbContext<ResumesDbContext>(o => o
     .UseNpgsql(connectionString, npgsql =>

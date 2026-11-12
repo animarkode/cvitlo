@@ -27,7 +27,7 @@ public sealed class AccountSignInMethodsLock(AuthDbContext db, KeycloakAccountCl
     {
         // Disposing without a commit rolls back, which is all an early return needs: the transaction only holds the lock.
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        var key = $"faber:account-sign-in-methods:{subject}";
+        var key = $"cvitlo:account-sign-in-methods:{subject}";
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))", ct);
 
         var credentialsTask = keycloak.GetCredentialsAsync(accessToken, ct);

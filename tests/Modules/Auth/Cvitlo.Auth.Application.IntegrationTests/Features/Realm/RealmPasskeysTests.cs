@@ -26,7 +26,7 @@ public class RealmPasskeysTests(WebApp app)
     {
         var realm = await app.Keycloak.Admin.GetRealmAsync(Ct);
 
-        realm["webAuthnPolicyRpEntityName"]!.GetValue<string>().ShouldBe("Faber");
+        realm["webAuthnPolicyRpEntityName"]!.GetValue<string>().ShouldBe("Cvitlo");
         realm["verifyEmail"]!.GetValue<bool>().ShouldBeTrue();
         realm["passwordPolicy"]!.GetValue<string>().ShouldContain("length(8)");
     }

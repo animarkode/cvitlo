@@ -23,9 +23,9 @@ public sealed class PostgresTicketStore(
     TimeProvider time) : ITicketStore
 {
     /// <summary>The ticket item that carries the session key back to whoever retrieved the ticket.</summary>
-    public const string SessionKeyItem = ".faber.session";
+    public const string SessionKeyItem = ".cvitlo.session";
 
-    private readonly IDataProtector _protector = dataProtection.CreateProtector("Faber.Auth.Sessions.v1");
+    private readonly IDataProtector _protector = dataProtection.CreateProtector("Cvitlo.Auth.Sessions.v1");
 
     public async Task<string> StoreAsync(AuthenticationTicket ticket)
     {

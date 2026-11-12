@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Cvitlo.Auth.Application.Sessions;
 
 /// <summary>
-/// Keycloak's Admin API, called as the <c>faber-admin</c> client's service account, which holds only the
+/// Keycloak's Admin API, called as the <c>cvitlo-admin</c> client's service account, which holds only the
 /// <c>manage-users</c> role. It exists to delete a user's own account; failures come back as errors, never
 /// as exceptions.
 /// </summary>

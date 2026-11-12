@@ -27,7 +27,7 @@ public class BearerTests(WebApp app)
 
         using var response = await SendAsync(tokens["id_token"]!.GetValue<string>());
 
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized, "an ID token also carries aud=faber-api but is not an access token");
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized, "an ID token also carries aud=cvitlo-api but is not an access token");
     }
 
     [Fact]
