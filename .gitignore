@@ -489,6 +489,7 @@ $RECYCLE.BIN/
 docs/superpowers/
 docs/issues/
 docs/plans/
+.claude/plans/
 
 # Environment files (local secrets)
 .env

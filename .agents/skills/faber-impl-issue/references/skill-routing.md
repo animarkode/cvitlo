@@ -10,18 +10,19 @@ Read when composing a task brief. Pick from the rows the task actually touches, 
 | `area:resumes` | `faber-feature-template`, `faber-backend-patterns`, `faber-fastendpoints`, `faber-erroror`, `efcore-patterns` | Add `angular-*` rows below when the slice is full-stack |
 | `area:notifications` | `mailpit-integration`, `faber-backend-patterns` | |
 | `area:infra` | `aspire`, `aspire-configuration`, `aspire-service-defaults` | Ports are hard-pinned in `AppHost/Program.cs` |
-| `area:tests-infra` | `tdd`, `testcontainers-integration-tests`, `dotnet-testing-*`, `aspire-integration-testing` | Pick the specific `dotnet-testing-*` file, not the whole family |
+| `area:tests-infra` | `tdd`, `testcontainers-integration-tests`, `aspire-integration-testing`, `slopwatch` | `faber-testing` replaces this row after #118 |
 
 | Label | Frontend skills |
 |---|---|
 | `area:ui-shared` | `angular-component`, `tailwind-design-system` |
 | `area:ux` | `tailwind-design-system` |
-| any frontend task | add by what it touches: `angular-signals` (state), `angular-forms` (forms), `angular-http` (API calls), `angular-routing` (routes/guards), `angular-di` (services/tokens), `angular-testing` (specs) |
+| any frontend task | add by what it touches: `angular-signals` (state), `angular-http` (API calls), `angular-routing` (routes/guards), `angular-di` (services/tokens), `angular-testing` (specs); reactive forms follow `.agents/rules/frontend-patterns.md` |
 
 ## Cross-cutting
 
 - New module from scratch → `docs/operations/migrations.md` (DbContext registration) and `.agents/rules/backend-patterns.md`.
-- New public/internal C# types → `csharp-docs`.
+- Refactor or module redesign → `codebase-design` (vocabulary); `/improve-codebase-architecture` is user-invoked.
+- After a .NET change → `slopwatch`.
 - Any new .NET feature or bug fix → `tdd`, ahead of the domain skills.
 - A task that only edits markdown, config, or CI → `None`.
 

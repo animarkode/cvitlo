@@ -54,7 +54,7 @@ Edit directly, run the issue's verify command, commit (Conventional Commits, no 
 
 ## Tier 2
 
-1. Read `references/plan-template.md`. Write the plan to `docs/plans/{YYYY-MM-DD}-{issue-number}-{kebab-slug}.md` — gitignored, so the filename is the only link back to the issue. Checkpoints, files, interfaces, verify command. **No inline code blocks**; a Tier 2 plan stays under ~6 KB.
+1. Read `references/plan-template.md`. Write the plan to `.claude/plans/{YYYY-MM-DD}-{issue-number}-{kebab-slug}.md` — gitignored, so the filename is the only link back to the issue. Checkpoints, files, interfaces, verify command. **No inline code blocks**; a Tier 2 plan stays under ~6 KB.
 2. Compose each task brief with `references/skill-routing.md` for the `area:*` → project-skill map. Never invent a skill name — write `None`.
 3. Get explicit approval via `AskUserQuestion` before executing. An ambiguous answer is not approval. Revise the plan file in place and re-present if changes are requested.
 4. Dispatch per task, then review the diff **yourself** — no reviewer subagent at this tier. Tick the task's checkbox with its commit hash before moving on.
@@ -121,4 +121,4 @@ A run inside a worktree must not assume the running stack serves *its* tree. Tha
 - **Never push, never open a PR, never run `finishing-a-development-branch`** without explicit user confirmation. Stop and report instead.
 - Conventional Commits; no `Co-Authored-By` or other self-references.
 - Leave unchecked items (manual/visual QA) visible rather than ticking them on the user's behalf.
-- Load `superpowers:brainstorming` only at Tier 3, and only when the issue is genuinely ambiguous about scope.
+- Load `superpowers:brainstorming` only at Tier 3, and only when the issue is genuinely ambiguous about scope. When the user asks, `/grill-me` (skill `grilling`) can stress-test a Tier 2/3 plan before approval.

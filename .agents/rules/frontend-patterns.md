@@ -61,4 +61,4 @@ save(data: CreateResumeRequest): Observable<Resume> {
 - Must follow WCAG AA: focus management, color contrast, ARIA attributes
 
 ---
-Expanded guidance and examples: `angular-component`, `angular-signals`, `angular-http`, `angular-forms`, `angular-routing`, `angular-di`, `angular-testing`.
+Expanded guidance and examples: `angular-component`, `angular-signals`, `angular-http`, `angular-routing`, `angular-di`, `angular-testing`.

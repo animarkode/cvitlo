@@ -1,6 +1,6 @@
 # Plan template — Tier 2 and 3
 
-Save to `docs/plans/{YYYY-MM-DD}-{issue-number}-{kebab-slug}.md`. The issue number is mandatory and always sits between the date and the slug — `docs/plans/` is gitignored, so the filename is the only link back to the issue.
+Save to `.claude/plans/{YYYY-MM-DD}-{issue-number}-{kebab-slug}.md`. The issue number is mandatory and always sits between the date and the slug — `.claude/plans/` is gitignored, so the filename is the only link back to the issue.
 
 **The plan is a pointer sheet, not the implementation.** It names *where* work happens and *how it is verified*; the implementer reads the actual code. No inline code blocks except the exact shell commands for verify and commit. Never paste a file's future contents into the plan.
 
@@ -21,7 +21,7 @@ Fill every placeholder — one left as-is is a plan failure.
 
 - Branch: `{issue-number}-{kebab-case-description}`
 - Build/test command every task verifies against: [exact command, incl. required env vars]
-- [naming / module-boundary / testing rules from CLAUDE.md this issue actually touches]
+- [naming / module-boundary / testing rules from AGENTS.md this issue actually touches]
 - Conventional Commits; no `Co-Authored-By`.
 
 ## Checkpoints

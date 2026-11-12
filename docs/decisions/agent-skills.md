@@ -147,6 +147,8 @@ One rule for every test:
 - `{Condition}` is omitted only for configuration and invariant tests.
 - No `DisplayName`.
 
+Test names in vendored skills' code samples are illustrations, not guidance; this rule wins.
+
 Examples:
 
 - `UpdateSkillTests.UpdateSkill_NoToken_ShouldReturnUnauthorized`

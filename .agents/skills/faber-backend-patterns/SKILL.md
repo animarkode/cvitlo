@@ -13,7 +13,7 @@ Faber is a **modular monolith with vertical slices** on ASP.NET Core + FastEndpo
 > For a new module's DbContext registration, see `docs/operations/migrations.md`.
 
 Canonical sources to mirror before changing backend code:
-- `CLAUDE.md`
+- `AGENTS.md`
 - `src/api/Faber.Api/Program.cs`
 - `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/SignIn/`
 - `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Features/Educations/DeleteEducation/`
@@ -318,7 +318,7 @@ public class CollectionAuth : TestCollection<WebApp>;
 public class SignInTests(WebApp app) : TestBase
 {
     [Fact]
-    public async Task RegisteredUserValidCredentials_ShouldReturnOk()
+    public async Task SignIn_RegisteredUserValidCredentials_ShouldReturnOk()
     {
         var (httpResponse, response) =
             await app.Client.POSTAsync<SignInEndpoint, SignInRequest, SignInResponse>(
