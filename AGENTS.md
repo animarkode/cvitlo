@@ -103,6 +103,7 @@ must agree, and every skill that is not in `skills-lock.json` is project-authore
 |---|---|---|
 | Creating any Endpoint, Group, or Validator | `fastendpoints` | `.agents/skills/fastendpoints/SKILL.md` |
 | Working with ErrorOr, mapping errors to HTTP responses | `error-or` | `.agents/skills/error-or/SKILL.md` |
+| Writing or reviewing comments, comment sweeps | `code-comments` | `.agents/skills/code-comments/SKILL.md` |
 | Adding a feature to an existing module | `feature-template` | `.agents/skills/feature-template/SKILL.md` |
 | Sign-in, sessions, the realm config, Keycloak | `keycloak` | `.agents/skills/keycloak/SKILL.md` |
 | Backend module, EF Core, DI or integration-test patterns | `backend-patterns` | `.agents/skills/backend-patterns/SKILL.md` |
