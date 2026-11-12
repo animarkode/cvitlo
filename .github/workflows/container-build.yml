@@ -21,8 +21,8 @@ jobs:
             context: .
             dockerfile: src/api/Jobs/Cvitlo.Migrations/Dockerfile
           - image: faber-web
-            context: src/web/faber-app
-            dockerfile: src/web/faber-app/Dockerfile
+            context: src/web/cvitlo-app
+            dockerfile: src/web/cvitlo-app/Dockerfile
 
     steps:
       - name: Checkout
@@ -45,4 +45,4 @@ jobs:
 
       - name: Smoke-test faber-web
         if: matrix.image == 'faber-web'
-        run: src/web/faber-app/scripts/smoke-test-image.sh faber/faber-web:pr
+        run: src/web/cvitlo-app/scripts/smoke-test-image.sh faber/faber-web:pr

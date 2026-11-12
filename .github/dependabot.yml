@@ -16,7 +16,7 @@ updates:
     labels: ["type:chore", "priority:p2", "area:infra"]
 
   - package-ecosystem: npm
-    directory: "/src/web/faber-app"
+    directory: "/src/web/cvitlo-app"
     schedule:
       interval: weekly
     open-pull-requests-limit: 5

@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "faber-app": {
+    "cvitlo-app": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -60,10 +60,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "faber-app:build:production"
+              "buildTarget": "cvitlo-app:build:production"
             },
             "development": {
-              "buildTarget": "faber-app:build:development"
+              "buildTarget": "cvitlo-app:build:development"
             }
           },
           "options": {

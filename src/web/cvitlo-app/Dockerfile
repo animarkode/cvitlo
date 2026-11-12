@@ -3,7 +3,7 @@
 # Production image for the Faber SPA — replaces src/web/Faber.NgApp/faber-ngapp
 # (issue #429). Build context is this directory, NOT the repo root.
 #
-#   docker build -t faber-web src/web/faber-app
+#   docker build -t faber-web src/web/cvitlo-app
 
 # ---------------------------------------------------------------- build stage
 # node:24 satisfies Angular 21's ^20.19 || ^22.12 || ^24 engine floor. The old
@@ -18,7 +18,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY . .
-# Emits dist/faber-app/browser (no explicit outputPath in angular.json, so
+# Emits dist/cvitlo-app/browser (no explicit outputPath in angular.json, so
 # @angular/build:application uses its dist/<project>/browser default).
 RUN npm run build -- --configuration=production
 
@@ -28,7 +28,7 @@ RUN npm run build -- --configuration=production
 FROM nginx:1.29-alpine
 
 # The SPA.
-COPY --from=build /app/dist/faber-app/browser /usr/share/nginx/html
+COPY --from=build /app/dist/cvitlo-app/browser /usr/share/nginx/html
 
 # A complete, non-templated config — no envsubst, no environment variables.
 COPY nginx.conf /etc/nginx/nginx.conf

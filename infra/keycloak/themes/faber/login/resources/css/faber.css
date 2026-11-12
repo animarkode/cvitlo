@@ -1,5 +1,5 @@
 /* Faber login theme. Ported from the design prototype (faber-login.css); tokens are 1:1 with
-   src/web/faber-app/src/styles.css. The prototype's .fb is html here and .fb.dark is html.dark.
+   src/web/cvitlo-app/src/styles.css. The prototype's .fb is html here and .fb.dark is html.dark.
    Dark mode is driven only by faber-theme.js / the pre-paint script in template.ftl. */
 
 /* Self-hosted fonts (SIL OFL, see ../fonts/OFL.txt). No request leaves the realm. */
