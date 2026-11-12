@@ -176,12 +176,13 @@ not part of this path.
 
 ## Single source of truth
 
-Five places must agree:
+Six places must agree:
 
 1. `.agents/skills/` (storage) and the `.claude/skills/` symlinks into it.
 2. `skills-lock.json`.
 3. `.claude/settings.json`.
 4. This document.
 5. The skills table in `AGENTS.md`.
+6. `THIRD_PARTY_NOTICES.md`: one row per upstream source in the lock, with its license link and copyright holder. `scripts/verify-third-party-notices.sh` checks it against the lock in CI.
 
-Adding or removing a skill updates all five in one commit.
+Adding or removing a skill updates all six in one commit.
