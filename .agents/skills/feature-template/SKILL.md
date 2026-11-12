@@ -1,11 +1,11 @@
 ---
 name: feature-template
-description: Step-by-step guide for adding a new feature to an existing Faber module. Provides templates for all 6-7 files (Request, Command, Validator, Handler, Mapper, Response, Endpoint) with CRUD examples. Use when adding any new endpoint to an existing module.
+description: Step-by-step guide for adding a new feature to an existing Cvitlo module. Provides templates for all 6-7 files (Request, Command, Validator, Handler, Mapper, Response, Endpoint) with CRUD examples. Use when adding any new endpoint to an existing module.
 ---
 
-# Faber Feature Template
+# Cvitlo Feature Template
 
-A feature is a **self-contained vertical slice** inside a module. Most new features follow the flow below, but Faber also reuses shared requests/responses for some auth and users scenarios.
+A feature is a **self-contained vertical slice** inside a module. Most new features follow the flow below, but Cvitlo also reuses shared requests/responses for some auth and users scenarios.
 
 > See `fastendpoints` skill for detailed FastEndpoints API reference.
 > See `error-or` skill for ErrorOr usage.
@@ -151,7 +151,7 @@ public static class CreateEducationMapper
 }
 ```
 
-Real Faber patterns:
+Real Cvitlo patterns:
 - request → command mapping almost always lives in the feature folder
 - entity/external-contract → response mapping may live in the feature folder or a shared mapper namespace
 - some mappers extend a non-DTO source, e.g. `ClaimsPrincipal.MapToResponse()` in `Auth`'s `UserMapper`
@@ -258,7 +258,7 @@ Endpoint guidance:
 - Always paginate large result sets
 
 ### CREATE (POST)
-- Response type in current Faber is often `Results<Ok<TResponse>, ...>` rather than `Created<TResponse>`
+- Response type in current Cvitlo is often `Results<Ok<TResponse>, ...>` rather than `Created<TResponse>`
 - Handler returns: `ErrorOr<TResponse>`
 - HTTP verb: `Post("")`
 - Success: usually `TypedResults.Ok(result.Value)`
@@ -346,6 +346,6 @@ Most new features inside an existing module do **not** require `DependencyInject
 ## Current Repository Nuances
 
 - `Auth` features are thin: sign-in itself happens on Keycloak's pages, so `login`/`register` return a challenge result and never take credentials (see `keycloak`)
-- `Create` endpoints in current Faber usually return `200 OK`, not `201 Created`
+- `Create` endpoints in current Cvitlo usually return `200 OK`, not `201 Created`
 - not every module currently has the same maturity of integration-test coverage; mirror the nearest existing test project rather than inventing a new pattern
 - route-bound nested resources in `Resumes` nearly always use subgroup patterns like `"{ResumeId}/educations"`

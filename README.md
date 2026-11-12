@@ -1,4 +1,4 @@
-# Faber
+# Cvitlo
 
 **Full-stack CV/resume builder** — ASP.NET Core 8.0 backend, Angular 21 frontend, orchestrated by .NET Aspire 13.6.5.
 
@@ -42,7 +42,7 @@ src/
 │   ├── Modules/                   # Feature modules (Auth, Resumes, Documents)
 │   └── Cvitlo.Api                  # API host (FastEndpoints)
 └── web/
-    └── faber-app/                 # Angular SPA
+    └── cvitlo-app/                 # Angular SPA
 
 tests/
 ├── Aspire/                        # Cvitlo.AppHost.IntegrationTests
@@ -83,7 +83,7 @@ dotnet run --project <test.csproj> -- -method "*.TestName"
 ### Frontend
 
 ```bash
-cd src/web/faber-app/
+cd src/web/cvitlo-app/
 ```
 
 Dev server:
@@ -120,7 +120,7 @@ The Aspire AppHost is the canonical way to run the complete development stack:
 | redis     | 6379      | Caching (resumes, rendered PDFs) |
 | keycloak  | 8080      | Identity provider                |
 | mailpit   | 8025/1025 | Email testing                    |
-| faberhost | 7106      | API                              |
+| cvitlohost | 7106      | API                              |
 
 The Aspire AppHost is the only local orchestration definition tracked in this repository. Production deployment configuration, including its Compose definition and environment files, is maintained privately in the deployment environment and is intentionally absent from the public source tree.
 
@@ -153,13 +153,13 @@ Participation is governed by our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Security
 
-Found a vulnerability? **Do not open a public issue** — report it privately through GitHub's [security advisories](https://github.com/VoxSollers/faber/security). See [SECURITY.md](SECURITY.md) for scope and what to expect.
+Found a vulnerability? **Do not open a public issue** — report it privately through GitHub's [security advisories](https://github.com/animarkode/cvitlo/security). See [SECURITY.md](SECURITY.md) for scope and what to expect.
 
 Local development uses developer-supplied credentials stored outside the repository. The tracked Aspire AppHost is development configuration, not a production deployment definition; production configuration and secrets remain in protected deployment environments.
 
 ## License
 
-Faber's original code and project-authored assets are licensed under the
+Cvitlo's original code and project-authored assets are licensed under the
 [Apache License 2.0](LICENSE). Bundled agent skills and the Angular CLI favicon
 remain under their respective upstream terms; see
 [Third-party notices](THIRD_PARTY_NOTICES.md).

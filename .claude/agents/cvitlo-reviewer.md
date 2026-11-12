@@ -1,6 +1,6 @@
 ---
-name: faber-reviewer
-description: Reviews a Faber diff against its task brief and project conventions.
+name: cvitlo-reviewer
+description: Reviews a Cvitlo diff against its task brief and project conventions.
 model: sonnet
 effort: high
 tools: Read, Grep, Glob, Bash

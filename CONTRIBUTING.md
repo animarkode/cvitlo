@@ -1,4 +1,4 @@
-# Contributing to Faber
+# Contributing to Cvitlo
 
 Thanks for taking the time. This file covers what you need to get the project running and what a pull request has to satisfy to be merged.
 
@@ -24,8 +24,8 @@ Bumping the `Aspire.*` packages therefore means bumping the CLI too. Rebuild the
 ### 2. Clone
 
 ```bash
-git clone https://github.com/VoxSollers/faber.git
-cd faber
+git clone https://github.com/animarkode/cvitlo.git
+cd cvitlo
 ```
 
 ### 3. Parameters
@@ -51,7 +51,7 @@ dotnet run --project src/api/Aspire/Cvitlo.AppHost
 
 `aspire run` from the repository root is equivalent — `aspire.config.json` points it at the AppHost. The Aspire dashboard opens automatically at `https://localhost:15xxx` (the port is printed in the console).
 
-On a clean clone nothing else has to be set by hand: the `faber-api` client secret is an AppHost parameter that Aspire generates on the first run and saves to the same user-secrets. Only Google and GitHub credentials, if you use those providers, are entered manually (see below). Expect the following in the logs, which is harmless:
+On a clean clone nothing else has to be set by hand: the `cvitlo-api` client secret is an AppHost parameter that Aspire generates on the first run and saves to the same user-secrets. Only Google and GitHub credentials, if you use those providers, are entered manually (see below). Expect the following in the logs, which is harmless:
 
 - On the first run against an empty database, `migrations` logs four `Failed executing DbCommand` errors for `SELECT migration_id, product_version FROM …_migrations_history` — EF Core queries the history table before it exists and handles the error itself; the service still exits with code 0, and they do not appear on later runs.
 
@@ -60,14 +60,14 @@ On a clean clone nothing else has to be set by hand: the `faber-api` client secr
 The stack brings itself up with no further manual step:
 
 - `Cvitlo.Migrations` applies migrations and creates the `keycloak` schema.
-- Keycloak (the stock `quay.io/keycloak/keycloak` image) starts, and `keycloak-config` applies the realm from `infra/keycloak/config/faber.json`. It runs on every start, so the realm always matches the repository; users and their data are left alone.
+- Keycloak (the stock `quay.io/keycloak/keycloak` image) starts, and `keycloak-config` applies the realm from `infra/keycloak/config/cvitlo.json`. It runs on every start, so the realm always matches the repository; users and their data are left alone.
 - `keycloak-passkeys` turns passkeys on by running `infra/keycloak/passkeys.sh` (the config tool cannot express that setting yet). It writes nothing else.
 
 Every service becomes healthy, and the one-shot `migrations`, `keycloak-config` and `keycloak-passkeys` finish with exit code 0. There is no `dotnet ef database update`, no Keycloak admin-console step and no manual secret seeding.
 
 Sign-in, registration, password reset and e-mail verification all happen on Keycloak's own pages. Registration asks for e-mail and name only; the password is set after following the verification link. Keycloak sends its mail (verification, password reset) to Mailpit in Development; open the `mailpit` resource from the Aspire dashboard to read it.
 
-**Coming from a stack created before hosted login?** That realm was imported from the old `realm-export.json` and still carries flows and a client override that refer to a Keycloak extension which no longer exists. Delete the `faber` realm once (Keycloak admin console, `http://localhost:8080/admin/master/console`, realm **faber** → **Realm settings** → **Action** → **Delete**), or reset the PostgreSQL volume as described under [Resetting local state](#resetting-local-state). The next start creates the realm fresh. Its users are lost either way.
+**Coming from a stack created before hosted login?** That realm was imported from the old `realm-export.json` and still carries flows and a client override that refer to a Keycloak extension which no longer exists. Delete the `cvitlo` realm once (Keycloak admin console, `http://localhost:8080/admin/master/console`, realm **cvitlo** → **Realm settings** → **Action** → **Delete**), or reset the PostgreSQL volume as described under [Resetting local state](#resetting-local-state). The next start creates the realm fresh. Its users are lost either way.
 
 #### Optional: Google and GitHub sign-in
 
@@ -76,13 +76,13 @@ This step is optional. Without it the providers stay disabled and e-mail and pas
 1. In Google Cloud Console, open **APIs & Services → Credentials → Create credentials → OAuth client ID** and choose **Web application**. Under **Authorized redirect URIs** add exactly:
 
 ```text
-http://localhost:8080/realms/faber/broker/google/endpoint
+http://localhost:8080/realms/cvitlo/broker/google/endpoint
 ```
 
 2. In GitHub, open **Settings → Developer settings → OAuth Apps** and create an OAuth App. Set **Authorization callback URL** to exactly:
 
 ```text
-http://localhost:8080/realms/faber/broker/github/endpoint
+http://localhost:8080/realms/cvitlo/broker/github/endpoint
 ```
 
 3. Store the credentials as AppHost user-secrets. A provider is enabled exactly when its client ID is set; set only the pair you created:
@@ -112,14 +112,14 @@ Never put real credentials in the repository. A provider sign-in whose e-mail ma
 The frontend runs separately:
 
 ```bash
-cd src/web/faber-app
+cd src/web/cvitlo-app
 npm ci
 npm start
 ```
 
 Open `http://localhost:4200`. The dev server proxies `/api` to the API on `localhost:5020`, so the app and the API share one origin, exactly as behind the production edge proxy, and the session cookie is first-party.
 
-The session cookie is `__Host-faber`: HttpOnly, `Secure` and `SameSite=Strict`. Chrome and Firefox accept a `Secure` cookie on `http://localhost`; Safari may not, so use Chrome or Firefox to sign in locally. The stack is reachable from `localhost` only; there is no LAN mode.
+The session cookie is `__Host-cvitlo`: HttpOnly, `Secure` and `SameSite=Strict`. Chrome and Firefox accept a `Secure` cookie on `http://localhost`; Safari may not, so use Chrome or Firefox to sign in locally. The stack is reachable from `localhost` only; there is no LAN mode.
 
 ### Resetting local state
 
@@ -133,21 +133,21 @@ FATAL:  password authentication failed for user "<POSTGRES-USERNAME>"
 DETAIL:  Role "<POSTGRES-USERNAME>" does not exist.
 ```
 
-The fix is to remove the volume, not to re-type the password. Each checkout has its own, named `faber-postgres-data-<suffix>` where the suffix is derived from the checkout path. `docker volume ls --filter name=faber-postgres-data-` lists them all; with several checkouts on the machine, the `postgres` resource's details in the Aspire dashboard show which volume this one uses.
+The fix is to remove the volume, not to re-type the password. Each checkout has its own, named `cvitlo-postgres-data-<suffix>` where the suffix is derived from the checkout path. `docker volume ls --filter name=cvitlo-postgres-data-` lists them all; with several checkouts on the machine, the `postgres` resource's details in the Aspire dashboard show which volume this one uses.
 
 Stop the AppHost first. Stopping it is not enough on its own: Aspire creates a new `postgres-<random>` container on every run and leaves the exited ones behind, and any container that still references the volume — running or long exited — makes `docker volume rm` fail with `volume is in use`.
 
 Set `volume` to the name from the listing above, then remove it:
 
 ```bash
-volume=faber-postgres-data-<suffix>
+volume=cvitlo-postgres-data-<suffix>
 docker ps -aq --filter volume="$volume" | xargs -r docker rm -f
 docker volume rm "$volume"
 ```
 
 `xargs -r` skips `docker rm` when no container holds the volume, so the same commands work whether one does. The next start creates a fresh volume with the current parameters; migrations, `keycloak-config` and `keycloak-passkeys` then rebuild everything, so no manual step follows. Local data such as registered users is lost.
 
-A checkout created before the per-checkout volume was introduced may still have the old fixed-name `faber-postgres-data` volume. Nothing uses it anymore; remove it the same way with `volume=faber-postgres-data`.
+A checkout created before the per-checkout volume was introduced may still have the old fixed-name `cvitlo-postgres-data` volume. Nothing uses it anymore; remove it the same way with `volume=cvitlo-postgres-data`.
 
 **Coming from a clone that used Vault?** Vault was removed in #83 and nothing reads it anymore. Delete what it left behind. Stop the AppHost, then remove the old data, including the unseal keys:
 
@@ -194,7 +194,7 @@ dotnet run --project tests/Modules/Resumes/Cvitlo.Resumes.Application.UnitTests
 Frontend:
 
 ```bash
-cd src/web/faber-app
+cd src/web/cvitlo-app
 npm ci
 npm run check
 npm test -- --watch=false
@@ -205,9 +205,9 @@ The three images CI builds without pushing:
 
 ```bash
 cd ../../..
-docker build -f src/api/Cvitlo.Api/Dockerfile -t faber-api:local .
-docker build -f src/api/Jobs/Cvitlo.Migrations/Dockerfile -t faber-migrations:local .
-docker build -f src/web/faber-app/Dockerfile -t faber-web:local src/web/faber-app
+docker build -f src/api/Cvitlo.Api/Dockerfile -t cvitlo-api:local .
+docker build -f src/api/Jobs/Cvitlo.Migrations/Dockerfile -t cvitlo-migrations:local .
+docker build -f src/web/cvitlo-app/Dockerfile -t cvitlo-web:local src/web/cvitlo-app
 ```
 
 Integration tests use Testcontainers, so Docker must be running. On macOS with Docker Desktop the socket is usually not at the default path — `docker context inspect --format '{{.Endpoints.docker.Host}}'` prints yours; export it as `DOCKER_HOST` if Testcontainers cannot find it automatically.

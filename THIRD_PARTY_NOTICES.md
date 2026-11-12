@@ -1,6 +1,6 @@
 # Third-party notices
 
-Faber's original source code and project-authored assets are licensed under the
+Cvitlo's original source code and project-authored assets are licensed under the
 [Apache License 2.0](LICENSE). That license does not replace or relicense the
 third-party material identified below. Each third-party component remains
 subject to its upstream terms.
@@ -36,21 +36,21 @@ Every unique source in `skills-lock.json` is represented in the table above.
 
 ## Web and design assets
 
-- `src/web/faber-app/public/favicon.ico` is byte-for-byte identical to the
+- `src/web/cvitlo-app/public/favicon.ico` is byte-for-byte identical to the
   [Angular CLI application template favicon](https://github.com/angular/angular-cli/blob/0ba4d8e29c0fb9abe6b07432edfab9e39066ca29/packages/schematics/angular/application/files/common-files/public/favicon.ico.template).
   It is distributed under the [MIT License](https://github.com/angular/angular-cli/blob/0ba4d8e29c0fb9abe6b07432edfab9e39066ca29/LICENSE),
   Copyright (c) 2010-2026 Google LLC.
-- `src/web/faber-app/public/flags/gb.svg` and `pl.svg` were added as original,
-  minimal vector drawings in Faber commit `e452f1b9` and have no embedded or
+- `src/web/cvitlo-app/public/flags/gb.svg` and `pl.svg` were added as original,
+  minimal vector drawings in Cvitlo commit `e452f1b9` and have no embedded or
   linked third-party content. They are project-authored assets covered by
-  Faber's Apache-2.0 license to the extent copyright applies. Country names and
+  Cvitlo's Apache-2.0 license to the extent copyright applies. Country names and
   flag designs may also be subject to laws unrelated to copyright in some
   jurisdictions.
-- `src/web/faber-app/design.pen` was added as a project design source in Faber
+- `src/web/cvitlo-app/design.pen` was added as a project design source in Cvitlo
   commit `33add24e`. It contains JSON design primitives, project text and color
   values, font-family names, and references by name to Lucide icons. It embeds
   no font files, icon glyph data, raster images, external URLs, or other binary
-  assets. The file itself is project-authored and covered by Faber's
+  assets. The file itself is project-authored and covered by Cvitlo's
   Apache-2.0 license.
 
 ## MIT license text

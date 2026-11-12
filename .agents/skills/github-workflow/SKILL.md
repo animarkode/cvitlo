@@ -1,6 +1,6 @@
 ---
 name: github-workflow
-description: Faber's GitHub issue/PR conventions — required labels, release-please flow, and issue/PR templates. Use when creating or labeling issues, opening PRs, or handling a release.
+description: Cvitlo's GitHub issue/PR conventions — required labels, release-please flow, and issue/PR templates. Use when creating or labeling issues, opening PRs, or handling a release.
 ---
 
 # GitHub Workflow

@@ -86,7 +86,7 @@ direction). Its `Enabled` switch defaults from the shared `RateLimiting:Enabled`
 test-environment relaxation (`RateLimiting:Enabled=false` in Testcontainers-based module suites)
 disables it too with no extra per-suite configuration; it can still be tuned independently via
 `RateLimiting:ForgotPassword:*`.
-Rejections are only structured-logged (`ILogger`), not exported on the `Faber.Api.RateLimiting` OTel
+Rejections are only structured-logged (`ILogger`), not exported on the `Cvitlo.Api.RateLimiting` OTel
 meter — wiring a module-owned limiter into an API-project meter would mean duplicating that meter's
 name as a magic string across the module boundary; deferred until there's a second consumer to justify
 a shared abstraction.
@@ -250,9 +250,9 @@ and endpoint-level limiters.
 
 ## Observability
 
-Every rejection increments counter `faber.api.rate_limiting.rejections` (tag: `policy`) on meter
-`Faber.Api.RateLimiting` (registered in `Cvitlo.ServiceDefaults`, instrument defined in
-`RateLimitingMetrics`) and logs a structured warning under category `Faber.Api.RateLimiting` — both
+Every rejection increments counter `cvitlo.api.rate_limiting.rejections` (tag: `policy`) on meter
+`Cvitlo.Api.RateLimiting` (registered in `Cvitlo.ServiceDefaults`, instrument defined in
+`RateLimitingMetrics`) and logs a structured warning under category `Cvitlo.Api.RateLimiting` — both
 visible in the Aspire dashboard.
 
 `policy` values come from the HTTP middleware: `RateLimitRejectionHandler` records the value of
@@ -308,7 +308,7 @@ OpenTelemetry — the middleware provides all of these and keeps limits config-t
   mode, and added latency on every request for a guarantee we do not yet need.
 - If the API scales to N replicas behind round-robin, effective limits become up to N× the configured
   values — degraded but fail-open, and tunable by dividing configured limits by N as a stopgap.
-- **Trigger for revisiting:** scaling `faber-api` beyond one replica. Follow-up issue: swap the global
+- **Trigger for revisiting:** scaling `cvitlo-api` beyond one replica. Follow-up issue: swap the global
   limiter and named policies to a Redis-backed `PartitionedRateLimiter` (Redis is already orchestrated
   in the AppHost), keeping the same policy names, options shape, and rejection contract.
 

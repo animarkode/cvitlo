@@ -1,4 +1,4 @@
-# Faber Agent Guide
+# Cvitlo Agent Guide
 
 This is the single instruction file for Claude Code, Codex and JetBrains Junie. Claude Code
 also loads `.claude/rules/*` (symlinks to `.agents/rules/`) when it reads files under `src/api/`,
@@ -6,14 +6,14 @@ also loads `.claude/rules/*` (symlinks to `.agents/rules/`) when it reads files 
 
 ## Project
 
-Faber is a full-stack CV/resume builder:
+Cvitlo is a full-stack CV/resume builder:
 
 - Backend: ASP.NET Core 8, FastEndpoints, EF Core/PostgreSQL, Redis, Keycloak,
   and OpenTelemetry.
 - Sign-in: Keycloak 26.8 hosted login (password, passkeys, Google, GitHub); the
   API is a backend-for-frontend that keeps tokens in a server-side session and
   gives the browser an HttpOnly cookie. The realm is code
-  (`infra/keycloak/config/faber.json`, applied by keycloak-config-cli on every
+  (`infra/keycloak/config/cvitlo.json`, applied by keycloak-config-cli on every
   start). See `docs/operations/keycloak.md`.
 - Frontend: Angular 21 standalone components, Angular Material, Tailwind CSS,
   and signal-based state.
@@ -80,7 +80,7 @@ Run one xUnit v3 test.
 dotnet run --project <test.csproj> -- -method "*.TestName"
 ```
 
-Frontend commands run from `src/web/faber-app`: `ng serve`, `ng build`, `ng test`.
+Frontend commands run from `src/web/cvitlo-app`: `ng serve`, `ng build`, `ng test`.
 
 ## Migrations
 
@@ -92,7 +92,7 @@ registering a module `DbContext` and the deploy flow: `docs/operations/migration
 ## Workflow
 
 Implement a GitHub issue with `/implement-issue <N>`: it sizes the issue into a tier, writes
-the plan to `.claude/plans/` (tiers 2-3), runs one `faber-implementer` subagent per task,
+the plan to `.claude/plans/` (tiers 2-3), runs one `cvitlo-implementer` subagent per task,
 reviews, runs `code-review` on the branch, and opens a PR only when the user confirms.
 `docs/decisions/agent-skills.md` has the full table and the skill inventory rules: six places
 must agree, and every skill that is not in `skills-lock.json` is project-authored and listed below.
@@ -138,9 +138,9 @@ tiers live in `.claude/settings.json`.
   `RealmSecurityTests.WebClient_ShouldRequirePkce`.
 - Full reference: `.agents/rules/backend-patterns.md`.
 
-## Frontend: `src/web/faber-app/`
+## Frontend: `src/web/cvitlo-app/`
 
-- Keep app-wide singletons in `core/`, reusable `fb-` components in `shared/`,
+- Keep app-wide singletons in `core/`, reusable `cv-` components in `shared/`,
   and lazy-loaded areas in `modules/`.
 - Use standalone components, `OnPush`, `inject()`, signals, native control flow,
   reactive forms, separate HTML/CSS files, and `NgOptimizedImage` for static

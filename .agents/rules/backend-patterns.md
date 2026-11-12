@@ -4,7 +4,7 @@ paths:
   - "tests/**/*.cs"
 ---
 
-# Backend Patterns — Faber
+# Backend Patterns — Cvitlo
 
 ## Module Feature Structure
 

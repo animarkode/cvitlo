@@ -1,11 +1,11 @@
 ---
 name: backend-patterns
-description: C#/.NET backend patterns for the Faber modular monolith — modules, FastEndpoints slices, ErrorOr, EF Core, DI, and integration testing. Use when developing modules, features, or reviewing C# code in this project.
+description: C#/.NET backend patterns for the Cvitlo modular monolith — modules, FastEndpoints slices, ErrorOr, EF Core, DI, and integration testing. Use when developing modules, features, or reviewing C# code in this project.
 ---
 
-# .NET Backend Patterns — Faber
+# .NET Backend Patterns — Cvitlo
 
-Faber is a **modular monolith with vertical slices** on ASP.NET Core + FastEndpoints + ErrorOr + EF Core (Npgsql) + Aspire.
+Cvitlo is a **modular monolith with vertical slices** on ASP.NET Core + FastEndpoints + ErrorOr + EF Core (Npgsql) + Aspire.
 
 > For endpoint specifics, use `fastendpoints`.
 > For result mapping, use `error-or`.
@@ -50,7 +50,7 @@ more modules need; the host (`Cvitlo.Api`) holds how the app is assembled. Tests
 `.IntegrationTests`.
 
 ### Important reality
-- Faber is **not** pure Clean Architecture
+- Cvitlo is **not** pure Clean Architecture
 - module shapes vary: some have `2`, `3`, or `4` projects
 - prefer repository-specific consistency over generic architectural purity
 
@@ -144,7 +144,7 @@ Reality check:
 
 ## 6. FastEndpoints + ErrorOr Pattern
 
-Core backend flow in Faber:
+Core backend flow in Cvitlo:
 
 ```csharp
 Request -> Command -> ExecuteAsync(ct) -> ErrorOr<T> -> endpoint maps to TypedResults
@@ -202,7 +202,7 @@ Module DI commonly contains:
 - DbContext registration when the module owns persistence
 
 Current repo caveat:
-- required values such as `ConnectionStrings:faberdb` have no fallback; a missing value fails on start
+- required values such as `ConnectionStrings:cvitlodb` have no fallback; a missing value fails on start
 - never call `services.BuildServiceProvider()` during registration
 
 ---
@@ -296,7 +296,7 @@ Current behavior:
 
 ## 11. Testing Patterns
 
-Faber uses **integration tests with real infrastructure**, not in-memory substitutes.
+Cvitlo uses **integration tests with real infrastructure**, not in-memory substitutes.
 
 Core pieces:
 - `FastEndpoints.Testing`
@@ -386,4 +386,4 @@ When editing code, mirror the nearest stable precedent in the same module first.
 | Communicate across modules via `PublicApi` contracts when possible | Reach into another module's internals casually |
 | Use module DI extensions in `Program.cs` | Register lots of module services inline in `Program.cs` |
 | Use Testcontainers-based integration tests | Use in-memory database patterns for module behavior |
-| Prefer neighboring Faber precedent | Apply generic .NET architecture advice without checking repo patterns |
+| Prefer neighboring Cvitlo precedent | Apply generic .NET architecture advice without checking repo patterns |

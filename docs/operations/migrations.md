@@ -1,35 +1,35 @@
 # Database migrations: operator and contributor guide
 
-This guide covers how Faber's database schema is migrated in development and in a deployed stack, how to add a migration, and how to register a new module `DbContext`. For Keycloak's side of the database, see `docs/operations/keycloak.md`.
+This guide covers how Cvitlo's database schema is migrated in development and in a deployed stack, how to add a migration, and how to register a new module `DbContext`. For Keycloak's side of the database, see `docs/operations/keycloak.md`.
 
 ## 1. How migrations run
 
-One job, `Cvitlo.Migrations` (`src/api/Jobs/Cvitlo.Migrations`), applies every module's EF Core migrations to the `faberdb` database. The API never migrates on its own start.
+One job, `Cvitlo.Migrations` (`src/api/Jobs/Cvitlo.Migrations`), applies every module's EF Core migrations to the `cvitlodb` database. The API never migrates on its own start.
 
 | Environment | How migrations run |
 |---|---|
 | Development | Automatically: the Aspire AppHost runs `Cvitlo.Migrations` once Postgres is up, before Keycloak and the API start |
-| Production / Staging | The `faber-migrations` container runs to completion before the API container starts |
+| Production / Staging | The `cvitlo-migrations` container runs to completion before the API container starts |
 
 The job exits 0 when every context migrated and non-zero on any failure, which must abort the deploy.
 
 ### Deploy-time flow
 
-The `faber-migrations` image is built next to `faber-api` on release (`.github/workflows/build-images.yml`). In the production orchestrator, where `<OWNER>` is the repository owner's login in lowercase:
+The `cvitlo-migrations` image is built next to `cvitlo-api` on release (`.github/workflows/build-images.yml`). In the production orchestrator, where `<OWNER>` is the repository owner's login in lowercase:
 
 ```yaml
 services:
-  faber-migrations:
-    image: ghcr.io/<OWNER>/faber-migrations:${TAG}
+  cvitlo-migrations:
+    image: ghcr.io/<OWNER>/cvitlo-migrations:${TAG}
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__faberdb: ${FABERDB_CONNSTR}
+      ConnectionStrings__cvitlodb: ${CVITLODB_CONNSTR}
     restart: "no"
 
-  faberapi:
-    image: ghcr.io/<OWNER>/faber-api:${TAG}
+  cvitloapi:
+    image: ghcr.io/<OWNER>/cvitlo-api:${TAG}
     depends_on:
-      faber-migrations:
+      cvitlo-migrations:
         condition: service_completed_successfully
 ```
 
@@ -40,7 +40,7 @@ services:
 | `ResumesDbContext` | `resumes` | `migrations_history` | `Cvitlo.Resumes.Infrastructure` |
 | `AuthDbContext` | `auth` | `migrations_history` | `Cvitlo.Auth.Infrastructure` |
 
-Each module keeps its own schema and its own history table, named by the module's `DbConstants`. The legacy `FaberDbContext` no longer exists. Leftover legacy tables and `__EFMigrationsHistory` rows in older databases are untouched and not managed by this job.
+Each module keeps its own schema and its own history table, named by the module's `DbConstants`. The legacy `CvitloDbContext` no longer exists. Leftover legacy tables and `__EFMigrationsHistory` rows in older databases are untouched and not managed by this job.
 
 ### Schemas EF Core does not own
 

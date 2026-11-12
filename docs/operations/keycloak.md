@@ -1,14 +1,14 @@
 # Keycloak, sign-in and sessions: operator guide
 
-This guide is for operators of a deployed Faber. It covers how sign-in works, what Keycloak and the API need, and the protections the deployment itself must add. For a local stack, see "Getting set up" in `CONTRIBUTING.md`.
+This guide is for operators of a deployed Cvitlo. It covers how sign-in works, what Keycloak and the API need, and the protections the deployment itself must add. For a local stack, see "Getting set up" in `CONTRIBUTING.md`.
 
 ## 1. How sign-in works
 
 - **Keycloak owns every credential.** People sign in, register, reset their password, confirm their e-mail, set up passkeys or 2FA and link Google or GitHub on Keycloak's own pages. Neither the API nor the web app ever sees a password.
-- **The API is a backend-for-frontend.** It runs the OpenID Connect authorization code flow with PKCE as the confidential client `faber-api`, keeps the tokens in an encrypted server-side session in PostgreSQL, and gives the browser only an opaque cookie, `__Host-faber` (HttpOnly, Secure, SameSite=Strict). Cookie-authenticated API calls must also carry `X-CSRF: 1`, which the web app adds.
+- **The API is a backend-for-frontend.** It runs the OpenID Connect authorization code flow with PKCE as the confidential client `cvitlo-api`, keeps the tokens in an encrypted server-side session in PostgreSQL, and gives the browser only an opaque cookie, `__Host-cvitlo` (HttpOnly, Secure, SameSite=Strict). Cookie-authenticated API calls must also carry `X-CSRF: 1`, which the web app adds.
 - **Sessions end everywhere at once.** Sign-out ends the Keycloak session on the back channel. When Keycloak ends a session itself (sign-out elsewhere, "Sign out of other devices" on the account page, an admin action), it calls the API's back-channel logout endpoint. A session that simply expires is noticed at the next token refresh, within five minutes.
 - **"Remember me"** on Keycloak's page decides between a cookie that ends with the browser (30 minutes idle, 10 hours at most) and a persistent one (7 days idle, 30 days at most).
-- **Bearer tokens** are accepted for non-browser clients: Keycloak access tokens with `aud=faber-api` and `typ=Bearer`. ID tokens are refused.
+- **Bearer tokens** are accepted for non-browser clients: Keycloak access tokens with `aud=cvitlo-api` and `typ=Bearer`. ID tokens are refused.
 
 ### Account linking
 
@@ -18,13 +18,13 @@ One e-mail is one account, and e-mail is the login.
 - With the e-mail of an **existing** account, Keycloak asks whether to link and then asks the person to sign in to the existing account (password plus 2FA if set, or a provider already linked). Only then is the provider linked. Nothing is linked automatically, so a provider account someone else controls cannot take over an existing account.
 - **Google sign-ins whose e-mail Google has not verified are refused** (an essential-claim filter on `email_verified`). GitHub only completes OAuth for users with a verified primary e-mail.
 - A provider with a different e-mail is linked from the account page's *Linked accounts* (see section 2a). The API refuses to remove the last way to sign in.
-- A password registration asks only for e-mail and name. Keycloak then sends the verification link and asks for a password only once the link is followed, so nobody can set a password on an address they do not control. This order is not Keycloak's default: `VERIFY_EMAIL` is declared in `faber.json` with priority 10, lower than every other required action, because Keycloak runs pending required actions lowest priority first and by default asks for the password (30) before the e-mail (50).
+- A password registration asks only for e-mail and name. Keycloak then sends the verification link and asks for a password only once the link is followed, so nobody can set a password on an address they do not control. This order is not Keycloak's default: `VERIFY_EMAIL` is declared in `cvitlo.json` with priority 10, lower than every other required action, because Keycloak runs pending required actions lowest priority first and by default asks for the password (30) before the e-mail (50).
 
 ## 2. The realm is code
 
-`infra/keycloak/config/faber.json` is the whole realm configuration: login and password policy, brute-force lockout, token and session lifetimes, clients, identity providers, the first-broker-login flow and required actions. It is applied by [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli) on every deployment, and it updates an existing realm in place without touching users.
+`infra/keycloak/config/cvitlo.json` is the whole realm configuration: login and password policy, brute-force lockout, token and session lifetimes, clients, identity providers, the first-broker-login flow and required actions. It is applied by [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli) on every deployment, and it updates an existing realm in place without touching users.
 
-**Never change the realm in the admin console.** The next deployment overwrites the change. Edit `faber.json`, test it, and deploy.
+**Never change the realm in the admin console.** The next deployment overwrites the change. Edit `cvitlo.json`, test it, and deploy.
 
 Run the image `adorsys/keycloak-config-cli:6.5.1-26.1.0` as a one-shot job after Keycloak is healthy and before the passkeys step and the API. Mount `infra/keycloak/config` read-only at `/config`, and set:
 
@@ -36,10 +36,10 @@ Run the image `adorsys/keycloak-config-cli:6.5.1-26.1.0` as a one-shot job after
 | `IMPORT_FILES_LOCATIONS` | `/config/*` |
 | `IMPORT_VARSUBSTITUTION_ENABLED` | `true` |
 | `IMPORT_CACHE_ENABLED` | `false`, so a run whose only change is a variable (a rotated secret, a provider switched on) is still applied |
-| `FABER_APP_URL` | the web app's public origin, `https://<APP-HOST>`; the API callback is `https://<APP-HOST>/api/v1/auth/callback` |
-| `FABER_BACKCHANNEL_LOGOUT_URL` | the API's back-channel logout endpoint as Keycloak reaches it, e.g. `http://<API-INTERNAL-HOST>/api/v1/auth/backchannel-logout` |
-| `FABER_API_CLIENT_SECRET` | the `faber-api` client secret, from the platform's secret store; the realm sets the client's `secret` to it, and the job fails if it is missing |
-| `FABER_ADMIN_CLIENT_SECRET` | the `faber-admin` client secret (the service account that deletes accounts, section 2a), from the platform's secret store; the realm sets the client's `secret` to it, and the job fails if it is missing |
+| `CVITLO_APP_URL` | the web app's public origin, `https://<APP-HOST>`; the API callback is `https://<APP-HOST>/api/v1/auth/callback` |
+| `CVITLO_BACKCHANNEL_LOGOUT_URL` | the API's back-channel logout endpoint as Keycloak reaches it, e.g. `http://<API-INTERNAL-HOST>/api/v1/auth/backchannel-logout` |
+| `CVITLO_API_CLIENT_SECRET` | the `cvitlo-api` client secret, from the platform's secret store; the realm sets the client's `secret` to it, and the job fails if it is missing |
+| `CVITLO_ADMIN_CLIENT_SECRET` | the `cvitlo-admin` client secret (the service account that deletes accounts, section 2a), from the platform's secret store; the realm sets the client's `secret` to it, and the job fails if it is missing |
 | `KC_SMTP_HOST`, `KC_SMTP_PORT`, `KC_SMTP_FROM` | the mail server Keycloak sends verification and reset mail through |
 | `KC_SMTP_AUTH`, `KC_SMTP_USER`, `KC_SMTP_PASSWORD`, `KC_SMTP_SSL`, `KC_SMTP_STARTTLS` | optional, default off |
 | `GOOGLE_ENABLED`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `true` and the Google OAuth credentials, or `false` |
@@ -47,7 +47,7 @@ Run the image `adorsys/keycloak-config-cli:6.5.1-26.1.0` as a one-shot job after
 
 The job exits with code 0 on success. A non-zero exit must stop the deployment.
 
-The passkeys step then runs, as `keycloak-passkeys` in Development. Run the Keycloak image (the same tag as the server) as a one-shot job after keycloak-config, with `infra/keycloak/passkeys.sh` mounted read-only, the entrypoint `/bin/bash`, the script's path as the only argument, and the environment variables `KEYCLOAK_URL`, `KEYCLOAK_USER` and `KEYCLOAK_PASSWORD` (the same values as for keycloak-config; keep the credentials out of the arguments). It only turns passkeys on with `kcadm.sh`, because the config tool's realm model cannot express that setting yet and drops it on every import. A non-zero exit must stop the deployment. It does not touch the client secret. In Development the secret is the AppHost parameter `faber-api-client-secret`, generated on the first run and kept in the AppHost user-secrets. In production it is an environment variable from the platform's secret store.
+The passkeys step then runs, as `keycloak-passkeys` in Development. Run the Keycloak image (the same tag as the server) as a one-shot job after keycloak-config, with `infra/keycloak/passkeys.sh` mounted read-only, the entrypoint `/bin/bash`, the script's path as the only argument, and the environment variables `KEYCLOAK_URL`, `KEYCLOAK_USER` and `KEYCLOAK_PASSWORD` (the same values as for keycloak-config; keep the credentials out of the arguments). It only turns passkeys on with `kcadm.sh`, because the config tool's realm model cannot express that setting yet and drops it on every import. A non-zero exit must stop the deployment. It does not touch the client secret. In Development the secret is the AppHost parameter `cvitlo-api-client-secret`, generated on the first run and kept in the AppHost user-secrets. In production it is an environment variable from the platform's secret store.
 
 ## 2a. Account management
 
@@ -55,9 +55,9 @@ People manage their account on the web app's `/account` page; Keycloak's account
 
 - **Reads and edits use Keycloak's Account REST API** with the signed-in person's own access token: profile (first and last name only; the e-mail is never changed there), credentials, devices and linked accounts, removing a credential or a linked account, and ending a device session. The one use of the Admin API is deleting the account (below).
 - **Actions that need Keycloak's own pages** (change password, add a passkey or an authenticator app, change e-mail, link Google or GitHub, sign in again) go through `GET /api/v1/auth/account-action/{name}`, a top-level navigation. `name` is checked against a fixed allow-list (`password`, `passkey`, `totp`, `email`, `link-google`, `link-github`, `reauthenticate`) and mapped to a Keycloak `kc_action`; anything else is refused. Keycloak runs the action, and the callback returns the person to `/account?action=<name>&status=<success|cancelled|...>`. The sign-in session is replaced by the new one and the old session row is removed. `reauthenticate` makes Keycloak ask for credentials again and returns to `/account/personal-info?action=reauthenticate&status=<success|error>`; it exists for account deletion.
-- **Deleting the account** is our own flow, not a Keycloak page. The `/account` dialog calls `DELETE /api/v1/auth/account`. If the last sign-in is older than five minutes the API answers 403 (`code: Account.ReauthenticationRequired`) and the page starts the `reauthenticate` action; the person then confirms again, with no automatic deletion. Otherwise the API records the deletion in `auth.pending_account_erasures`, deletes the user through the Keycloak Admin API as the `faber-admin` client, ends every session of the user, publishes the `UserDeleted` event (the Resumes module deletes every resume of the user and its sections), removes the record, and clears the cookie (204). Everything after the Keycloak delete runs even if the request is cancelled. The page then navigates to `/?accountDeleted=true`. If Keycloak is unavailable the API answers 502 (`code: Account.Unavailable`) and keeps the record, because a timeout can hide a deletion Keycloak did make; the hourly job below then checks and, if the user still exists, only removes the record. The delete is immediate and hard: there is no grace period and no undo.
-- **Why Keycloak's own delete page is off:** it never returns to the app, so the app could not end sessions or erase the person's data. `delete-account` is not in `default-roles-faber`, the `delete_account` required action is disabled, and `delete` is not an account action (`GET /api/v1/auth/account-action/delete` is 404).
-- **The `faber-admin` client:** confidential, service account only (no browser flows), with the single role `manage-users`. That role can also edit users; it is the narrowest built-in role that can delete them, and keycloak-config-cli 6.5.1 cannot express fine-grained admin permissions. Its secret is `FABER_ADMIN_CLIENT_SECRET` for `keycloak-config` and `Keycloak__AdminClientSecret` for the API (the two must be equal). In Development both come from the AppHost parameter `faber-admin-client-secret`; in production from the platform's secret store as environment variables.
+- **Deleting the account** is our own flow, not a Keycloak page. The `/account` dialog calls `DELETE /api/v1/auth/account`. If the last sign-in is older than five minutes the API answers 403 (`code: Account.ReauthenticationRequired`) and the page starts the `reauthenticate` action; the person then confirms again, with no automatic deletion. Otherwise the API records the deletion in `auth.pending_account_erasures`, deletes the user through the Keycloak Admin API as the `cvitlo-admin` client, ends every session of the user, publishes the `UserDeleted` event (the Resumes module deletes every resume of the user and its sections), removes the record, and clears the cookie (204). Everything after the Keycloak delete runs even if the request is cancelled. The page then navigates to `/?accountDeleted=true`. If Keycloak is unavailable the API answers 502 (`code: Account.Unavailable`) and keeps the record, because a timeout can hide a deletion Keycloak did make; the hourly job below then checks and, if the user still exists, only removes the record. The delete is immediate and hard: there is no grace period and no undo.
+- **Why Keycloak's own delete page is off:** it never returns to the app, so the app could not end sessions or erase the person's data. `delete-account` is not in `default-roles-cvitlo`, the `delete_account` required action is disabled, and `delete` is not an account action (`GET /api/v1/auth/account-action/delete` is 404).
+- **The `cvitlo-admin` client:** confidential, service account only (no browser flows), with the single role `manage-users`. That role can also edit users; it is the narrowest built-in role that can delete them, and keycloak-config-cli 6.5.1 cannot express fine-grained admin permissions. Its secret is `CVITLO_ADMIN_CLIENT_SECRET` for `keycloak-config` and `Keycloak__AdminClientSecret` for the API (the two must be equal). In Development both come from the AppHost parameter `cvitlo-admin-client-secret`; in production from the platform's secret store as environment variables.
 - **Unfinished erasures:** the record is the durable trace of a deletion that did not finish: a failing module (the API logs an Error naming the subject and keeps the row) or a crash after Keycloak deleted the user. An hourly job (`PendingErasureSweepService`) takes rows older than 10 minutes and asks Keycloak whether the user exists. If so, the deletion never happened and the row is removed. If not, it ends the user's sessions, publishes `UserDeleted` again (handlers are idempotent) and removes the row. If Keycloak cannot be asked, or a module fails again, the row stays and the next run retries. Rows that keep reappearing in the warnings mean a module is failing for good.
 - **Known gap:** a user deleted directly in Keycloak (the admin console) keeps their resumes.
 - **Known gap:** re-authentication before deletion (`reauthenticate`, `prompt=login`) is only as strong as the sign-in method the person picks on Keycloak's page. For a password or passkey Keycloak asks again. For Google or GitHub, Keycloak cannot pass `prompt=login` on (Google does not support it, GitHub ignores it), so a provider session that is still alive signs the person in with one click. Someone holding a stolen session cookie on a browser that is also signed in to that provider can therefore delete the account. Closing this needs a confirmation the cookie does not give, such as a code sent by e-mail.
@@ -67,13 +67,13 @@ People manage their account on the web app's `/account` page; Keycloak's account
 ### Realm hardening
 
 - The `account` client stays **enabled**: its roles are what authorize Account REST. Its standard, implicit and direct-access flows are off, so nobody can sign in through it. Do not disable it, or the account page stops working.
-- `delete-account` is **not** part of `default-roles-faber`: people delete their account through the app, not Keycloak's page.
+- `delete-account` is **not** part of `default-roles-cvitlo`: people delete their account through the app, not Keycloak's page.
 - The required actions `UPDATE_EMAIL`, `UPDATE_PASSWORD`, `CONFIGURE_TOTP`, `webauthn-register-passwordless`, and `idp_link` are enabled; `delete_account` is disabled. Each has `max_auth_age` set to `300`: if the person last signed in more than five minutes ago, Keycloak asks for their credentials again before the action.
-- To change the window, edit `max_auth_age` (seconds) on those required actions in `infra/keycloak/config/faber.json` and redeploy `keycloak-config`; it applies on the next action, with no user impact. `0` means always re-authenticate.
+- To change the window, edit `max_auth_age` (seconds) on those required actions in `infra/keycloak/config/cvitlo.json` and redeploy `keycloak-config`; it applies on the next action, with no user impact. `0` means always re-authenticate.
 
 ## 3. Keycloak itself
 
-Run the Faber Keycloak image, `ghcr.io/<OWNER>/faber-keycloak:<TAG>`, in production mode. It is built from `infra/keycloak/Dockerfile` on top of `quay.io/keycloak/keycloak:26.8.1`, has the login theme baked in (see "Login theme" below) and has `kc.sh build` already run with `KC_DB=postgres` and `KC_HEALTH_ENABLED=true`. Start it with the optimized flag, which skips the build step and fails if a build-time option differs from the baked ones:
+Run the Cvitlo Keycloak image, `ghcr.io/<OWNER>/cvitlo-keycloak:<TAG>`, in production mode. It is built from `infra/keycloak/Dockerfile` on top of `quay.io/keycloak/keycloak:26.8.1`, has the login theme baked in (see "Login theme" below) and has `kc.sh build` already run with `KC_DB=postgres` and `KC_HEALTH_ENABLED=true`. Start it with the optimized flag, which skips the build step and fails if a build-time option differs from the baked ones:
 
 ```text
 start --optimized
@@ -84,7 +84,7 @@ The theme cache is on, as in any production-mode Keycloak, so a theme change nee
 Set at least:
 
 ```text
-KC_HOSTNAME=https://<KEYCLOAK-HOST>
+KC_HOSTNAME=<KEYCLOAK_ORIGIN>
 ```
 
 ```text
@@ -99,28 +99,28 @@ KC_PROXY_HEADERS=xforwarded
 KC_HTTP_ENABLED=true
 ```
 
-Optionally set `FABER_APP_URL` to the web app's public origin, the same value as for keycloak-config. The login theme links "Back to microcivi" to it on pages where Keycloak has no client to take the address from, such as "You are logged out" after a sign-out that did not start in the app. Without it the link is `/`, which is right while Keycloak is served on the app's host.
+Optionally set `CVITLO_APP_URL` to the web app's public origin, the same value as for keycloak-config. The login theme links "Back to Cvitlo" to it on pages where Keycloak has no client to take the address from, such as "You are logged out" after a sign-out that did not start in the app. Without it the link is `/`, which is right while Keycloak is served on the app's host.
 
 `KC_HTTP_ENABLED` is only for TLS terminated at the reverse proxy in front of Keycloak; the public URL stays HTTPS. Point `KC_DB_URL` and the other runtime `KC_DB*` options at PostgreSQL with `KC_DB_SCHEMA=keycloak`, as the AppHost does. `KC_DB` and `KC_HEALTH_ENABLED` are build-time options and are already fixed in the image; the health endpoints are served on the management port (9000).
 
-**Keep the admin console off the public host.** Serve `/admin` and `/realms/master` only on `<KEYCLOAK-ADMIN-HOST>`, reachable from the operators' network, and refuse both paths on `<KEYCLOAK-HOST>` at the reverse proxy. The `faber` realm's own admin console client is disabled in the realm.
+**Keep the admin console off the public host.** Serve `/admin` and `/realms/master` only on `<KEYCLOAK-ADMIN-HOST>`, reachable from the operators' network, and refuse both paths on `<KEYCLOAK_ORIGIN>` at the reverse proxy. The `cvitlo` realm's own admin console client is disabled in the realm.
 
 ### Login theme
 
-The sign-in, registration and other Keycloak pages use the `faber` login theme in `infra/keycloak/themes/faber/login/`. The realm selects it (`loginTheme: faber`). The pages are in English only: internationalization is off and the theme ships English messages.
+The sign-in, registration and other Keycloak pages use the `cvitlo` login theme in `infra/keycloak/themes/cvitlo/login/`. The realm selects it (`loginTheme: cvitlo`). The pages are in English only: internationalization is off and the theme ships English messages.
 
-The theme extends `keycloak.v2` and overrides only two templates, `template.ftl` (the page shell) and `register.ftl`. Everything else is v2's own, with Faber CSS, a small script for the light and dark toggle, self-hosted fonts and English messages on top. Keep the overrides few: each one is a fork that must be compared with Keycloak's version on every upgrade, and the auth tests' login driver parses the v2 forms, so a heavily rewritten form breaks it.
+The theme extends `keycloak.v2` and overrides only two templates, `template.ftl` (the page shell) and `register.ftl`. Everything else is v2's own, with Cvitlo CSS, a small script for the light and dark toggle, self-hosted fonts and English messages on top. Keep the overrides few: each one is a fork that must be compared with Keycloak's version on every upgrade, and the auth tests' login driver parses the v2 forms, so a heavily rewritten form breaks it.
 
 - **Development:** the AppHost bind-mounts the theme read-only into the Keycloak container, which runs `start-dev` with the theme cache off. Edit a file and refresh the page.
-- **Tests:** the Testcontainers fixture `FaberKeycloak.cs` mounts the same directory.
-- **Production:** the theme is part of the `faber-keycloak` image, which the `build-images.yml` workflow builds and pushes with the other images on every release. The Keycloak version in `infra/keycloak/Dockerfile` must match `keycloakTag` in the AppHost, `FaberKeycloak.Image` and the version named in §3. `scripts/verify-keycloak-version.sh` checks this on every pull request; nothing bumps these versions automatically, so update all four together.
+- **Tests:** the Testcontainers fixture `CvitloKeycloak.cs` mounts the same directory.
+- **Production:** the theme is part of the `cvitlo-keycloak` image, which the `build-images.yml` workflow builds and pushes with the other images on every release. The Keycloak version in `infra/keycloak/Dockerfile` must match `keycloakTag` in the AppHost, `CvitloKeycloak.Image` and the version named in §3. `scripts/verify-keycloak-version.sh` checks this on every pull request; nothing bumps these versions automatically, so update all four together.
 
-The light or dark choice is kept in the `faber-theme` cookie, which the web app and the Keycloak pages both read and write. The cookie is host-only, so **serve Keycloak's public pages on the same host name as the web app**, behind the same reverse proxy. A cookie is scoped to a host, not a port or a path, so this is what lets both sides see it, just as `localhost:4200` and `localhost:8080` share it in development. On a separate subdomain each side would keep its own copy of the choice.
+The light or dark choice is kept in the `cvitlo-theme` cookie, which the web app and the Keycloak pages both read and write. The cookie is host-only, so **serve Keycloak's public pages on the same host name as the web app**, behind the same reverse proxy. A cookie is scoped to a host, not a port or a path, so this is what lets both sides see it, just as `localhost:4200` and `localhost:8080` share it in development. On a separate subdomain each side would keep its own copy of the choice.
 
 Upgrade checklist for a new Keycloak version:
 
 1. Diff our `template.ftl` and `register.ftl` against the same files of the new `keycloak.v2` theme and carry over the upstream changes.
-2. Change the version in `infra/keycloak/Dockerfile`, the AppHost `keycloakTag` and `FaberKeycloak.Image` together.
+2. Change the version in `infra/keycloak/Dockerfile`, the AppHost `keycloakTag` and `CvitloKeycloak.Image` together.
 3. Run the auth integration tests.
 4. Open the sign-in, registration and reset pages in both the light and the dark theme.
 
@@ -129,42 +129,42 @@ Upgrade checklist for a new Keycloak version:
 Set on the API container:
 
 ```text
-Keycloak__Issuer=https://<KEYCLOAK-HOST>/realms/faber
+Keycloak__Issuer=<KEYCLOAK_ORIGIN>/realms/cvitlo
 ```
 
 ```text
-Keycloak__Audience=faber-api
+Keycloak__Audience=cvitlo-api
 ```
 
 ```text
-Keycloak__BaseUrl=https://<KEYCLOAK-HOST>
+Keycloak__BaseUrl=<KEYCLOAK_ORIGIN>
 ```
 
 ```text
-Keycloak__Realm=faber
+Keycloak__Realm=cvitlo
 ```
 
 Also set these, injected from the platform's secret store:
 
 ```text
-ConnectionStrings__faberdb=<CONNECTION-STRING>
+ConnectionStrings__cvitlodb=<CONNECTION-STRING>
 ```
 
 ```text
-Keycloak__ClientSecret=<FABER-API-CLIENT-SECRET>
+Keycloak__ClientSecret=<CVITLO-API-CLIENT-SECRET>
 ```
 
 ```text
-Keycloak__AdminClientSecret=<FABER-ADMIN-CLIENT-SECRET>
+Keycloak__AdminClientSecret=<CVITLO-ADMIN-CLIENT-SECRET>
 ```
 
-`Keycloak__ClientSecret` must equal `FABER_API_CLIENT_SECRET` given to `keycloak-config`. `Keycloak__ClientId` defaults to `faber-api`. `Keycloak__AdminClientSecret` must equal `FABER_ADMIN_CLIENT_SECRET`. The API refuses to start without the connection string or the client secret.
+`Keycloak__ClientSecret` must equal `CVITLO_API_CLIENT_SECRET` given to `keycloak-config`. `Keycloak__ClientId` defaults to `cvitlo-api`. `Keycloak__AdminClientSecret` must equal `CVITLO_ADMIN_CLIENT_SECRET`. The API refuses to start without the connection string or the client secret.
 
 `Keycloak__RequireHttpsMetadata` defaults to `true`; leave it.
 
 Serve the web app and the API on **one origin**, `https://<APP-HOST>`, with `/api` routed to the API. The session cookie is `SameSite=Strict` and the API grants no CORS, so a split origin does not work.
 
-Sessions and Data Protection keys live in the `auth` schema of `faberdb`, created by `Cvitlo.Migrations`. Every API replica shares them, so no sticky sessions are needed. Redis stays an optional cache; an outage there signs nobody out.
+Sessions and Data Protection keys live in the `auth` schema of `cvitlodb`, created by `Cvitlo.Migrations`. Every API replica shares them, so no sticky sessions are needed. Redis stays an optional cache; an outage there signs nobody out.
 
 - Session rows are keyed by the SHA-256 of the cookie's key, so a copy of the table does not yield working cookies. The Data Protection key ring that encrypts the tickets is in the same database and is not yet encrypted with a key held elsewhere; treat database backups as secrets.
 - An hourly job deletes expired session rows.
@@ -175,11 +175,11 @@ Sessions and Data Protection keys live in the `auth` schema of `faberdb`, create
 Rotation is manual. Nothing regenerates the secret on its own.
 
 1. Generate a new value, for example 48 random alphanumeric characters.
-2. Replace it in the secret store (production) or in the AppHost user-secrets as `Parameters:faber-api-client-secret` (development).
+2. Replace it in the secret store (production) or in the AppHost user-secrets as `Parameters:cvitlo-api-client-secret` (development).
 3. Redeploy `keycloak-config` so Keycloak takes the new secret.
 4. Redeploy the API with the same value as `Keycloak__ClientSecret`. Do this together with step 3.
 
-The `faber-admin` secret rotates the same way: `Parameters:faber-admin-client-secret` in development, `FABER_ADMIN_CLIENT_SECRET` for `keycloak-config` and `Keycloak__AdminClientSecret` for the API in production. Until the API has the new value, deleting an account answers 502.
+The `cvitlo-admin` secret rotates the same way: `Parameters:cvitlo-admin-client-secret` in development, `CVITLO_ADMIN_CLIENT_SECRET` for `keycloak-config` and `Keycloak__AdminClientSecret` for the API in production. Until the API has the new value, deleting an account answers 502.
 
 Between steps 3 and 4 the API holds the old secret, so Keycloak refuses it with `invalid_client`: new sign-ins fail at the callback, and token refreshes fail while sessions are kept. Keep the gap short.
 
@@ -188,11 +188,11 @@ Between steps 3 and 4 the API holds the old secret, so Keycloak refuses it with 
 Each provider's OAuth app redirects to Keycloak's broker endpoint on the public Keycloak host:
 
 ```text
-https://<KEYCLOAK-HOST>/realms/faber/broker/google/endpoint
+<KEYCLOAK_ORIGIN>/realms/cvitlo/broker/google/endpoint
 ```
 
 ```text
-https://<KEYCLOAK-HOST>/realms/faber/broker/github/endpoint
+<KEYCLOAK_ORIGIN>/realms/cvitlo/broker/github/endpoint
 ```
 
 Google needs the scopes `openid profile email`; GitHub needs `user:email`. The realm config sets both.
@@ -203,22 +203,22 @@ Keycloak counts failed sign-ins per user and locks the account for a while (five
 
 The API used to limit those requests itself, per IP and per recipient. Now that the pages are Keycloak's, **the reverse proxy in front of Keycloak must limit them per client IP**, for example 5 requests per minute with a small burst:
 
-- `POST /realms/faber/login-actions/reset-credentials`
-- `POST /realms/faber/login-actions/registration`
-- `/realms/faber/login-actions/required-action` (resending the verification e-mail)
-- `/realms/faber/protocol/openid-connect/registrations`
+- `POST /realms/cvitlo/login-actions/reset-credentials`
+- `POST /realms/cvitlo/login-actions/registration`
+- `/realms/cvitlo/login-actions/required-action` (resending the verification e-mail)
+- `/realms/cvitlo/protocol/openid-connect/registrations`
 
 A limit per recipient address needs a Keycloak extension and is a planned follow-up.
 
 ## 7. Verify
 
-- `https://<APP-HOST>/api/v1/auth/login` redirects to `https://<KEYCLOAK-HOST>/realms/faber/protocol/openid-connect/auth` with `code_challenge_method=S256`.
-- After signing in, the browser holds `__Host-faber` (HttpOnly, Secure, SameSite=Strict), and no response body contains a token.
+- `https://<APP-HOST>/api/v1/auth/login` redirects to `<KEYCLOAK_ORIGIN>/realms/cvitlo/protocol/openid-connect/auth` with `code_challenge_method=S256`.
+- After signing in, the browser holds `__Host-cvitlo` (HttpOnly, Secure, SameSite=Strict), and no response body contains a token.
 - `https://<APP-HOST>/api/v1/auth/login?returnUrl=https://example.com` lands on the app, not on `example.com`.
-- The password grant is refused: a `POST` to `https://<KEYCLOAK-HOST>/realms/faber/protocol/openid-connect/token` with `grant_type=password` and `client_id=admin-cli` answers an error.
-- `https://<KEYCLOAK-HOST>/admin` is not reachable from outside.
+- The password grant is refused: a `POST` to `<KEYCLOAK_ORIGIN>/realms/cvitlo/protocol/openid-connect/token` with `grant_type=password` and `client_id=admin-cli` answers an error.
+- `<KEYCLOAK_ORIGIN>/admin` is not reachable from outside.
 - The reverse-proxy limits from section 6 answer 429 when exceeded.
-- The sign-in page at `https://<KEYCLOAK-HOST>/realms/faber/protocol/openid-connect/auth` (reached through `/api/v1/auth/login`) shows the Faber theme, and the light and dark toggle carries over to the web app.
-- `https://<KEYCLOAK-HOST>/realms/faber/account` does not offer an account console (the client is disabled).
+- The sign-in page at `<KEYCLOAK_ORIGIN>/realms/cvitlo/protocol/openid-connect/auth` (reached through `/api/v1/auth/login`) shows the Cvitlo theme, and the light and dark toggle carries over to the web app.
+- `<KEYCLOAK_ORIGIN>/realms/cvitlo/account` does not offer an account console (the client is disabled).
 - "Sign out of other devices" on `https://<APP-HOST>/account` signs those devices out of the web app within seconds.
 - `https://<APP-HOST>/api/v1/auth/account-action/unknown` is refused, and `.../password` sends a signed-in person to Keycloak's change-password page.

@@ -195,7 +195,7 @@ const buttonVariants = cva(
 );
 
 @Component({
-  selector: 'fb-button',
+  selector: 'cv-button',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': 'classes()' },
   template: `<ng-content />`,
@@ -211,8 +211,8 @@ export class ButtonComponent {
 }
 
 // Usage
-// <fb-button variant="destructive" size="lg">Delete</fb-button>
-// <fb-button variant="outline">Cancel</fb-button>
+// <cv-button variant="destructive" size="lg">Delete</cv-button>
+// <cv-button variant="outline">Cancel</cv-button>
 ```
 
 ### Pattern 2: Compound Components via Content Projection
@@ -222,7 +222,7 @@ Angular uses `<ng-content>` instead of children props.
 ```typescript
 // shared/card/card.component.ts
 @Component({
-  selector: 'fb-card',
+  selector: 'cv-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'rounded-lg border border-border bg-card text-card-foreground shadow-sm block' },
   template: `<ng-content />`,
@@ -230,7 +230,7 @@ Angular uses `<ng-content>` instead of children props.
 export class CardComponent {}
 
 @Component({
-  selector: 'fb-card-header',
+  selector: 'cv-card-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col space-y-1.5 p-6 block' },
   template: `<ng-content />`,
@@ -238,7 +238,7 @@ export class CardComponent {}
 export class CardHeaderComponent {}
 
 @Component({
-  selector: 'fb-card-title',
+  selector: 'cv-card-title',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'text-2xl font-semibold leading-none tracking-tight block' },
   template: `<ng-content />`,
@@ -246,7 +246,7 @@ export class CardHeaderComponent {}
 export class CardTitleComponent {}
 
 @Component({
-  selector: 'fb-card-description',
+  selector: 'cv-card-description',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'text-sm text-muted-foreground block' },
   template: `<ng-content />`,
@@ -254,7 +254,7 @@ export class CardTitleComponent {}
 export class CardDescriptionComponent {}
 
 @Component({
-  selector: 'fb-card-content',
+  selector: 'cv-card-content',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'p-6 pt-0 block' },
   template: `<ng-content />`,
@@ -262,7 +262,7 @@ export class CardDescriptionComponent {}
 export class CardContentComponent {}
 
 @Component({
-  selector: 'fb-card-footer',
+  selector: 'cv-card-footer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex items-center p-6 pt-0 block' },
   template: `<ng-content />`,
@@ -270,18 +270,18 @@ export class CardContentComponent {}
 export class CardFooterComponent {}
 
 // Usage
-// <fb-card>
-//   <fb-card-header>
-//     <fb-card-title>Account</fb-card-title>
-//     <fb-card-description>Manage your account settings</fb-card-description>
-//   </fb-card-header>
-//   <fb-card-content>
+// <cv-card>
+//   <cv-card-header>
+//     <cv-card-title>Account</cv-card-title>
+//     <cv-card-description>Manage your account settings</cv-card-description>
+//   </cv-card-header>
+//   <cv-card-content>
 //     <form>...</form>
-//   </fb-card-content>
-//   <fb-card-footer>
-//     <fb-button>Save</fb-button>
-//   </fb-card-footer>
-// </fb-card>
+//   </cv-card-content>
+//   <cv-card-footer>
+//     <cv-button>Save</cv-button>
+//   </cv-card-footer>
+// </cv-card>
 ```
 
 ### Pattern 3: Form Input Component with Reactive Forms
@@ -293,7 +293,7 @@ import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { cn } from '@/lib/utils';
 
 @Component({
-  selector: 'fb-input',
+  selector: 'cv-input',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
   template: `
@@ -338,9 +338,9 @@ export class InputComponent {
 // <form [formGroup]="form" (ngSubmit)="onSubmit()">
 //   <div class="space-y-2">
 //     <label for="email" class="text-sm font-medium leading-none">Email</label>
-//     <fb-input id="email" type="email" [control]="form.controls.email" [error]="emailError()" />
+//     <cv-input id="email" type="email" [control]="form.controls.email" [error]="emailError()" />
 //   </div>
-//   <fb-button type="submit" class="w-full">Sign In</fb-button>
+//   <cv-button type="submit" class="w-full">Sign In</cv-button>
 // </form>
 ```
 
@@ -374,7 +374,7 @@ const gridVariants = cva('grid', {
 });
 
 @Component({
-  selector: 'fb-grid',
+  selector: 'cv-grid',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': 'classes()' },
   template: `<ng-content />`,
@@ -387,7 +387,7 @@ export class GridComponent {
 }
 
 @Component({
-  selector: 'fb-container',
+  selector: 'cv-container',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': 'classes()' },
   template: `<ng-content />`,
@@ -409,13 +409,13 @@ export class ContainerComponent {
 }
 
 // Usage
-// <fb-container>
-//   <fb-grid [cols]="4" gap="lg">
+// <cv-container>
+//   <cv-grid [cols]="4" gap="lg">
 //     @for (item of items(); track item.id) {
 //       <app-item-card [item]="item" />
 //     }
-//   </fb-grid>
-// </fb-container>
+//   </cv-grid>
+// </cv-container>
 ```
 
 For advanced animation and dark mode patterns, see [references/advanced-patterns.md](references/advanced-patterns.md):
