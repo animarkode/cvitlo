@@ -1,5 +1,9 @@
 # Faber Agent Guide
 
+This is the single instruction file for Claude Code, Codex and JetBrains Junie. Claude Code
+also loads `.claude/rules/*` (symlinks to `.agents/rules/`) when it reads files under `src/api/`,
+`src/web/` or `tests/`.
+
 ## Project
 
 Faber is a full-stack CV/resume builder:
@@ -13,11 +17,9 @@ Faber is a full-stack CV/resume builder:
   start). See `docs/operations/keycloak.md`.
 - Frontend: Angular 21 standalone components, Angular Material, Tailwind CSS,
   and signal-based state.
-- Local orchestration: .NET Aspire 13.5.3, with DCP and the dashboard supplied by
-  the installed Aspire CLI's bundle. The `Aspire.AppHost.Sdk` version in
-  `Faber.AppHost.csproj` must be bumped together with the `Aspire.*` packages —
-  dependabot cannot see it, since it is an attribute rather than a
-  `PackageReference` — and the local CLI must be at least that version.
+- Local orchestration: .NET Aspire 13.5.3. The `Aspire.AppHost.Sdk` version in
+  `Faber.AppHost.csproj` must be bumped together with the `Aspire.*` packages
+  (dependabot cannot see it) and the local Aspire CLI must be at least that version.
 
 ## Working conventions
 
@@ -30,73 +32,80 @@ Faber is a full-stack CV/resume builder:
   the deployment injects every secret as an environment variable from the
   platform's secret store. Never set a secret in both places at once, and never
   in a shell profile.
-- Use Conventional Commits: `type(scope): description`. Do not add agent
-  co-author trailers.
-- Keep commits focused; branches use `{issue-number}-{kebab-case-description}`.
 
-## Pull request titles
+## Git and PRs
 
-- PR titles must use Conventional Commits: `type(scope): description`.
-- Use one of `feat`, `fix`, `perf`, `refactor`, `chore`, `test`, or `docs` for
-  `type`; `scope` is required and names the affected area, such as `resumes`.
-- When creating or editing a PR with `gh`, supply the conventional title and
-  then verify it with `gh pr view --json title`. Never leave a prose-only PR
-  title for CI to reject.
+- Commits and PR titles use Conventional Commits: `type(scope): description`.
+- PR `type` is one of `feat`, `fix`, `perf`, `refactor`, `chore`, `test`, `docs`; `scope`
+  is required and names the affected area, such as `resumes`. After creating or editing a
+  PR with `gh`, verify the title with `gh pr view --json title`.
+- Branches: `{issue-number}-{kebab-case-description}`.
+- Split changes into commits by logical concern.
+- Never add a `Co-Authored-By` trailer or any other AI attribution to commits or PR bodies.
+- Labels, release-please and templates: `faber-github-workflow`.
 
 ## Common commands
 
+Build the API project (or the whole solution with `Faber.sln`).
+
 ```bash
-# Build the API project (or the whole solution with Faber.sln)
 dotnet build src/api/Faber.Api/Faber.Api.csproj
-
-# Run all services through Aspire
-dotnet run --project src/api/Aspire/Faber.AppHost
-
-# Run an integration test project (Docker required)
-DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}" \
-  dotnet run --project tests/Integration/Modules/Auth/Faber.Modules.Auth.Application.Tests
-
-# Frontend commands (run from src/web/faber-app)
-ng serve
-ng build
-ng test
 ```
 
-The Aspire dashboard opens automatically at `https://localhost:15xxx` (port shown in
-console output).
+Run all services through Aspire. The dashboard opens at a `https://localhost:15xxx` port shown in the console.
+
+```bash
+dotnet run --project src/api/Aspire/Faber.AppHost
+```
+
+Run an integration test project (Docker required).
+
+```bash
+DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}" dotnet run --project tests/Integration/Modules/Auth/Faber.Modules.Auth.Application.Tests
+```
+
+Run one xUnit v3 test.
+
+```bash
+dotnet run --project <test.csproj> -- -method "*.TestName"
+```
+
+Frontend commands run from `src/web/faber-app`: `ng serve`, `ng build`, `ng test`.
 
 ## Migrations
 
-| Environment | How migrations run |
-|---|---|
-| Development | Automatically: the Aspire AppHost runs `Faber.Migrations` once Postgres is up, before Keycloak and the API start |
-| Production / Staging | `Faber.Migrations` container runs before the API container starts |
+`Faber.Migrations` applies every module's EF Core migrations. In development the AppHost runs
+it once Postgres is up; in production its container runs before the API container. `dotnet ef`
+is pinned in `.config/dotnet-tools.json`; run `dotnet tool restore` first. Adding a migration,
+registering a module `DbContext` and the deploy flow: `docs/operations/migrations.md`.
 
-`dotnet ef` is pinned in `.config/dotnet-tools.json`; run `dotnet tool restore` before
-adding a migration. Schemas owned outside EF Core, such as Keycloak's, are declared in the
-AppHost and created by the same service (`Migrations:ExternalSchemas`).
+## Workflow
 
-Full deploy-time flow and the procedure for registering a new module `DbContext` live
-in `docs/operations/migrations.md`.
+Implement a GitHub issue with `/faber-impl-issue <N>`: it sizes the issue into a tier, writes
+the plan to `.claude/plans/` (tiers 2-3), runs one `faber-implementer` subagent per task,
+reviews, runs `code-review` on the branch, and opens a PR only when the user confirms.
+`docs/decisions/agent-skills.md` has the full table and the skill inventory rules: six places
+must agree, `faber-*` skills are Faber-authored, and every other skill is in `skills-lock.json`.
 
 ## Skills
 
-Read the relevant file below before starting the matching kind of change — these are
-plain Markdown, no special tooling required:
+| When | Skill | File |
+|---|---|---|
+| Creating any Endpoint, Group, or Validator | `faber-fastendpoints` | `.agents/skills/faber-fastendpoints/SKILL.md` |
+| Working with ErrorOr, mapping errors to HTTP responses | `faber-erroror` | `.agents/skills/faber-erroror/SKILL.md` |
+| Adding a feature to an existing module | `faber-feature-template` | `.agents/skills/faber-feature-template/SKILL.md` |
+| Sign-in, sessions, the realm config, Keycloak | `faber-keycloak` | `.agents/skills/faber-keycloak/SKILL.md` |
+| Backend module, EF Core, DI or integration-test patterns | `faber-backend-patterns` | `.agents/skills/faber-backend-patterns/SKILL.md` |
+| Creating/labeling issues, opening PRs, releases | `faber-github-workflow` | `.agents/skills/faber-github-workflow/SKILL.md` |
+| Implementing a GitHub issue end-to-end (user-invoked) | `faber-impl-issue` | `.agents/skills/faber-impl-issue/SKILL.md` |
 
-| When | Read first |
-|---|---|
-| Creating any Endpoint, Group, or Validator | `.agents/skills/faber-fastendpoints/SKILL.md` |
-| Working with ErrorOr, mapping errors to HTTP responses | `.agents/skills/faber-erroror/SKILL.md` |
-| Adding a feature to an existing module | `.agents/skills/faber-feature-template/SKILL.md` |
-| Sign-in, sessions, the realm config / Keycloak | `.agents/skills/faber-keycloak/SKILL.md` |
-| Implementing a GitHub issue end-to-end | `.agents/skills/faber-impl-issue/SKILL.md` |
-| Creating/labeling issues, opening PRs, handling a release | `.agents/skills/faber-github-workflow/SKILL.md` |
+In Claude Code load a skill with the `Skill` tool by name; other tools read the file. Skill
+tiers live in `.claude/settings.json`.
 
 ## Backend: `src/api/` and `tests/`
 
-- This is a modular monolith using vertical slices. Add a feature under the
-  owning module's `Application/Features/{Feature}` directory.
+- Modular monolith with vertical slices. Add a feature under the owning module's
+  `Application/Features/{Feature}` directory.
 - Typical files: endpoint, request/response records, command, command handler,
   mapper, and validator. Groups belong in `Groups/`.
 - Keep cross-module contracts in `{Module}.PublicApi`; implementations,
@@ -107,11 +116,13 @@ plain Markdown, no special tooling required:
   Options Pattern.
 - Do not introduce AutoMapper, a repository layer over EF Core, exceptions for
   ordinary control flow, regions, or `if`/`else` chains.
-- Tests use xUnit v3, Shouldly, NSubstitute, Bogus, and Testcontainers. Test
-  names follow `{Scenario}_Should{Outcome}`. Mock external services only (such
-  as email), never infrastructure or internal abstractions.
-- For the full pattern reference (naming conventions, C# use/avoid list, test
-  conventions), see `.claude/rules/backend-patterns.md`.
+- Tests use xUnit v3, Shouldly, NSubstitute, Bogus, and Testcontainers. Mock
+  external services only (such as email), never infrastructure or internal abstractions.
+- Test names: class `{Subject}Tests`; method `{Subject}_{Condition}_Should{Outcome}`;
+  omit `{Condition}` only for configuration/invariant tests; no `DisplayName`. Examples:
+  `UpdateSkill_NoToken_ShouldReturnUnauthorized`, `UpdateSkill_ValidRequest_ShouldModifyFields`,
+  `RealmSecurityTests.WebClient_ShouldRequirePkce`.
+- Full reference: `.agents/rules/backend-patterns.md`.
 
 ## Frontend: `src/web/faber-app/`
 
@@ -119,18 +130,16 @@ plain Markdown, no special tooling required:
   and lazy-loaded areas in `modules/`.
 - Use standalone components, `OnPush`, `inject()`, signals, native control flow,
   reactive forms, separate HTML/CSS files, and `NgOptimizedImage` for static
-  images.
+  images. Scaffold with `ng generate`.
 - Use `httpResource()` for GET reads; use `HttpClient` observables for
   mutations. Do not add NgRx.
 - Avoid `any`, inline templates/styles, constructor-based initialization,
   template arrow functions or complex template logic, and
   `@HostBinding`/`@HostListener`.
 - Maintain WCAG AA and AXE compliance.
-- For the full pattern reference (folder layout, TypeScript rules, state
-  management, HTTP patterns, accessibility), see
-  `.claude/rules/frontend-patterns.md`.
+- Full reference: `.agents/rules/frontend-patterns.md`.
 
 ## Before changing code
 
-- Follow the nearest applicable instructions and existing local patterns.
-- Check the Skills table above and read the matching file before writing code.
+Follow the nearest applicable instructions and existing local patterns, and read the matching
+skill from the table above before writing code.

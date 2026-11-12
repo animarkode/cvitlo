@@ -101,7 +101,7 @@ ng test
 
 The **backend** is a modular monolith with vertical slicing: each feature owns its endpoint, command, handler, mapper, and validator under `src/api/Modules/{Module}/.../Features/{Feature}/`. The **frontend** is a signal-based Angular SPA built from standalone components, split into `core/` (app-wide singletons), `shared/` (reusable components), and `modules/` (lazy-loaded feature areas).
 
-Detailed conventions live in `CLAUDE.md` and the path-scoped rules under `.claude/rules/`.
+Detailed conventions live in `AGENTS.md` and the path-scoped rules under `.agents/rules/`.
 
 ## Infrastructure
 
@@ -162,4 +162,4 @@ remain under their respective upstream terms; see
 - [.NET Aspire docs](https://learn.microsoft.com/en-us/dotnet/aspire/)
 - [FastEndpoints docs](https://fast-endpoints.com/)
 - [Angular docs](https://angular.dev/)
-- Full architectural details: see `CLAUDE.md`
+- Full architectural details: see `AGENTS.md`
