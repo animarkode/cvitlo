@@ -67,8 +67,6 @@ Every service becomes healthy, and the one-shot `migrations`, `keycloak-config` 
 
 Sign-in, registration, password reset and e-mail verification all happen on Keycloak's own pages. Registration asks for e-mail and name only; the password is set after following the verification link. Keycloak sends its mail (verification, password reset) to Mailpit in Development; open the `mailpit` resource from the Aspire dashboard to read it.
 
-**Coming from a stack created before hosted login?** That realm was imported from the old `realm-export.json` and still carries flows and a client override that refer to a Keycloak extension which no longer exists. Delete the `cvitlo` realm once (Keycloak admin console, `http://localhost:8080/admin/master/console`, realm **cvitlo** → **Realm settings** → **Action** → **Delete**), or reset the PostgreSQL volume as described under [Resetting local state](#resetting-local-state). The next start creates the realm fresh. Its users are lost either way.
-
 #### Optional: Google and GitHub sign-in
 
 This step is optional. Without it the providers stay disabled and e-mail and password sign-in works on its own. On every start the AppHost then logs `google sign-in is disabled` (and the same for `github`) to its console and to the `keycloak-config` log in the dashboard. The dashboard does not list these parameters as missing, because they are declared only once the client ID is set.
@@ -147,7 +145,17 @@ docker volume rm "$volume"
 
 `xargs -r` skips `docker rm` when no container holds the volume, so the same commands work whether one does. The next start creates a fresh volume with the current parameters; migrations, `keycloak-config` and `keycloak-passkeys` then rebuild everything, so no manual step follows. Local data such as registered users is lost.
 
-A checkout created before the per-checkout volume was introduced may still have the old fixed-name `cvitlo-postgres-data` volume. Nothing uses it anymore; remove it the same way with `volume=cvitlo-postgres-data`.
+**Coming from a clone made before the rename to Cvitlo (#114)?** The volume, database, realm and generated client secrets all changed name, so the next start builds a fresh stack and leaves the old state behind. Nothing reads it anymore. `docker volume ls --filter name=postgres-data` lists every Postgres data volume; remove each one whose name does not start with `cvitlo-postgres-data-`, the same way as above. Then list the AppHost user-secrets and remove the old generated client secrets, the `Parameters:*-api-client-secret` and `Parameters:*-admin-client-secret` entries without the `cvitlo-` prefix:
+
+```bash
+dotnet user-secrets list --project src/api/Aspire/Cvitlo.AppHost
+```
+
+```bash
+dotnet user-secrets remove "Parameters:<OLD-SECRET-NAME>" --project src/api/Aspire/Cvitlo.AppHost
+```
+
+The Google and GitHub secrets keep their names. Their OAuth apps, however, must now redirect to `http://localhost:8080/realms/cvitlo/broker/google/endpoint` and `.../broker/github/endpoint`; see [Google and GitHub sign-in](#optional-google-and-github-sign-in).
 
 **Coming from a clone that used Vault?** Vault was removed in #83 and nothing reads it anymore. Delete what it left behind. Stop the AppHost, then remove the old data, including the unseal keys:
 

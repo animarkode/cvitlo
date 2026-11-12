@@ -20,7 +20,7 @@ A skill stays only if it:
 
 Project-authored skills have plain, general names that say what they cover: `fastendpoints`,
 `error-or`, `feature-template`, `keycloak`, `backend-patterns`, `github-workflow`,
-`implement-issue`, `code-comments`. There is no project prefix. A `cvitlo-` prefix was tried and dropped because the
+`implement-issue`, `code-comments`. There is no project prefix. A project-name prefix was tried and dropped because the
 names read worse and the repo already scopes them. Agents keep `cvitlo-implementer` and
 `cvitlo-reviewer`, because plugin agents such as `code-reviewer` would otherwise collide with them.
 

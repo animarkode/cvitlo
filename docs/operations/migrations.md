@@ -40,7 +40,7 @@ services:
 | `ResumesDbContext` | `resumes` | `migrations_history` | `Cvitlo.Resumes.Infrastructure` |
 | `AuthDbContext` | `auth` | `migrations_history` | `Cvitlo.Auth.Infrastructure` |
 
-Each module keeps its own schema and its own history table, named by the module's `DbConstants`. The legacy `CvitloDbContext` no longer exists. Leftover legacy tables and `__EFMigrationsHistory` rows in older databases are untouched and not managed by this job.
+Each module keeps its own schema and its own history table, named by the module's `DbConstants`. The legacy shared `DbContext` no longer exists. Leftover legacy tables and `__EFMigrationsHistory` rows in older databases are untouched and not managed by this job.
 
 ### Schemas EF Core does not own
 

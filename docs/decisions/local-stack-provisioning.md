@@ -45,7 +45,7 @@ that runs `infra/keycloak/passkeys.sh` (kcadm.sh). It only turns passkeys on, be
 realm model predates that setting and drops it on every import. It replaced the `Cvitlo.Bootstrap` worker
 once that was all the worker did (#83).
 
-Update (#83): bootstrap used to regenerate the `cvitlo-api` client secret on every start and write it
+Update (#83): bootstrap used to regenerate the API client secret on every start and write it
 to Vault at `secrets/keycloak`. The secret is now the AppHost parameter `cvitlo-api-client-secret`,
 generated once and kept in user-secrets. The AppHost passes it to keycloak-config as
 `CVITLO_API_CLIENT_SECRET`, which the realm file uses as the client's `secret`, and to the API as
@@ -119,7 +119,7 @@ Consequences for a checkout that existed before this change:
 
 - It starts on a new, empty volume. Migrations recreate the schema, `keycloak-config` recreates the realm, so the stack comes up without manual steps.
   Local data in the old database, such as registered users, is not carried over.
-- The old fixed-name `cvitlo-postgres-data` volume is no longer used by anything and can be removed once
+- The old fixed-name Postgres data volume is no longer used by anything and can be removed once
   its data is not needed. Stopped Aspire containers can still hold it; the removal steps are in
   [Resetting local state](../../CONTRIBUTING.md#resetting-local-state).
 - The Postgres credentials are applied only when a volume is first initialized, so the new volume uses
