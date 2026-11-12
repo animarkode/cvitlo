@@ -42,7 +42,7 @@ Faber is a full-stack CV/resume builder:
 - Branches: `{issue-number}-{kebab-case-description}`.
 - Split changes into commits by logical concern.
 - Never add a `Co-Authored-By` trailer or any other AI attribution to commits or PR bodies.
-- Labels, release-please and templates: `faber-github-workflow`.
+- Labels, release-please and templates: `github-workflow`.
 
 ## Common commands
 
@@ -81,23 +81,23 @@ registering a module `DbContext` and the deploy flow: `docs/operations/migration
 
 ## Workflow
 
-Implement a GitHub issue with `/faber-impl-issue <N>`: it sizes the issue into a tier, writes
+Implement a GitHub issue with `/implement-issue <N>`: it sizes the issue into a tier, writes
 the plan to `.claude/plans/` (tiers 2-3), runs one `faber-implementer` subagent per task,
 reviews, runs `code-review` on the branch, and opens a PR only when the user confirms.
 `docs/decisions/agent-skills.md` has the full table and the skill inventory rules: six places
-must agree, `faber-*` skills are Faber-authored, and every other skill is in `skills-lock.json`.
+must agree, and every skill that is not in `skills-lock.json` is project-authored and listed below.
 
 ## Skills
 
 | When | Skill | File |
 |---|---|---|
-| Creating any Endpoint, Group, or Validator | `faber-fastendpoints` | `.agents/skills/faber-fastendpoints/SKILL.md` |
-| Working with ErrorOr, mapping errors to HTTP responses | `faber-erroror` | `.agents/skills/faber-erroror/SKILL.md` |
-| Adding a feature to an existing module | `faber-feature-template` | `.agents/skills/faber-feature-template/SKILL.md` |
-| Sign-in, sessions, the realm config, Keycloak | `faber-keycloak` | `.agents/skills/faber-keycloak/SKILL.md` |
-| Backend module, EF Core, DI or integration-test patterns | `faber-backend-patterns` | `.agents/skills/faber-backend-patterns/SKILL.md` |
-| Creating/labeling issues, opening PRs, releases | `faber-github-workflow` | `.agents/skills/faber-github-workflow/SKILL.md` |
-| Implementing a GitHub issue end-to-end (user-invoked) | `faber-impl-issue` | `.agents/skills/faber-impl-issue/SKILL.md` |
+| Creating any Endpoint, Group, or Validator | `fastendpoints` | `.agents/skills/fastendpoints/SKILL.md` |
+| Working with ErrorOr, mapping errors to HTTP responses | `error-or` | `.agents/skills/error-or/SKILL.md` |
+| Adding a feature to an existing module | `feature-template` | `.agents/skills/feature-template/SKILL.md` |
+| Sign-in, sessions, the realm config, Keycloak | `keycloak` | `.agents/skills/keycloak/SKILL.md` |
+| Backend module, EF Core, DI or integration-test patterns | `backend-patterns` | `.agents/skills/backend-patterns/SKILL.md` |
+| Creating/labeling issues, opening PRs, releases | `github-workflow` | `.agents/skills/github-workflow/SKILL.md` |
+| Implementing a GitHub issue end-to-end (user-invoked) | `implement-issue` | `.agents/skills/implement-issue/SKILL.md` |
 
 In Claude Code load a skill with the `Skill` tool by name; other tools read the file. Skill
 tiers live in `.claude/settings.json`.

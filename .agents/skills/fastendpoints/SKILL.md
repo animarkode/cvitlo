@@ -1,5 +1,5 @@
 ---
-name: faber-fastendpoints
+name: fastendpoints
 description: FastEndpoints patterns for Faber — Endpoint, Group, SubGroup, Validator, ICommand/ICommandHandler, TypedResults, ErrorOr integration, structured logging. Use before creating any new Endpoint, Group, or Validator.
 ---
 
@@ -355,7 +355,7 @@ This is equivalent to resolving the handler from DI and calling it directly.
 Use FastEndpoints.Testing helpers:
 
 ```csharp
-// A Keycloak access token for a fixture user (bearer path; see faber-keycloak)
+// A Keycloak access token for a fixture user (bearer path; see keycloak)
 var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
 
 // POST with typed request/response

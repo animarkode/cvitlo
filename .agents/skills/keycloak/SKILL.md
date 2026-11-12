@@ -1,5 +1,5 @@
 ---
-name: faber-keycloak
+name: keycloak
 description: Keycloak hosted login and the API's BFF session in Faber — realm as code (faber.json + keycloak-config-cli), OIDC code+PKCE, server-side sessions in Postgres, single-flight refresh, CSRF header, back-channel logout, bearer access tokens, account linking, in-app account management (Account REST, allow-listed `kc_action` navigation, lock-out guard), and the Testcontainers fixture with a browser-less login driver. Use when working with sign-in, sessions, the Keycloak realm config, or auth tests.
 ---
 

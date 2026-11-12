@@ -1,5 +1,5 @@
 ---
-name: faber-impl-issue
+name: implement-issue
 description: Implement a GitHub issue end-to-end, sized to the issue
 argument-hint: <issue-number> [--tier N] [--worktree]
 arguments: issue

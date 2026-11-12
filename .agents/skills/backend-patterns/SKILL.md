@@ -1,5 +1,5 @@
 ---
-name: faber-backend-patterns
+name: backend-patterns
 description: C#/.NET backend patterns for the Faber modular monolith — modules, FastEndpoints slices, ErrorOr, EF Core, DI, and integration testing. Use when developing modules, features, or reviewing C# code in this project.
 ---
 
@@ -7,9 +7,9 @@ description: C#/.NET backend patterns for the Faber modular monolith — modules
 
 Faber is a **modular monolith with vertical slices** on ASP.NET Core + FastEndpoints + ErrorOr + EF Core (Npgsql) + Aspire.
 
-> For endpoint specifics, use `faber-fastendpoints`.
-> For result mapping, use `faber-erroror`.
-> For new feature scaffolding, use `faber-feature-template`.
+> For endpoint specifics, use `fastendpoints`.
+> For result mapping, use `error-or`.
+> For new feature scaffolding, use `feature-template`.
 > For a new module's DbContext registration, see `docs/operations/migrations.md`.
 
 Canonical sources to mirror before changing backend code:

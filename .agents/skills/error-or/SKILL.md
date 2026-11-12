@@ -1,5 +1,5 @@
 ---
-name: faber-erroror
+name: error-or
 description: ErrorOr result pattern for Faber — error creation, error code conventions, HTTP mapping in endpoints, and anti-patterns. Use when working with ErrorOr<T>, handling results, or mapping errors to HTTP responses.
 ---
 

@@ -18,11 +18,15 @@ A skill stays only if it:
 
 ## Naming rule
 
-Every Faber-authored skill and agent is named `faber-<what>`. Agents: `faber-implementer`,
-`faber-reviewer`.
+Project-authored skills have plain, general names that say what they cover: `fastendpoints`,
+`error-or`, `feature-template`, `keycloak`, `backend-patterns`, `github-workflow`,
+`implement-issue`. There is no project prefix. A `faber-` prefix was tried and dropped because the
+names read worse and the repo already scopes them. Agents keep `faber-implementer` and
+`faber-reviewer`, because plugin agents such as `code-reviewer` would otherwise collide with them.
 
-Consequence: `faber-*` skills live in git and are not in `skills-lock.json`. Every other skill must
-be in `skills-lock.json`.
+Consequence: a skill that is not in `skills-lock.json` is project-authored, and it must be listed
+in the skills table in `AGENTS.md`. Every other skill must be in `skills-lock.json`. Before a new
+project skill is named, check that no vendored or plugin skill uses the same name.
 
 ## Decisions per skill
 
@@ -51,7 +55,7 @@ be in `skills-lock.json`.
 | 19 | `cqrs-implementation` | wshobson/agents | MIT | drop | — | Pattern we do not use (549 lines) |
 | 20 | `csharp-docs` | github/awesome-copilot | MIT | drop | — | Was auto-on and demands XML docs on everything |
 | 21 | `dependency-injection-patterns` | aaronontheweb/dotnet-skills | MIT | keep | name-only | |
-| 22 | `dotnet-backend-patterns` | Rewritten from wshobson/agents | Faber | rename to `faber-backend-patterns`, Faber-authored, leave lock | name-only | Already a Faber rewrite; 1279 lines is too heavy for `on`; overlap with `.claude/rules/backend-patterns.md` goes to #113 |
+| 22 | `dotnet-backend-patterns` | Rewritten from wshobson/agents | Faber | rename to `backend-patterns`, Faber-authored, leave lock | name-only | Already a Faber rewrite; 1279 lines is too heavy for `on`; overlap with `.claude/rules/backend-patterns.md` goes to #113 |
 | 23 | `dotnet-testing-advanced-aspire-testing` | kevintsengtw/dotnet-testing-agent-skills | MIT | drop | — | Written in Chinese; duplicates #14 |
 | 24 | `dotnet-testing-advanced-testcontainers-database` | kevintsengtw/dotnet-testing-agent-skills | MIT | drop | — | Written in Chinese; duplicates #48 |
 | 25 | `dotnet-testing-advanced-xunit-upgrade-guide` | kevintsengtw/dotnet-testing-agent-skills | MIT | drop | — | Written in Chinese; migration done, Moq and FluentAssertions |
@@ -61,14 +65,14 @@ be in `skills-lock.json`.
 | 29 | `dotnet-testing-test-data-builder-pattern` | kevintsengtw/dotnet-testing-agent-skills | MIT | drop | — | Written in Chinese |
 | 30 | `dotnet-testing-test-naming-conventions` | kevintsengtw/dotnet-testing-agent-skills | MIT | drop | — | Written in Chinese; contradicts our naming rule, suggests Chinese names |
 | 31 | `efcore-patterns` | aaronontheweb/dotnet-skills | MIT | keep | name-only | |
-| 32 | `errorOr-patterns` | Faber | Apache-2.0 | rename to `faber-erroror` | on | |
-| 33 | `faber-feature-template` | Faber | Apache-2.0 | keep | on | |
+| 32 | `errorOr-patterns` | Faber | Apache-2.0 | rename to `error-or` | on | |
+| 33 | `feature-template` | Faber | Apache-2.0 | keep | on | |
 | 34 | `faber-module-bootstrapping` | Faber | Apache-2.0 | drop (owner's call) | — | Modules exist; the migration and DbContext registration procedure moves to `docs/operations/migrations.md` |
-| 35 | `fastendpoints` | Faber | Apache-2.0 | rename to `faber-fastendpoints` | on | |
+| 35 | `fastendpoints` | Faber | Apache-2.0 | keep | on | |
 | 36 | `find-skills` | vercel-labs/skills | MIT | keep | user-invocable-only | |
-| 37 | `github-workflow` | Faber | Apache-2.0 | rename to `faber-github-workflow` | name-only | |
-| 38 | `impl-gh-issue` | Faber | Apache-2.0 | rename to `faber-impl-issue` | user-invocable-only | |
-| 39 | `keycloak-aspnet-integration` | Faber | Apache-2.0 | rename to `faber-keycloak` | on | |
+| 37 | `github-workflow` | Faber | Apache-2.0 | keep | name-only | |
+| 38 | `impl-gh-issue` | Faber | Apache-2.0 | rename to `implement-issue` | user-invocable-only | |
+| 39 | `keycloak-aspnet-integration` | Faber | Apache-2.0 | rename to `keycloak` | on | |
 | 40 | `mailpit-integration` | aaronontheweb/dotnet-skills | MIT | keep | name-only | |
 | 41 | `microsoft-extensions-configuration` | aaronontheweb/dotnet-skills | MIT | keep | name-only | Options Pattern |
 | 42 | `migrate-xunit-to-xunit-v3` | dotnet/skills | MIT | drop | — | Migration done |
@@ -78,7 +82,7 @@ be in `skills-lock.json`.
 | 46 | `tailwind-design-system` | wshobson/agents | MIT | keep | name-only | |
 | 47 | `tdd` | mattpocock/skills | MIT | keep | on | |
 | 48 | `testcontainers-integration-tests` | aaronontheweb/dotnet-skills | MIT | keep | name-only | |
-| 49 | `vertical-slice` | codewithmukesh/dotnet-claude-kit | MIT | drop | — | Built on MediatR; `faber-feature-template` covers slices |
+| 49 | `vertical-slice` | codewithmukesh/dotnet-claude-kit | MIT | drop | — | Built on MediatR; `feature-template` covers slices |
 | 50 | `dotnet-slopwatch` | aaronontheweb/dotnet-skills | MIT | adopt | name-only | Catches disabled tests, suppressed warnings, empty catches; the `Slopwatch.Cmd` tool is a follow-up |
 | 51 | `grilling` | mattpocock/skills | MIT | adopt | name-only | Stress-tests a plan in numbered rounds |
 | 52 | `grill-me` | mattpocock/skills | MIT | adopt | user-invocable-only | `/grill-me` entry to `grilling` |
@@ -130,7 +134,7 @@ Other rejected candidates:
 
 Faber skills still to write:
 
-- `faber-testing`: NSubstitute, Shouldly, xUnit v3, Testcontainers fixtures and the naming rule below.
+- `testing` (or a more specific name, chosen when it is written): NSubstitute, Shouldly, xUnit v3, Testcontainers fixtures and the naming rule below.
   Written after #118.
 
 Follow-ups:
@@ -165,13 +169,13 @@ Chosen over `Should_When`, `Given_When_Then` and plain sentences because it is t
 
 | Step | Owner |
 |---|---|
-| Triage and tier | `/faber-impl-issue <N>` (tiers 1-3) |
+| Triage and tier | `/implement-issue <N>` (tiers 1-3) |
 | Plan (tier 2-3) | The session writes `.claude/plans/{YYYY-MM-DD}-{issue}-{slug}.md` (gitignored; replaces `docs/plans/`, which #113 deletes). Optional `/grill-me` stress-tests the plan; `superpowers:brainstorming` only at tier 3 when scope is ambiguous |
 | Approval | The user, explicitly |
 | Implementation | One `faber-implementer` subagent per task, foreground, in order |
 | Review | Tier 2: the session reviews each diff. Tier 3: `faber-reviewer` per task plus a fix loop |
 | Branch review | Built-in `code-review` skill |
-| PR | Only on the user's confirmation, following `faber-github-workflow` |
+| PR | Only on the user's confirmation, following `github-workflow` |
 
 Not used: the wshaddix agents and commands (no license). The other superpowers execution skills are
 not part of this path.

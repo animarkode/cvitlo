@@ -4,13 +4,13 @@ Read when composing a task brief. Pick from the rows the task actually touches, 
 
 | Label | Backend / infra skills | Notes |
 |---|---|---|
-| `area:auth` | `faber-keycloak`, `faber-fastendpoints`, `faber-erroror`, `faber-feature-template` | Security-sensitive: prefer more deliberation, not a different model |
-| `area:identity` | `faber-keycloak`, `faber-backend-patterns` | Realm-export changes come in pairs — infra and test |
-| `area:users` | `faber-feature-template`, `faber-backend-patterns`, `faber-fastendpoints`, `faber-erroror` | |
-| `area:resumes` | `faber-feature-template`, `faber-backend-patterns`, `faber-fastendpoints`, `faber-erroror`, `efcore-patterns` | Add `angular-*` rows below when the slice is full-stack |
-| `area:notifications` | `mailpit-integration`, `faber-backend-patterns` | |
+| `area:auth` | `keycloak`, `fastendpoints`, `error-or`, `feature-template` | Security-sensitive: prefer more deliberation, not a different model |
+| `area:identity` | `keycloak`, `backend-patterns` | Realm-export changes come in pairs — infra and test |
+| `area:users` | `feature-template`, `backend-patterns`, `fastendpoints`, `error-or` | |
+| `area:resumes` | `feature-template`, `backend-patterns`, `fastendpoints`, `error-or`, `efcore-patterns` | Add `angular-*` rows below when the slice is full-stack |
+| `area:notifications` | `mailpit-integration`, `backend-patterns` | |
 | `area:infra` | `aspire`, `aspire-configuration`, `aspire-service-defaults` | Ports are hard-pinned in `AppHost/Program.cs` |
-| `area:tests-infra` | `tdd`, `testcontainers-integration-tests`, `aspire-integration-testing`, `dotnet-slopwatch` | `faber-testing` replaces this row after #118 |
+| `area:tests-infra` | `tdd`, `testcontainers-integration-tests`, `aspire-integration-testing`, `dotnet-slopwatch` | a project testing skill replaces this row after #118 |
 
 | Label | Frontend skills |
 |---|---|
