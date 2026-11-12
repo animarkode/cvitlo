@@ -16,7 +16,7 @@ public static class RateLimitRejectionHandler
     /// <summary>Metric/log tag used when only the global baseline limiter applies.</summary>
     private const string GlobalPolicyName = "global";
 
-    private const string LogCategory = "Faber.Api.RateLimiting";
+    private const string LogCategory = "Cvitlo.Api.RateLimiting";
 
     /// <summary>Wired as <c>RateLimiterOptions.OnRejected</c>; <paramref name="ct"/> is required by that delegate.</summary>
     /// <param name="context">The rejection context supplied by the ASP.NET Core rate limiter.</param>

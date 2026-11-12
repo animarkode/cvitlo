@@ -48,7 +48,7 @@ jobs:
       # require the connection string to be present, so these values are placeholders.
       - name: Verify EF Core migrations
         env:
-          ConnectionStrings__faberdb: Host=localhost;Port=5432;Database=faberdb;Username=faber;Password=faber
+          ConnectionStrings__cvitlodb: Host=localhost;Port=5432;Database=cvitlodb;Username=cvitlo;Password=cvitlo
         run: |
           dotnet ef migrations list --no-connect --no-build --project src/api/Modules/Auth/Cvitlo.Auth.Infrastructure
           dotnet ef migrations list --no-connect --no-build --project src/api/Modules/Resumes/Cvitlo.Resumes.Infrastructure

@@ -14,13 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: faber-api
+          - image: cvitlo-api
             context: .
             dockerfile: src/api/Cvitlo.Api/Dockerfile
-          - image: faber-migrations
+          - image: cvitlo-migrations
             context: .
             dockerfile: src/api/Jobs/Cvitlo.Migrations/Dockerfile
-          - image: faber-web
+          - image: cvitlo-web
             context: src/web/cvitlo-app
             dockerfile: src/web/cvitlo-app/Dockerfile
 
@@ -37,12 +37,12 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: false
-          # Only faber-web is run afterwards, so only it is loaded into the
+          # Only cvitlo-web is run afterwards, so only it is loaded into the
           # local image store.
-          load: ${{ matrix.image == 'faber-web' }}
-          tags: faber/${{ matrix.image }}:pr
+          load: ${{ matrix.image == 'cvitlo-web' }}
+          tags: cvitlo/${{ matrix.image }}:pr
           cache-from: type=gha,scope=${{ matrix.image }}
 
-      - name: Smoke-test faber-web
-        if: matrix.image == 'faber-web'
-        run: src/web/cvitlo-app/scripts/smoke-test-image.sh faber/faber-web:pr
+      - name: Smoke-test cvitlo-web
+        if: matrix.image == 'cvitlo-web'
+        run: src/web/cvitlo-app/scripts/smoke-test-image.sh cvitlo/cvitlo-web:pr

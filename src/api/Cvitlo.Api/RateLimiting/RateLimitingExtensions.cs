@@ -15,7 +15,7 @@ public static class RateLimitingExtensions
     /// <summary>Registers rate limiting options and the partitioned rate limiter with its named policies.</summary>
     /// <param name="services">The service collection to add rate limiting to.</param>
     /// <returns>The same service collection so calls can be chained.</returns>
-    public static IServiceCollection AddFaberRateLimiting(this IServiceCollection services)
+    public static IServiceCollection AddCvitloRateLimiting(this IServiceCollection services)
     {
         services.ConfigureOptions<RateLimitingOptionsSetup>();
 
@@ -46,7 +46,7 @@ public static class RateLimitingExtensions
     /// <summary>Adds the rate limiting middleware unless <c>RateLimiting:Enabled</c> is false.</summary>
     /// <param name="app">The web application to add the rate limiting middleware to.</param>
     /// <returns>The same web application so calls can be chained.</returns>
-    public static WebApplication UseFaberRateLimiting(this WebApplication app)
+    public static WebApplication UseCvitloRateLimiting(this WebApplication app)
     {
         var options = app.Services.GetRequiredService<IOptions<RateLimitingOptions>>().Value;
 

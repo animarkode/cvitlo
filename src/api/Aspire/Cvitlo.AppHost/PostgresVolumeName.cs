@@ -17,6 +17,6 @@ public static class PostgresVolumeName
         var suffix = Convert.ToHexString(pathHash.AsSpan(0, 8)).ToLowerInvariant();
 #pragma warning restore CA1308
 
-        return $"faber-postgres-data-{suffix}";
+        return $"cvitlo-postgres-data-{suffix}";
     }
 }

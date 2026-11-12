@@ -9,7 +9,7 @@ public static class SecurityHeadersExtensions
 {
     private static readonly string[] DevelopmentDocumentationPaths = ["/scalar", "/swagger", "/openapi"];
 
-    public static IApplicationBuilder UseFaberSecurityHeaders(this IApplicationBuilder app, IWebHostEnvironment environment)
+    public static IApplicationBuilder UseCvitloSecurityHeaders(this IApplicationBuilder app, IWebHostEnvironment environment)
     {
         if (environment.IsProduction())
         {

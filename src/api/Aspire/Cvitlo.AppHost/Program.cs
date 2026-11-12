@@ -133,7 +133,7 @@ var keycloakPasskeys = builder.AddContainer("keycloak-passkeys", keycloakImage, 
     .WithEnvironment("KEYCLOAK_REALM", "cvitlo")
     .WaitForCompletion(keycloakConfig);
 
-var faberApi = builder.AddProject<Cvitlo_Api>("faberapi")
+var cvitloApi = builder.AddProject<Cvitlo_Api>("cvitloapi")
     .WaitFor(redis)
     .WaitFor(cvitloDb)
     .WaitForCompletion(migrations)
@@ -145,7 +145,7 @@ var faberApi = builder.AddProject<Cvitlo_Api>("faberapi")
     .WithReference(redis)
     .WithReference(cvitloDb);
 
-faberApi.WithUrls(context =>
+cvitloApi.WithUrls(context =>
     {
         var baseUrl = context.Urls[0].Url;
         context.Urls[0].DisplayText = "API (http)";

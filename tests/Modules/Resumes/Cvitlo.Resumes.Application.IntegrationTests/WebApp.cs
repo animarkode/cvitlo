@@ -45,7 +45,7 @@ public class WebApp : AppFixture<Program>
 
     protected override async ValueTask PreSetupAsync()
     {
-        _network = new NetworkBuilder().WithName($"faber-test-network-{Guid.NewGuid()}").Build();
+        _network = new NetworkBuilder().WithName($"cvitlo-test-network-{Guid.NewGuid()}").Build();
         await _network.CreateAsync();
 
         _postgresContainer = new PostgreSqlBuilder("postgres:17.6").WithNetwork(_network).Build();

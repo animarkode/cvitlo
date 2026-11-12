@@ -32,7 +32,7 @@ public class AppHostModelTests
         var keycloak = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak", StringComparison.Ordinal));
         var keycloakConfig = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-config", StringComparison.Ordinal));
         var keycloakPasskeys = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-passkeys", StringComparison.Ordinal));
-        var api = builder.Resources.Single(resource => string.Equals(resource.Name, "faberapi", StringComparison.Ordinal));
+        var api = builder.Resources.Single(resource => string.Equals(resource.Name, "cvitloapi", StringComparison.Ordinal));
 
         migrations.ShouldWaitFor(cvitloDb, WaitType.WaitUntilHealthy);
         keycloak.ShouldWaitFor(migrations, WaitType.WaitForCompletion);
@@ -154,7 +154,7 @@ public class AppHostModelTests
             TestConfiguration,
             TestContext.Current.CancellationToken);
         var keycloakConfig = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-config", StringComparison.Ordinal));
-        var api = builder.Resources.Single(resource => string.Equals(resource.Name, "faberapi", StringComparison.Ordinal));
+        var api = builder.Resources.Single(resource => string.Equals(resource.Name, "cvitloapi", StringComparison.Ordinal));
 
         var secret = builder.Resources.OfType<ParameterResource>()
             .Single(resource => string.Equals(resource.Name, "cvitlo-api-client-secret", StringComparison.Ordinal));

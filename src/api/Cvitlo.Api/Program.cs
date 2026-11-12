@@ -27,7 +27,7 @@ builder.Services
 
         o.DocumentSettings = s =>
         {
-            s.Title = "Faber API";
+            s.Title = "Cvitlo API";
             s.Version = "v1";
             s.DocumentProcessors.Add(new TagGroupsDocumentProcessor());
         };
@@ -40,7 +40,7 @@ builder.Services.AddResumesModule(builder.Configuration);
 
 builder.Services.AddApiReadinessChecks();
 
-builder.Services.AddFaberCaching(builder.Configuration);
+builder.Services.AddCvitloCaching(builder.Configuration);
 
 builder.Services.AddExceptionHandler<OperationCanceledExceptionHandler>();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
@@ -48,8 +48,8 @@ builder.Services.AddExceptionHandler<DbUpdateExceptionHandler>();
 builder.Services.AddExceptionHandler<FallbackExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddFaberForwardedHeaders(builder.Configuration);
-builder.Services.AddFaberRateLimiting();
+builder.Services.AddCvitloForwardedHeaders(builder.Configuration);
+builder.Services.AddCvitloRateLimiting();
 
 builder.Host.UseSerilog((_, config) => config.WriteTo.Console(formatProvider: CultureInfo.InvariantCulture), writeToProviders: true);
 
@@ -59,7 +59,7 @@ app.MapDefaultEndpoints();
 
 app.UseForwardedHeaders();
 
-app.UseFaberSecurityHeaders(app.Environment);
+app.UseCvitloSecurityHeaders(app.Environment);
 
 app
     .UseExceptionHandler()
@@ -100,7 +100,7 @@ app.UseCvitloCsrfProtection();
 
 app.UseAuthentication();
 
-app.UseFaberRateLimiting();
+app.UseCvitloRateLimiting();
 
 app.UseAuthorization();
 

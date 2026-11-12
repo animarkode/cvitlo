@@ -28,7 +28,7 @@ public class RateLimitingTests(WebApp app) : TestBase
     // Global-anonymous probe. `user` carries no named rate limiting policy — epic #331 designated its
     // predecessor `me` as baseline-only — so these tests exercise the global anonymous limiter itself.
     // Without a session or bearer token there is no `sub` claim, so the request lands on the IP partition, and a deterministic 401 comes back:
-    // UseFaberRateLimiting runs before UseAuthorization, so an exhausted budget still yields 429
+    // UseCvitloRateLimiting runs before UseAuthorization, so an exhausted budget still yields 429
     // rather than 401.
     private static async Task<HttpResponseMessage> GetAnonymousProbeAsync(
         HttpClient client,

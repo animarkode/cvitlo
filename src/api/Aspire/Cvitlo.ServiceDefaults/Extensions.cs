@@ -50,7 +50,7 @@ public static class Extensions
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    .AddMeter("Faber.Api.RateLimiting");
+                    .AddMeter("Cvitlo.Api.RateLimiting");
             })
             .WithTracing(tracing =>
             {

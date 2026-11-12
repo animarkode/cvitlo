@@ -134,7 +134,7 @@ public class ForwardedHeadersTests
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddInMemoryCollection(configuration.Select(entry =>
             new KeyValuePair<string, string?>(entry.Key, entry.Value)));
-        builder.Services.AddFaberForwardedHeaders(builder.Configuration);
+        builder.Services.AddCvitloForwardedHeaders(builder.Configuration);
         return builder;
     }
 

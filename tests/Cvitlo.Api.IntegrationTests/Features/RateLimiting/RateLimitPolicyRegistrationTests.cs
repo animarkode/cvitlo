@@ -11,7 +11,7 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
 // The mirror image of ResumesRateLimitingCoverageTests: that suite proves every routed endpoint's
 // policy name is a declared RateLimitPolicies constant; this one proves every declared constant is
-// actually registered with a policy class by AddFaberRateLimiting. Without it, adding a constant
+// actually registered with a policy class by AddCvitloRateLimiting. Without it, adding a constant
 // without the matching limiter.AddPolicy<string, TPolicy>(...) call compiles clean, an endpoint can
 // opt into it via RequireRateLimiting, and the app only discovers the gap at request time in
 // production instead of in CI.
@@ -27,7 +27,7 @@ public class RateLimitPolicyRegistrationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public void EveryRateLimitPolicyConstant_ShouldBeRegisteredByAddFaberRateLimiting()
+    public void EveryRateLimitPolicyConstant_ShouldBeRegisteredByAddCvitloRateLimiting()
     {
         DeclaredPolicyNames.ShouldNotBeEmpty();
 
@@ -38,7 +38,7 @@ public class RateLimitPolicyRegistrationTests(WebApp app) : TestBase
 
         unregistered.ShouldBeEmpty(
             "These RateLimitPolicies constants have no matching limiter.AddPolicy<string, TPolicy>(...) call "
-            + "in AddFaberRateLimiting, so an endpoint could opt in via RequireRateLimiting to a name the "
+            + "in AddCvitloRateLimiting, so an endpoint could opt in via RequireRateLimiting to a name the "
             + $"limiter has never heard of and fail only at request time:{Environment.NewLine}"
             + string.Join(Environment.NewLine, unregistered));
     }
