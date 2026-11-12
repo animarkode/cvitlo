@@ -347,11 +347,11 @@ Signal bindings in the template (`[style.max-height]`, `[class.rotate-90]`) are 
 ```typescript
 // cv-accordion-item.html
 <div class="flex items-center">
-  <ng-content select="[fbAccordionPrefix]" />  <!-- drag handle, sits LEFT of the button -->
+  <ng-content select="[cvAccordionPrefix]" />  <!-- drag handle, sits LEFT of the button -->
   <button type="button" class="flex-1 ...">
     <!-- icon, label, count, chevron -->
   </button>
-  <ng-content select="[fbAccordionSuffix]" />  <!-- action buttons, RIGHT of the button -->
+  <ng-content select="[cvAccordionSuffix]" />  <!-- action buttons, RIGHT of the button -->
 </div>
 <div role="region" ...>
   <ng-content />  <!-- body content -->
@@ -369,8 +369,8 @@ Usage:
 
 <!-- with prefix/suffix (orderable-list pattern) -->
 <cv-accordion-item cdkDrag [label]="titleFn()(item)">
-  <span fbAccordionPrefix cdkDragHandle class="cursor-grab">⠿</span>
-  <button fbAccordionSuffix type="button" (click)="onDelete(item, $event)">✕</button>
+  <span cvAccordionPrefix cdkDragHandle class="cursor-grab">⠿</span>
+  <button cvAccordionSuffix type="button" (click)="onDelete(item, $event)">✕</button>
   <ng-container [ngTemplateOutlet]="itemTemplate()" ... />
 </cv-accordion-item>
 ```

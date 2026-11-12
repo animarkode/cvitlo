@@ -18,7 +18,7 @@
           cdkDragBoundary=".orderable-drop"
           [label]="titleFn()(item)">
           <span
-            fbAccordionPrefix
+            cvAccordionPrefix
             cdkDragHandle
             class="ml-4 max-md:ml-2 mr-2 max-md:mr-1 cursor-grab text-muted-foreground"
             aria-hidden="true"
@@ -26,7 +26,7 @@
             <lucide-icon name="grip-vertical" [size]="18" [strokeWidth]="2" aria-hidden="true" />
           </span>
           <button
-            fbAccordionSuffix
+            cvAccordionSuffix
             cv-icon-button
             intent="destructive"
             size="lg"

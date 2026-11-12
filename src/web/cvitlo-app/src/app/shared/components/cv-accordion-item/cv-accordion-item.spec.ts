@@ -9,8 +9,8 @@ import { CvAccordionItem } from './cv-accordion-item';
 @Component({
   template: `
     <cv-accordion-item label="Projected Section">
-      <span fbAccordionPrefix class="prefix-slot">drag</span>
-      <button fbAccordionSuffix type="button" class="suffix-slot">delete</button>
+      <span cvAccordionPrefix class="prefix-slot">drag</span>
+      <button cvAccordionSuffix type="button" class="suffix-slot">delete</button>
       <p class="body-slot">Body content</p>
     </cv-accordion-item>
   `,
@@ -186,7 +186,7 @@ describe('CvAccordionItem — content projection', () => {
     expect(body.nativeElement.querySelector('.body-slot')).toBeTruthy();
   });
 
-  it('should project fbAccordionPrefix before the trigger button', () => {
+  it('should project cvAccordionPrefix before the trigger button', () => {
     const row = hostFixture.debugElement.query(By.css('cv-accordion-item > div'));
     const children = Array.from(row.nativeElement.children) as HTMLElement[];
     const prefixIndex = children.findIndex(el => el.classList.contains('prefix-slot'));
@@ -194,7 +194,7 @@ describe('CvAccordionItem — content projection', () => {
     expect(prefixIndex).toBeLessThan(buttonIndex);
   });
 
-  it('should project fbAccordionSuffix after the trigger button', () => {
+  it('should project cvAccordionSuffix after the trigger button', () => {
     const row = hostFixture.debugElement.query(By.css('cv-accordion-item > div'));
     const children = Array.from(row.nativeElement.children) as HTMLElement[];
     const suffixIndex = children.findIndex(el => el.classList.contains('suffix-slot'));
