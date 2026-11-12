@@ -51,9 +51,24 @@ Features/{Feature}/
 
 ## C# Patterns
 
-**Use:** records for DTOs/commands/requests/responses · primary constructors for DI · file-scoped namespaces · `ErrorOr<T>` for results · static mapper classes · guard clauses / early returns · `CancellationToken ct` as last async parameter · Options Pattern with `IOptions<T>` / `IConfigureOptions<T>` · curly braces `{}` for all `if` blocks · every `///` doc comment starts with a `<summary>`, records with `<param>` lines included (RCS1139 fails the build).
+**Use:** records for DTOs/commands/requests/responses · primary constructors for DI · file-scoped namespaces · `ErrorOr<T>` for results · static mapper classes · guard clauses / early returns · `CancellationToken ct` as last async parameter · Options Pattern with `IOptions<T>` / `IConfigureOptions<T>` · curly braces `{}` for all `if` blocks · `///` only on `PublicApi` and `Common` (see Comments).
 
 **Avoid:** AutoMapper · repository pattern over EF Core · exceptions for flow control · `#region`/`#endregion` · `if-else` chains.
+
+## Comments
+
+- A comment says only what the code cannot: why, a constraint, a workaround with a link, a non-obvious order or invariant.
+- Never restate a name or a signature. No change history ("was X, changed in #123"), no commented-out code.
+- One to three lines. A longer explanation goes to `docs/decisions/` and the comment links to it.
+- `///` only on `PublicApi` contracts and `Common`. When written it needs a `<summary>` (RCS1139 fails the build).
+- `<param>`/`<returns>` only when they add information. Once one `<param>` exists on a member (a record's positional parameters included), every parameter needs one (CS1573); prefer none. A wrong `<param>` or bad `cref` fails the build (CS1572, CS1574).
+
+## Logging
+
+- Endpoints do not log: the request pipeline (ASP.NET Core + OpenTelemetry) already records method, path, status and duration.
+- Handlers log work with external systems (Keycloak, cache, background sweeps, erasure) and unexpected failures.
+- Expected results (`NotFound`, validation errors) are not logged as warnings.
+- No `[START]`/`[SUCCESS]`/`[STEP]`/`[FAIL]`/`[HTTP ...]` markers. Never log credentials, tokens or e-mail addresses.
 
 ## Tests
 

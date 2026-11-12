@@ -24,6 +24,13 @@ src/app/
 
 - Avoid `any`; use `unknown` when type is uncertain
 
+## Comments
+
+- A comment says only what the code cannot: why, a constraint, a workaround with a link, a non-obvious order or invariant. Never restate a name or a type.
+- TSDoc only on public inputs and outputs of `shared/` components.
+- One to three lines. A longer explanation goes to `docs/decisions/` and the comment links to it.
+- No change history ("was X, changed in #123"), no commented-out code.
+
 ## Angular Patterns
 
 **Use:** standalone components — do NOT set `standalone: true` in decorator (default in Angular v20+) · signals for state (`signal()`, `computed()`, `input()`, `output()`) · `inject()` instead of constructor injection · `ChangeDetectionStrategy.OnPush` on all components · native control flow (`@if`/`@for`/`@switch`) · Reactive Forms over template-driven · lazy loading for feature routes · `providedIn: 'root'` for singleton services · `fb-` selector prefix for shared reusable components · `NgOptimizedImage` for all static images · `ng generate` for all scaffolding — never create files manually · always use separate `.html` and `.css` files — no inline templates or styles.

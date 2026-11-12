@@ -1,6 +1,6 @@
 ---
 name: fastendpoints
-description: FastEndpoints patterns for Faber — Endpoint, Group, SubGroup, Validator, ICommand/ICommandHandler, TypedResults, ErrorOr integration, structured logging. Use before creating any new Endpoint, Group, or Validator.
+description: FastEndpoints patterns for Faber — Endpoint, Group, SubGroup, Validator, ICommand/ICommandHandler, TypedResults, ErrorOr integration, logging rule. Use before creating any new Endpoint, Group, or Validator.
 ---
 
 # FastEndpoints — Faber Patterns
@@ -13,6 +13,8 @@ Canonical sources to mirror before generating new code:
 - `src/api/Modules/Auth/Faber.Modules.Auth.Application/Features/User/` (no request) and `Features/Login/` (challenge result)
 - `src/api/Modules/Auth/Faber.Modules.Auth.Application/Groups/`
 - `src/api/Modules/Resumes/Faber.Modules.Resumes.Application/Groups/`
+
+> The code under `src/api` still logs `[START]`/`[SUCCESS]`/`[HTTP …]` lines until the sweeps (#119, #120, #115) remove them. Mirror its structure, not its logging: follow `## Logging` in `.agents/rules/backend-patterns.md`.
 
 ---
 
@@ -81,42 +83,42 @@ constructor dependencies for async rules (`MustAsync`).
 
 ```csharp
 // {Feature}CommandHandler.cs — ICommandHandler<TCommand, TResponse>
-public class CreateEducationCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateEducationCommandHandler> logger)
+public class CreateEducationCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateEducationCommand, ErrorOr<CreateEducationResponse>>
 {
-    private const string HandlerName = nameof(CreateEducationCommandHandler);
-
     public async Task<ErrorOr<CreateEducationResponse>> ExecuteAsync(
         CreateEducationCommand command,
         CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes.FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
         // ... create and save the entity ...
 
-        logger.LogInformation("[SUCCESS] {HandlerName} | Education {EducationId} created", HandlerName, education.Id);
         return education.MapToResponse();
     }
 }
 ```
 
-**Structured logging convention:**
-- `[START]` — handler begins
-- `[STEP]` — significant intermediate step
-- `[FAIL]` — business logic failure (Warning level)
-- `[SUCCESS]` — happy path completed
+**Logging** (full rule: `.agents/rules/backend-patterns.md`, `## Logging`):
+- Endpoints do not log; the request pipeline records method, path, status and duration.
+- Handlers log only work with external systems (Keycloak, cache, background sweeps, erasure) and unexpected failures.
+- Expected results (`NotFound`, validation) are returned, not logged as warnings.
+- No `[START]`/`[SUCCESS]`/`[STEP]`/`[FAIL]`/`[HTTP ...]` markers. Never log credentials, tokens or e-mail addresses.
 
-Never log credentials, tokens or e-mail addresses.
+A log that is wanted (a handler whose external call failed, from `LogoutCommandHandler`):
+
+```csharp
+if (!await keycloak.LogoutAsync(command.RefreshToken, ct))
+{
+    logger.LogWarning("Keycloak did not end its session");
+    return Error.Failure("Auth.Logout", "Keycloak did not end its session.");
+}
+```
 
 ### Mapper
 
@@ -137,7 +139,7 @@ public static class CreateEducationMapper
 
 ```csharp
 // {Feature}Endpoint.cs — Endpoint<TRequest, TResponse>
-public class CreateEducationEndpoint(ILogger<CreateEducationEndpoint> logger)
+public class CreateEducationEndpoint
     : Endpoint<CreateEducationRequest, Results<Ok<CreateEducationResponse>, NotFound>>
 {
     public override void Configure()
@@ -153,18 +155,13 @@ public class CreateEducationEndpoint(ILogger<CreateEducationEndpoint> logger)
         CreateEducationRequest req,
         CancellationToken ct)
     {
-        var path = HttpContext.Request.Path.Value;
-        logger.LogInformation("[HTTP POST] {Path} started", path);
-
         var result = await req.MapToCommand().ExecuteAsync(ct);
 
         if (result.IsError)
         {
-            logger.LogWarning("[HTTP POST] {Path} failed: {Error}", path, result.FirstError.Description);
             return TypedResults.NotFound();
         }
 
-        logger.LogInformation("[HTTP POST] {Path} completed successfully", path);
         return TypedResults.Ok(result.Value);
     }
 }
@@ -202,7 +199,7 @@ public sealed class EducationsSubGroup : SubGroup<ResumesGroup>
 }
 
 // Endpoint uses the sub-group
-public class DeleteEducationEndpoint(ILogger<DeleteEducationEndpoint> logger)
+public class DeleteEducationEndpoint
     : Endpoint<DeleteEducationRequest, Results<NoContent, NotFound>>
 {
     public override void Configure()
@@ -399,6 +396,6 @@ Real test patterns in Faber:
 | Static `Mapper` extension methods | AutoMapper or inline mapping |
 | `ICommand<ErrorOr<T>>` + `ICommandHandler<,>` | Services with multiple methods |
 | `TypedResults.*` for type-safe responses | `Results.Ok(...)` untyped |
-| `[START]`/`[STEP]`/`[FAIL]`/`[SUCCESS]` log pattern | Free-form log messages |
+| Free-form log messages, only for external-system work and unexpected failures | `[START]`/`[STEP]`/`[FAIL]`/`[SUCCESS]`/`[HTTP ...]` markers, logs in endpoints |
 | Groups/SubGroups for route organisation | Hard-coding full routes in endpoints |
 | Let FastEndpoints/auth middleware produce validation and policy errors | Adding fake `BadRequest`/`Forbidden` results just to mirror framework behavior |

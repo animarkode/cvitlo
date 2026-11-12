@@ -20,7 +20,7 @@ A skill stays only if it:
 
 Project-authored skills have plain, general names that say what they cover: `fastendpoints`,
 `error-or`, `feature-template`, `keycloak`, `backend-patterns`, `github-workflow`,
-`implement-issue`. There is no project prefix. A `faber-` prefix was tried and dropped because the
+`implement-issue`, `code-comments`. There is no project prefix. A `faber-` prefix was tried and dropped because the
 names read worse and the repo already scopes them. Agents keep `faber-implementer` and
 `faber-reviewer`, because plugin agents such as `code-reviewer` would otherwise collide with them.
 
@@ -91,8 +91,9 @@ project skill is named, check that no vendored or plugin skill uses the same nam
 | 55 | `ub-mode` | unclebob/ub-mode (Robert C. Martin) | MIT | adopt | user-invocable-only | Its `crapper`, `dryer` and `mutator` tools are not .NET; follow-up |
 | 56 | `skill-creator` | anthropics/skills | Apache-2.0 (LICENSE.txt in the skill directory; the repo has no top-level license) | adopt | user-invocable-only | Vendored so Codex and Junie get it too |
 | 57 | `simplify` | Claude Code built-in | — | keep | on | |
+| 58 | `code-comments` | Faber | Apache-2.0 | add | name-only | Replaces `csharp-docs` (#113): the commenting rule with examples from this repo, used for sweeps and review |
 
-Result: 39 project skills plus the built-in `simplify`. The other built-ins (`update-config`,
+Result: 40 project skills plus the built-in `simplify`. The other built-ins (`update-config`,
 `keybindings-help`, `fewer-permission-prompts`, `loop`, `schedule`, `claude-api`, `init`, `review`,
 `security-review`) stay `user-invocable-only`.
 
@@ -170,7 +171,7 @@ Chosen over `Should_When`, `Given_When_Then` and plain sentences because it is t
 | Step | Owner |
 |---|---|
 | Triage and tier | `/implement-issue <N>` (tiers 1-3) |
-| Plan (tier 2-3) | The session writes `.claude/plans/{YYYY-MM-DD}-{issue}-{slug}.md` (gitignored; replaces `docs/plans/`, which #113 deletes). Optional `/grill-me` stress-tests the plan; `superpowers:brainstorming` only at tier 3 when scope is ambiguous |
+| Plan (tier 2-3) | The session writes `.claude/plans/{YYYY-MM-DD}-{issue}-{slug}.md` (gitignored; replaced `docs/plans/`, deleted in #113). Optional `/grill-me` stress-tests the plan; `superpowers:brainstorming` only at tier 3 when scope is ambiguous |
 | Approval | The user, explicitly |
 | Implementation | One `faber-implementer` subagent per task, foreground, in order |
 | Review | Tier 2: the session reviews each diff. Tier 3: `faber-reviewer` per task plus a fix loop |
