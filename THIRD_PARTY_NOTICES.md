@@ -5,7 +5,7 @@ Faber's original source code and project-authored assets are licensed under the
 third-party material identified below. Each third-party component remains
 subject to its upstream terms.
 
-This inventory was verified against the upstream repositories on 2026-09-09.
+This inventory was verified against the upstream repositories on 2026-11-12.
 `skills-lock.json` records source repositories and content hashes, but does not
 record upstream commit revisions. The immutable links below therefore document
 the upstream license state observed during this review; maintainers must repeat
@@ -20,12 +20,14 @@ directory, rather than a redistributed second copy. The
 
 | Upstream source | Bundled skill directories | Terms and attribution | Publication status |
 |---|---|---|---|
-| [aaronontheweb/dotnet-skills](https://github.com/Aaronontheweb/dotnet-skills) | `aspire-configuration`, `aspire-integration-testing`, `aspire-service-defaults`, `dependency-injection-patterns`, `efcore-patterns`, `mailpit-integration`, `microsoft-extensions-configuration`, `modern-csharp-coding-standards`, `opentelemetry-net-instrumentation`, `testcontainers-integration-tests` | [MIT](https://github.com/Aaronontheweb/dotnet-skills/blob/13e26d39ed01d97ea592235d041304d289f4ba07/LICENSE), Copyright (c) 2025 Aaron Stannard | Allowed with the MIT notice retained below. |
+| [aaronontheweb/dotnet-skills](https://github.com/Aaronontheweb/dotnet-skills) | `aspire-configuration`, `aspire-integration-testing`, `aspire-service-defaults`, `dependency-injection-patterns`, `efcore-patterns`, `mailpit-integration`, `microsoft-extensions-configuration`, `modern-csharp-coding-standards`, `opentelemetry-net-instrumentation`, `slopwatch`, `testcontainers-integration-tests` | [MIT](https://github.com/Aaronontheweb/dotnet-skills/blob/13e26d39ed01d97ea592235d041304d289f4ba07/LICENSE), Copyright (c) 2025 Aaron Stannard | Allowed with the MIT notice retained below. |
+| [anthropics/skills](https://github.com/anthropics/skills) | `skill-creator` | [Apache-2.0](https://github.com/anthropics/skills/blob/2c5958ecac7cee2b583967a2c4981d0f4a75c579/skills/skill-creator/LICENSE.txt) | Allowed under Apache-2.0; the license text is kept in the skill directory. |
 | [analogjs/angular-skills](https://github.com/analogjs/angular-skills) | `angular-component`, `angular-di`, `angular-http`, `angular-routing`, `angular-signals`, `angular-testing`, `angular-tooling` | [MIT](https://github.com/analogjs/angular-skills/blob/18996fd1b2bf663c978065a8d5417393e72ccc6a/LICENSE), Copyright (c) 2026 Brandon Roberts | Allowed with the MIT notice retained below. |
 | [dotnet/skills](https://github.com/dotnet/skills) | `optimizing-ef-core-queries` | [MIT](https://github.com/dotnet/skills/blob/c4a3f7ad4fd8fb50c02a42a6375c0aba4f92e9f7/LICENSE), Copyright (c) .NET Foundation and Contributors | Allowed with the MIT notice retained below. |
 | [github/awesome-copilot](https://github.com/github/awesome-copilot) | `aspire` | [MIT](https://github.com/github/awesome-copilot/blob/7568a482ce2df38f8965ab5336a3220db796a4ba/LICENSE), Copyright GitHub, Inc. | Allowed with the MIT notice retained below. |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | `tdd` | [MIT](https://github.com/mattpocock/skills/blob/3cca18b368ae95cdbdebbff572ccafa662551015/LICENSE), Copyright (c) 2026 Matt Pocock | Allowed with the MIT notice retained below. |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | `codebase-design`, `grill-me`, `grilling`, `improve-codebase-architecture`, `tdd` | [MIT](https://github.com/mattpocock/skills/blob/3cca18b368ae95cdbdebbff572ccafa662551015/LICENSE), Copyright (c) 2026 Matt Pocock | Allowed with the MIT notice retained below. |
 | [microsoft/aspire-skills](https://github.com/microsoft/aspire-skills) | `aspire-deployment`, `aspire-monitoring`, `aspire-orchestration` | [MIT](https://github.com/microsoft/aspire-skills/blob/1117facb04b403dd2fc15f048bc0e63fc67c502f/LICENSE), Copyright (c) Microsoft Corporation | Allowed with the MIT notice retained below. |
+| [unclebob/ub-mode](https://github.com/unclebob/ub-mode) | `ub-mode` | [MIT](https://github.com/unclebob/ub-mode/blob/3da62bf3fcfd2034de41f30d920d2739e566171f/LICENSE), Copyright (c) 2026 Robert C. Martin | Allowed with the MIT notice retained below. |
 | [vercel-labs/skills](https://github.com/vercel-labs/skills) | `find-skills` | [MIT](https://github.com/vercel-labs/skills/blob/80feb48868972d518436f26711509bc78595b5cb/LICENSE), Copyright (c) 2026 Vercel, Inc. | Allowed with the MIT notice retained below. |
 | [wshobson/agents](https://github.com/wshobson/agents) | `tailwind-design-system` | [MIT](https://github.com/wshobson/agents/blob/a30778f8c4e6b0a87567941b7cca4f534bf642b6/LICENSE), Copyright (c) 2024 Seth Hobson | Allowed with the MIT notice retained below. |
 
