@@ -228,9 +228,7 @@ Patterns in repo:
 Use `DbContext` directly in handlers. No repository layer over EF Core.
 
 ```csharp
-public class DeleteEducationCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<DeleteEducationCommandHandler> logger)
+public class DeleteEducationCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<DeleteEducationCommand, ErrorOr<bool>>
 {
     public async Task<ErrorOr<bool>> ExecuteAsync(DeleteEducationCommand command, CancellationToken ct)

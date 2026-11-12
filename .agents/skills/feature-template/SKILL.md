@@ -162,31 +162,21 @@ Real Faber patterns:
 // {Feature}CommandHandler.cs
 namespace Faber.Modules.Resumes.Application.Features.Educations.DeleteEducation;
 
-public class DeleteEducationCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<DeleteEducationCommandHandler> logger)
+public class DeleteEducationCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<DeleteEducationCommand, ErrorOr<bool>>
 {
-    private const string HandlerName = nameof(DeleteEducationCommandHandler);
-
     public async Task<ErrorOr<bool>> ExecuteAsync(DeleteEducationCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for {EducationId}", HandlerName, command.Id);
-
         var education = await dbContext.Educations
             .FirstOrDefaultAsync(e => e.Id == command.Id && e.ResumeId == command.ResumeId, ct);
 
         if (education is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Education {EducationId} not found", HandlerName, command.Id);
-
             return Error.NotFound("Education.NotFound", $"Education with id '{command.Id}' was not found");
         }
 
         dbContext.Educations.Remove(education);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation("[SUCCESS] {HandlerName} | Education {EducationId} deleted", HandlerName, command.Id);
 
         return true;
     }
@@ -207,7 +197,7 @@ Handler guidance:
 // {Feature}Endpoint.cs
 namespace Faber.Modules.Resumes.Application.Features.Educations.DeleteEducation;
 
-public class DeleteEducationEndpoint(ILogger<DeleteEducationEndpoint> logger)
+public class DeleteEducationEndpoint
     : Endpoint<DeleteEducationRequest, Results<NoContent, NotFound>>
 {
     public override void Configure()
@@ -222,19 +212,12 @@ public class DeleteEducationEndpoint(ILogger<DeleteEducationEndpoint> logger)
         DeleteEducationRequest req,
         CancellationToken ct)
     {
-        var path = HttpContext.Request.Path.Value;
-        logger.LogInformation("[HTTP DELETE] {Path} started", path);
-
         var result = await req.MapToCommand().ExecuteAsync(ct);
 
         if (result.IsError)
         {
-            logger.LogWarning("[HTTP DELETE] {Path} failed: {Error}", path, result.FirstError.Description);
-
             return TypedResults.NotFound();
         }
-
-        logger.LogInformation("[HTTP DELETE] {Path} completed successfully", path);
 
         return TypedResults.NoContent();
     }
@@ -353,7 +336,7 @@ Most new features inside an existing module do **not** require `DependencyInject
 - [ ] Command implements `ICommand<ErrorOr<T>>`
 - [ ] Handler implements `ICommandHandler<TCommand, ErrorOr<T>>`
 - [ ] Endpoint uses correct Group and HTTP verb
-- [ ] Logging uses `[START]`/`[STEP]`/`[FAIL]`/`[SUCCESS]` pattern
+- [ ] Endpoint does not log; handler logs only external-system work and unexpected failures
 - [ ] Build passes: `dotnet build src/api/Faber.Api/Faber.Api.csproj`
 - [ ] Endpoint appears in Swagger/Scalar: check `/swagger` or `/scalar/v1`
 - [ ] Integration test added in `tests/Integration/Modules/{Module}/` when that module already has test coverage infrastructure
