@@ -171,7 +171,7 @@ Chosen over `Should_When`, `Given_When_Then` and plain sentences because it is t
 | Step | Owner |
 |---|---|
 | Triage and tier | `/implement-issue <N>` (tiers 1-3) |
-| Plan (tier 2-3) | The session writes `.claude/plans/{YYYY-MM-DD}-{issue}-{slug}.md` (gitignored; replaces `docs/plans/`, which #113 deletes). Optional `/grill-me` stress-tests the plan; `superpowers:brainstorming` only at tier 3 when scope is ambiguous |
+| Plan (tier 2-3) | The session writes `.claude/plans/{YYYY-MM-DD}-{issue}-{slug}.md` (gitignored; replaced `docs/plans/`, deleted in #113). Optional `/grill-me` stress-tests the plan; `superpowers:brainstorming` only at tier 3 when scope is ambiguous |
 | Approval | The user, explicitly |
 | Implementation | One `faber-implementer` subagent per task, foreground, in order |
 | Review | Tier 2: the session reviews each diff. Tier 3: `faber-reviewer` per task plus a fix loop |
