@@ -26,6 +26,13 @@ Features/{Feature}/
 - `{Module}.Application` — `{Module}ModuleApi` implementation, features, groups
 - Groups: `Groups/{Module}Group.cs` — extends FastEndpoints `Group`
 
+**Module shape (not every module fits the four-project template):**
+- `Documents` and `Notifications` are small integration-style modules with no Domain or Infrastructure project.
+- `Auth` has no Domain project: its persisted types (sessions, keys) are infrastructure.
+- `Resumes` and `Auth` read required configuration at registration and fail on start when it is missing.
+- Existing project references are not perfectly pure: prefer `PublicApi` boundaries and check neighbouring precedent first.
+- A module that owns a `DbContext` must also be registered with `Faber.Migrations` (see `docs/operations/migrations.md`).
+
 ## Naming Conventions
 
 | Concept            | Pattern                                    | Example                                    |
@@ -52,7 +59,24 @@ Features/{Feature}/
 
 **Test class pattern:** `[Collection<CollectionResumes>] [Priority(N)] public class {Feature}Tests(WebApp app) : TestBase`
 
-**Test method naming:** `{Scenario}_Should{Outcome}` (e.g. `EmptyUsername_ShouldReturnBadRequest`)
+**Test naming:**
+- **Class:** `{Subject}Tests`, where the subject is what is tested: a feature, a production class, a behaviour, or a configuration (`UpdateSkillTests`, `ResumesCacheKeysTests`, `SessionResilienceTests`, `RealmSecurityTests`).
+- **Method:** `{Subject}_{Condition}_Should{Outcome}`
+  - Subject: what acts — the endpoint action, the method, the actor, or the configured part.
+  - Condition: in which case. Always written, the happy path included (`ValidRequest`).
+  - Outcome: what must happen, after `Should`.
+  - Leave out `{Condition}` only when the outcome holds unconditionally (configuration and invariant tests).
+
+| Subject | Example |
+|---|---|
+| Feature | `UpdateSkillTests.UpdateSkill_NoToken_ShouldReturnUnauthorized` |
+| Feature, happy path | `UpdateSkillTests.UpdateSkill_ValidRequest_ShouldModifyFields` |
+| Production class | `ResumesCacheKeysTests.Pdf_AcronymInTemplateName_ShouldKeepAcronymTogether` |
+| Behaviour | `SessionResilienceTests.Refresh_KeycloakTimesOut_ShouldKeepTheSession` |
+| Configuration | `RealmSecurityTests.WebClient_ShouldRequirePkce` |
+
+- **No `DisplayName`** on `[Fact]`/`[Theory]`: the method name is the only name (a second name drifts; `-method`/`--filter` match the method name; xUnit shows `[Theory]` row values).
+- Existing tests are migrated to this rule in #118; rationale in `docs/decisions/agent-skills.md`.
 
 **Test file structure:** `Features/{Feature}/{Feature}Tests.cs`, `{Feature}Constants.cs` (imported via `using static`), `Data/{Description}Data.cs` + `{Feature}Faker.cs`
 
@@ -67,4 +91,4 @@ Features/{Feature}/
 - `CancellationToken` via `TestContext.Current.CancellationToken`
 
 ---
-Expanded guidance and examples: `dotnet-backend-patterns`, `fastendpoints`, `errorOr-patterns`.
+Expanded guidance and examples: `backend-patterns`, `fastendpoints`, `error-or`.

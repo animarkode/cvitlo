@@ -355,7 +355,7 @@ This is equivalent to resolving the handler from DI and calling it directly.
 Use FastEndpoints.Testing helpers:
 
 ```csharp
-// A Keycloak access token for a fixture user (bearer path; see keycloak-aspnet-integration)
+// A Keycloak access token for a fixture user (bearer path; see keycloak)
 var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
 
 // POST with typed request/response

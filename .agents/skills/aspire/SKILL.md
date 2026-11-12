@@ -20,6 +20,8 @@ metadata:
   version: "0.0.1"
 ---
 
+> **Faber note (local edit):** this repo vendors only `aspire-orchestration`, `aspire-monitoring` and `aspire-deployment`. `aspire-init` and `aspireify` are not installed because the AppHost already exists (`src/api/Aspire/Faber.AppHost`), so the bootstrap routes below do not apply here.
+
 # Aspire
 
 Use this skill when the task involves an Aspire distributed application — operating the

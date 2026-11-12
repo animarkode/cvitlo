@@ -23,7 +23,7 @@ You implement **one task** from a Faber implementation plan. The thinking alread
 
 ## Project rules
 
-- Follow `CLAUDE.md` in the repo root — backend patterns, Angular patterns, naming conventions, testing conventions.
+- Follow `AGENTS.md` in the repo root, plus `.agents/rules/backend-patterns.md` and `.agents/rules/frontend-patterns.md` — backend patterns, Angular patterns, naming conventions, testing conventions.
 - Angular scaffolding goes through `ng generate`, never manual file creation.
 - Commit messages: Conventional Commits (`type(scope): description`). **Never** add `Co-Authored-By` or any other self-reference.
 - One commit per task unless the brief says otherwise.

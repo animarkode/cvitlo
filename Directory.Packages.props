@@ -18,10 +18,10 @@
 
   <!-- Aspire: moves together with the Aspire.AppHost.Sdk attribute in Faber.AppHost.csproj -->
   <ItemGroup>
-    <PackageVersion Include="Aspire.Hosting" Version="13.5.3" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.5.3" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.5.3" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.3" />
+    <PackageVersion Include="Aspire.Hosting" Version="13.6.5" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.6.5" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.6.5" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.6.5" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.MailPit" Version="13.5.0" />
   </ItemGroup>
 

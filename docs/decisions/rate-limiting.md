@@ -301,7 +301,7 @@ OpenTelemetry — the middleware provides all of these and keeps limits config-t
 
 **Decision: in-memory (per-instance) limiters for now; Redis-backed distributed limiting deferred.**
 
-- Production currently runs a **single API replica** (see the production compose flow in CLAUDE.md),
+- Production currently runs a **single API replica** (see the deploy-time flow in `docs/operations/migrations.md`),
   so per-instance counters are exact today.
 - `System.Threading.RateLimiting` has **no official Redis store**; a distributed limiter means either
   the community `RedisRateLimiting` package or custom Lua scripts — extra dependency, extra failure
