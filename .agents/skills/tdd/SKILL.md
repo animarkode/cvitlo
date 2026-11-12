@@ -89,7 +89,7 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 
 - [ ] Extract duplication in test helpers
 - [ ] Simplify mappers and command handlers
-- [ ] Apply patterns from CLAUDE.md (ErrorOr, guard clauses, static mappers)
+- [ ] Apply patterns from AGENTS.md and `.agents/rules/backend-patterns.md` (ErrorOr, guard clauses, static mappers)
 - [ ] Consider what new code reveals about existing code
 - [ ] Run tests after each refactor step
 

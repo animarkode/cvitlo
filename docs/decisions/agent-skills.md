@@ -79,7 +79,7 @@ be in `skills-lock.json`.
 | 47 | `tdd` | mattpocock/skills | MIT | keep | on | |
 | 48 | `testcontainers-integration-tests` | aaronontheweb/dotnet-skills | MIT | keep | name-only | |
 | 49 | `vertical-slice` | codewithmukesh/dotnet-claude-kit | MIT | drop | — | Built on MediatR; `faber-feature-template` covers slices |
-| 50 | `slopwatch` | aaronontheweb/dotnet-skills | MIT | adopt | name-only | Catches disabled tests, suppressed warnings, empty catches; the `Slopwatch.Cmd` tool is a follow-up |
+| 50 | `dotnet-slopwatch` | aaronontheweb/dotnet-skills | MIT | adopt | name-only | Catches disabled tests, suppressed warnings, empty catches; the `Slopwatch.Cmd` tool is a follow-up |
 | 51 | `grilling` | mattpocock/skills | MIT | adopt | name-only | Stress-tests a plan in numbered rounds |
 | 52 | `grill-me` | mattpocock/skills | MIT | adopt | user-invocable-only | `/grill-me` entry to `grilling` |
 | 53 | `codebase-design` | mattpocock/skills | MIT | adopt | name-only | Deep-module vocabulary |
@@ -115,7 +115,7 @@ none of its skills, agents or commands can be vendored: skills `dotnet-xunit`,
 From the MIT upstream `aaronontheweb/dotnet-skills`:
 
 - `testcontainers`: already have it.
-- `slopwatch`: adopted.
+- `slopwatch`: adopted as `dotnet-slopwatch`, its upstream name.
 - `project-structure`: rejected. It teaches SourceLink and `RELEASE_NOTES.md`; we use release-please.
 
 Other rejected candidates:
@@ -175,6 +175,15 @@ Chosen over `Should_When`, `Given_When_Then` and plain sentences because it is t
 
 Not used: the wshaddix agents and commands (no license). The other superpowers execution skills are
 not part of this path.
+
+## Vendored skills
+
+- Vendored skills keep their upstream name, so `skills update` never renames a dir that `.claude/settings.json` points at. `opentelemetry-net-instrumentation` is the one old exception: its frontmatter says `OpenTelemetry-NET-Instrumentation`.
+- A local edit to a vendored skill is allowed only when it points the skill at this repo. Every one is listed here and must be re-applied after an update. The lock hash covers the local files.
+  - `tdd`: the refactor checklist points at `AGENTS.md` and `.agents/rules/backend-patterns.md`.
+  - `aspire`: a note under the frontmatter says that `aspire-init` and `aspireify` are not vendored.
+- `aspire-deployment`, `aspire-monitoring` and `aspire-orchestration` were refreshed to `microsoft/aspire-skills` HEAD (2026-11-12) when they joined the lock. The new content adds deployment targets such as Radius. We don't use them, and `aspire-deployment` stays `user-invocable-only`.
+- Known upstream issue: `skill-creator/eval-viewer/generate_review.py` serves `POST /api/feedback` on 127.0.0.1 with no Host or Origin check. A page open in the same browser during an eval review could overwrite that run's `feedback.json`. It is not patched locally, because that would break the lock hash. Report it upstream.
 
 ## Single source of truth
 

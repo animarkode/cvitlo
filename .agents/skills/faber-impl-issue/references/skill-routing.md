@@ -10,7 +10,7 @@ Read when composing a task brief. Pick from the rows the task actually touches, 
 | `area:resumes` | `faber-feature-template`, `faber-backend-patterns`, `faber-fastendpoints`, `faber-erroror`, `efcore-patterns` | Add `angular-*` rows below when the slice is full-stack |
 | `area:notifications` | `mailpit-integration`, `faber-backend-patterns` | |
 | `area:infra` | `aspire`, `aspire-configuration`, `aspire-service-defaults` | Ports are hard-pinned in `AppHost/Program.cs` |
-| `area:tests-infra` | `tdd`, `testcontainers-integration-tests`, `aspire-integration-testing`, `slopwatch` | `faber-testing` replaces this row after #118 |
+| `area:tests-infra` | `tdd`, `testcontainers-integration-tests`, `aspire-integration-testing`, `dotnet-slopwatch` | `faber-testing` replaces this row after #118 |
 
 | Label | Frontend skills |
 |---|---|
@@ -22,7 +22,7 @@ Read when composing a task brief. Pick from the rows the task actually touches, 
 
 - New module from scratch → `docs/operations/migrations.md` (DbContext registration) and `.agents/rules/backend-patterns.md`.
 - Refactor or module redesign → `codebase-design` (vocabulary); `/improve-codebase-architecture` is user-invoked.
-- After a .NET change → `slopwatch`.
+- After a .NET change → `dotnet-slopwatch`.
 - Any new .NET feature or bug fix → `tdd`, ahead of the domain skills.
 - A task that only edits markdown, config, or CI → `None`.
 

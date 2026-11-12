@@ -46,7 +46,7 @@
       "source": "github/awesome-copilot",
       "sourceType": "github",
       "skillPath": "skills/aspire/SKILL.md",
-      "computedHash": "aa502e4ff4c9cb28baa2c9ebd14b48fe7ed572fd291a9e24cda5226654413903"
+      "computedHash": "991ad9826bc999df164bd3c879a030d51e9b4049117eacd82d4a966e2acf624f"
     },
     "aspire-configuration": {
       "source": "aaronontheweb/dotnet-skills",
@@ -117,7 +117,7 @@
     "tdd": {
       "source": "mattpocock/skills",
       "sourceType": "github",
-      "computedHash": "ad055544599481182d0079c4198e85da26677cb408a677be2da04915375f0427"
+      "computedHash": "0a5d2c7f8b3ddc6501a62b818f83dc3dc898163b420e15ab4ebf95513b986281"
     },
     "testcontainers-integration-tests": {
       "source": "aaronontheweb/dotnet-skills",
@@ -143,11 +143,11 @@
       "skillPath": "skills/aspire-orchestration/SKILL.md",
       "computedHash": "c0a9fd45949cd861e84c1960215054bbeb8653ff479c53fecf2bafe6e2bb0801"
     },
-    "slopwatch": {
+    "dotnet-slopwatch": {
       "source": "aaronontheweb/dotnet-skills",
       "sourceType": "github",
       "skillPath": "skills/slopwatch/SKILL.md",
-      "computedHash": "703a5e1c602a1e56e61bc0c3a1a4df678495c0d5d3abc3e2a52a0ac8a0491c57"
+      "computedHash": "be63dff3c35924c0020ea55cde5d022eab0062703764cbfe86745eeb96ba355b"
     },
     "grilling": {
       "source": "mattpocock/skills",
