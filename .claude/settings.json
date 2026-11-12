@@ -8,7 +8,6 @@
     "angular-testing": "on",
     "faber-erroror": "on",
     "faber-feature-template": "on",
-    "faber-module-bootstrapping": "on",
     "faber-fastendpoints": "on",
     "faber-keycloak": "on",
     "tdd": "on",

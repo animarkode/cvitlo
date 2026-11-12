@@ -26,6 +26,13 @@ Features/{Feature}/
 - `{Module}.Application` — `{Module}ModuleApi` implementation, features, groups
 - Groups: `Groups/{Module}Group.cs` — extends FastEndpoints `Group`
 
+**Module shape (not every module fits the four-project template):**
+- `Documents` and `Notifications` are small integration-style modules with no Domain or Infrastructure project.
+- `Auth` has no Domain project: its persisted types (sessions, keys) are infrastructure.
+- `Resumes` and `Auth` read required configuration at registration and fail on start when it is missing.
+- Existing project references are not perfectly pure: prefer `PublicApi` boundaries and check neighbouring precedent first.
+- A module that owns a `DbContext` must also be registered with `Faber.Migrations` (see `docs/operations/migrations.md`).
+
 ## Naming Conventions
 
 | Concept            | Pattern                                    | Example                                    |

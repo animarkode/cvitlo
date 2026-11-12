@@ -20,7 +20,7 @@ Read when composing a task brief. Pick from the rows the task actually touches, 
 
 ## Cross-cutting
 
-- New module from scratch → `faber-module-bootstrapping` (not `faber-feature-template`).
+- New module from scratch → `docs/operations/migrations.md` (DbContext registration) and `.agents/rules/backend-patterns.md`.
 - New public/internal C# types → `csharp-docs`.
 - Any new .NET feature or bug fix → `tdd`, ahead of the domain skills.
 - A task that only edits markdown, config, or CI → `None`.

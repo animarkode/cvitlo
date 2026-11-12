@@ -20,7 +20,6 @@ Use the `Skill` tool to invoke these when relevant:
 | `faber-fastendpoints` | Before creating any new Endpoint, Group, or Validator |
 | `faber-erroror` | When working with ErrorOr, mapping errors to HTTP responses |
 | `faber-feature-template` | When adding a new feature to an existing module |
-| `faber-module-bootstrapping` | When creating a new module from scratch |
 | `faber-keycloak` | When working with sign-in, sessions or the Keycloak realm config |
 | `faber-impl-issue` | `/faber-impl-issue <number>` — implement a GitHub issue end-to-end, sized to the issue (user-invoked only) |
 

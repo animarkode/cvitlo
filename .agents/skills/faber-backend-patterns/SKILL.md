@@ -10,7 +10,7 @@ Faber is a **modular monolith with vertical slices** on ASP.NET Core + FastEndpo
 > For endpoint specifics, use `faber-fastendpoints`.
 > For result mapping, use `faber-erroror`.
 > For new feature scaffolding, use `faber-feature-template`.
-> For new module creation, use `faber-module-bootstrapping`.
+> For a new module's DbContext registration, see `docs/operations/migrations.md`.
 
 Canonical sources to mirror before changing backend code:
 - `CLAUDE.md`

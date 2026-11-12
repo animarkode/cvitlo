@@ -77,7 +77,7 @@ adding a migration. Schemas owned outside EF Core, such as Keycloak's, are decla
 AppHost and created by the same service (`Migrations:ExternalSchemas`).
 
 Full deploy-time flow and the procedure for registering a new module `DbContext` live
-in `.agents/skills/faber-module-bootstrapping/SKILL.md`.
+in `docs/operations/migrations.md`.
 
 ## Skills
 
@@ -89,7 +89,6 @@ plain Markdown, no special tooling required:
 | Creating any Endpoint, Group, or Validator | `.agents/skills/faber-fastendpoints/SKILL.md` |
 | Working with ErrorOr, mapping errors to HTTP responses | `.agents/skills/faber-erroror/SKILL.md` |
 | Adding a feature to an existing module | `.agents/skills/faber-feature-template/SKILL.md` |
-| Creating a new module from scratch | `.agents/skills/faber-module-bootstrapping/SKILL.md` |
 | Sign-in, sessions, the realm config / Keycloak | `.agents/skills/faber-keycloak/SKILL.md` |
 | Implementing a GitHub issue end-to-end | `.agents/skills/faber-impl-issue/SKILL.md` |
 | Creating/labeling issues, opening PRs, handling a release | `.agents/skills/faber-github-workflow/SKILL.md` |
