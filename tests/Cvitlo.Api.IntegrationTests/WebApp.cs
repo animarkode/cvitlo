@@ -64,6 +64,7 @@ public class WebApp : AppFixture<Program>
         builder.ConfigureServices(services =>
         {
             services.AddTransient<IStartupFilter, TestClientIpStartupFilter>();
+            services.AddTransient<IStartupFilter, TestThrowingRoutesStartupFilter>();
             services.AddSingleton<GatedDocumentsModuleApi>();
             services.AddScoped<IDocumentsModuleApi>(sp => sp.GetRequiredService<GatedDocumentsModuleApi>());
         });
