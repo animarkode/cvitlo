@@ -403,6 +403,30 @@ public class UpdatePersonTests(WebApp app) : TestBase
         getResponse.Street!.Length.ShouldBe(100);
     }
 
+    [Fact]
+    [Priority(11)]
+    public async Task UpdatePerson_ValidRequest_ShouldNotLogContactDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var person = await CreatePersonAsync(accessToken, resume.Id);
+        var marker = Guid.NewGuid().ToString("N");
+        var changed = new CreatePersonRequestFaker(resume.Id, 12902).Generate();
+
+        var updateResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
+                new UpdatePersonRequest(
+                    person.Id, resume.Id, changed.JobTitle, changed.Firstname, changed.Lastname,
+                    $"{marker}@pii.example", $"phone-{marker}", changed.Country, changed.City,
+                    $"street-{marker}", changed.PostCode, changed.Nationality, changed.DateOfBirth,
+                    changed.DrivingLicense));
+
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        app.Logs.Entries.Where(e => e.Contains(marker, StringComparison.Ordinal)).ShouldBeEmpty();
+    }
+
     private async Task<CreatePersonResponse> CreatePersonAsync(string accessToken, Guid resumeId, int seed = ResumesTestConstants.PersonSeed)
     {
         var (_, response) = await app.Client

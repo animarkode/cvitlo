@@ -225,4 +225,27 @@ public class CreatePersonTests(WebApp app) : TestBase
         response.Email.ShouldBeNull();
         response.Firstname.ShouldBeNull();
     }
+
+    [Fact]
+    [Priority(10)]
+    public async Task CreatePerson_ValidRequest_ShouldNotLogContactDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var marker = Guid.NewGuid().ToString("N");
+        var request = new CreatePersonRequestFaker(resume.Id).Generate() with
+        {
+            Email = $"{marker}@pii.example",
+            Phone = $"phone-{marker}",
+            Street = $"street-{marker}"
+        };
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(request);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        app.Logs.Entries.Where(e => e.Contains(marker, StringComparison.Ordinal)).ShouldBeEmpty();
+    }
 }
