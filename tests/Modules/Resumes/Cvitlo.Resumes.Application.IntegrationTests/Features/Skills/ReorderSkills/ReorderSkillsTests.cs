@@ -1,3 +1,4 @@
+using System.Text;
 using System.Net;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
 using Cvitlo.Resumes.Application.Features.Resumes.Shared;
@@ -173,6 +174,22 @@ public class ReorderSkillsTests(WebApp app) : TestBase
                 new ReorderSkillsRequest(resume.Id, new List<Guid> { ids[0], ids[1] }));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(Skip = "test-audit 06-B2: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; body {} answers 500 (NullReferenceException) instead of 400")]
+    [Priority(8)]
+    public async Task ReorderSkills_BodyWithoutOrderedIds_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        using var body = new StringContent("{}", Encoding.UTF8, "application/json");
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PutAsync($"api/v1/resumes/{resume.Id}/skills/reorder", body, ct);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     private async Task<List<Guid>> CreateSkillsAsync(string accessToken, Guid resumeId, int count)
