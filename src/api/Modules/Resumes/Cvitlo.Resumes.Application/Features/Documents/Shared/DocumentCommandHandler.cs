@@ -3,23 +3,16 @@ using Cvitlo.Resumes.Domain.Entities;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Documents.Shared;
 
-public class DocumentCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<DocumentCommandHandler> logger)
+public class DocumentCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<DocumentCommand, ErrorOr<Resume>>
 {
-    private const string HandlerName = nameof(DocumentCommandHandler);
-
     public async Task<ErrorOr<Resume>> ExecuteAsync(
         DocumentCommand command,
         CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .AsNoTracking()
             .Include(r => r.Person)
@@ -34,15 +27,8 @@ public class DocumentCommandHandler(
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Resume {ResumeId} loaded with all entities",
-            HandlerName,
-            command.ResumeId);
 
         return resume;
     }

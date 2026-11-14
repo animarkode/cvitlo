@@ -14,8 +14,6 @@ Canonical sources to mirror before generating new code:
 - `src/api/Modules/Auth/Cvitlo.Auth.Application/Groups/`
 - `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Groups/`
 
-> The code under `src/api` still logs `[START]`/`[SUCCESS]`/`[HTTP …]` lines until the sweeps (#119, #120, #115) remove them. Mirror its structure, not its logging: follow `## Logging` in `.agents/rules/backend-patterns.md`.
-
 ---
 
 ## 1. Full Feature Pipeline

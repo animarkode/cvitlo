@@ -4,28 +4,19 @@ using Cvitlo.Resumes.Domain.Entities;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Projects.CreateProject;
 
-public class CreateProjectCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateProjectCommandHandler> logger)
+public class CreateProjectCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateProjectCommand, ErrorOr<CreateProjectResponse>>
 {
-    private const string HandlerName = nameof(CreateProjectCommandHandler);
-
     public async Task<ErrorOr<CreateProjectResponse>> ExecuteAsync(CreateProjectCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
@@ -48,12 +39,6 @@ public class CreateProjectCommandHandler(
 
         dbContext.Projects.Add(project);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Project {ProjectId} created for resume {ResumeId}",
-            HandlerName,
-            project.Id,
-            command.ResumeId);
 
         return project.MapToResponse();
     }

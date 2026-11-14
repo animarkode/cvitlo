@@ -115,9 +115,22 @@ public sealed class KeycloakTokenClient(
             });
             using var response = await http.PostAsync(_options.LogoutEndpoint, form, ct);
 
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            // invalid_grant: the refresh token has expired, so the Keycloak session is already over.
+            var error = await ReadOAuthErrorAsync(response, ct);
+            if (!string.Equals(error, "invalid_grant", StringComparison.Ordinal))
+            {
+                logger.LogWarning("Keycloak refused to end a session with {StatusCode} {Error}", (int)response.StatusCode, error);
+            }
+
+            return false;
         }
-        catch (HttpRequestException exception)
+        catch (Exception exception) when (exception is HttpRequestException
+                                              || (exception is TaskCanceledException && !ct.IsCancellationRequested))
         {
             logger.LogWarning(exception, "Keycloak logout failed");
             return false;

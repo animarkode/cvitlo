@@ -1,23 +1,17 @@
 using ErrorOr;
 using Cvitlo.Auth.Application.Sessions;
 using FastEndpoints;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.Features.Account.UnlinkAccount;
 
 /// <summary>Unlinks a provider, unless it is the user's last way to sign in.</summary>
 public class UnlinkAccountCommandHandler(
     AccountSignInMethodsLock signInMethods,
-    KeycloakAccountClient keycloak,
-    ILogger<UnlinkAccountCommandHandler> logger)
+    KeycloakAccountClient keycloak)
     : ICommandHandler<UnlinkAccountCommand, ErrorOr<Success>>
 {
-    private const string HandlerName = nameof(UnlinkAccountCommandHandler);
-
     public async Task<ErrorOr<Success>> ExecuteAsync(UnlinkAccountCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName}", HandlerName);
-
         var result = await signInMethods.RemoveAsync(
             command.Subject,
             command.AccessToken,
@@ -27,11 +21,9 @@ public class UnlinkAccountCommandHandler(
 
         if (result.IsError)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, result.FirstError.Code);
             return result;
         }
 
-        logger.LogInformation("[SUCCESS] {HandlerName}", HandlerName);
         return Result.Success;
     }
 }

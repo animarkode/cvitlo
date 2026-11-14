@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.Features.Logout;
 
@@ -13,7 +12,7 @@ namespace Cvitlo.Auth.Application.Features.Logout;
 /// Signs the browser out: ends the Keycloak session, then deletes the server-side session and the cookie.
 /// The web session is deleted even when Keycloak cannot be reached, so the cookie is dead either way.
 /// </summary>
-public class LogoutEndpoint(ILogger<LogoutEndpoint> logger) : EndpointWithoutRequest<NoContent>
+public class LogoutEndpoint : EndpointWithoutRequest<NoContent>
 {
     public override void Configure()
     {
@@ -30,12 +29,7 @@ public class LogoutEndpoint(ILogger<LogoutEndpoint> logger) : EndpointWithoutReq
 
         if (session.Succeeded)
         {
-            var result = await new LogoutCommand(session.Properties.GetTokenValue("refresh_token")).ExecuteAsync(ct);
-            if (result.IsError)
-            {
-                logger.LogWarning("[HTTP POST] {Path}: {Error}", HttpContext.Request.Path.Value, result.FirstError.Description);
-            }
-
+            await new LogoutCommand(session.Properties.GetTokenValue("refresh_token")).ExecuteAsync(ct);
             await HttpContext.SignOutAsync(Authentication.AuthSchemes.Session);
         }
 
