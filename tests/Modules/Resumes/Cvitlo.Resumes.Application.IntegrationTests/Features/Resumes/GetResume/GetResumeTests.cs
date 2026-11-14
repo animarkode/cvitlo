@@ -18,8 +18,6 @@ public class GetResumeTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetResume_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(
                 new GetResumeRequest(Guid.NewGuid()));

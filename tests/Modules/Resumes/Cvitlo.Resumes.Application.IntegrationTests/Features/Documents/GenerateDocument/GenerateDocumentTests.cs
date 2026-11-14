@@ -19,8 +19,6 @@ public class GenerateDocumentTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GenerateDocument_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .POSTAsync<GenerateDocumentEndpoint, DocumentRequest, GenerateDocumentResponse>(
                 new DocumentRequest(Guid.NewGuid()));

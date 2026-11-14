@@ -47,4 +47,14 @@ public class CreateResumeTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Id.ShouldNotBe(Guid.Empty);
     }
+
+    [Fact]
+    public async Task CreateResume_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest, CreateResumeResponse>(
+                new CreateResumeRequest("en-us"));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
 }

@@ -19,8 +19,6 @@ public class UpdateTitleTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateTitle_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(
                 new UpdateTitleRequest(Guid.NewGuid(), "Title"));
@@ -103,5 +101,29 @@ public class UpdateTitleTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
 
         getResponse.Title.ShouldBe(string.Empty);
+    }
+
+    [Fact]
+    public async Task UpdateTitle_OtherUsersResume_ShouldReturnForbiddenAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var ownerToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var intruderToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, ownerToken, ct: ct);
+
+        var ownerUpdate = await app.Client
+            .WithAuthToken(ownerToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(new UpdateTitleRequest(resume.Id, "owner"));
+        ownerUpdate.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var intruderUpdate = await app.Client
+            .WithAuthToken(intruderToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(new UpdateTitleRequest(resume.Id, "intruder"));
+        intruderUpdate.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        var (_, stored) = await app.Client
+            .WithAuthToken(ownerToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
+        stored.Title.ShouldBe("owner");
     }
 }

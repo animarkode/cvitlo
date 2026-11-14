@@ -19,8 +19,6 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateHobbies_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateHobbiesEndpoint, UpdateHobbiesRequest>(
                 new UpdateHobbiesRequest(Guid.NewGuid(), "Hobbies"));
@@ -137,5 +135,29 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.Errors.ShouldContainKey("hobbies");
+    }
+
+    [Fact]
+    public async Task UpdateHobbies_OtherUsersResume_ShouldReturnForbiddenAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var ownerToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var intruderToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, ownerToken, ct: ct);
+
+        var ownerUpdate = await app.Client
+            .WithAuthToken(ownerToken)
+            .PUTAsync<UpdateHobbiesEndpoint, UpdateHobbiesRequest>(new UpdateHobbiesRequest(resume.Id, "owner"));
+        ownerUpdate.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var intruderUpdate = await app.Client
+            .WithAuthToken(intruderToken)
+            .PUTAsync<UpdateHobbiesEndpoint, UpdateHobbiesRequest>(new UpdateHobbiesRequest(resume.Id, "intruder"));
+        intruderUpdate.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        var (_, stored) = await app.Client
+            .WithAuthToken(ownerToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
+        stored.Hobbies.ShouldBe("owner");
     }
 }

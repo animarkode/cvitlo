@@ -34,4 +34,12 @@ public class GetAllResumesTests(WebApp app) : TestBase
         response.Items.ShouldNotBeEmpty();
     }
 
+    [Fact]
+    public async Task GetAllResumes_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllResumesEndpoint, GetAllResumesResponse>();
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
 }

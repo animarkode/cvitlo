@@ -19,8 +19,6 @@ public class DownloadDocumentTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DownloadDocument_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .GETAsync<DownloadDocumentEndpoint, DocumentRequest>(
                 new DocumentRequest(Guid.NewGuid()));
