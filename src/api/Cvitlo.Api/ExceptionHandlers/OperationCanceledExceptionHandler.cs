@@ -14,7 +14,8 @@ public class OperationCanceledExceptionHandler(ILogger<OperationCanceledExceptio
             return ValueTask.FromResult(false);
         }
 
-        logger.LogDebug("Request was cancelled at {Path}", httpContext.Request.Path.Value);
+        // The middleware answers a client abort itself, so what arrives here was cancelled on the server side.
+        logger.LogWarning(exception, "Request was cancelled on the server side at {Path}", httpContext.Request.Path.Value);
 
         httpContext.Response.StatusCode = 499; // Client Closed Request
 
