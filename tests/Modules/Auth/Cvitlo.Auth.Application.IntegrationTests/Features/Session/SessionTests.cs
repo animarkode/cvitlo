@@ -103,4 +103,16 @@ public class SessionTests(WebApp app)
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task CookieRequest_WithAGarbageBearerHeader_ShouldNotBeServedFromTheSession()
+    {
+        var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
+        using var _client = client;
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "x");
+
+        using var response = await client.GetAsync("api/v1/auth/account/profile", TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
 }
