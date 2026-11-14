@@ -67,7 +67,7 @@ public class CreateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreateEducationForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreateEducation_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

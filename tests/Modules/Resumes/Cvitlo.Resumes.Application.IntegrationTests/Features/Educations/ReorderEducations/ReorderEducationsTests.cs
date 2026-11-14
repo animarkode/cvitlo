@@ -30,7 +30,7 @@ public class ReorderEducationsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task ReorderEducations_ShouldPersistNewOrder()
+    public async Task ReorderEducations_NewOrder_ShouldPersistIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -58,7 +58,7 @@ public class ReorderEducationsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task MismatchedIds_ShouldReturnNotFound()
+    public async Task ReorderEducations_UnknownId_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -78,7 +78,7 @@ public class ReorderEducationsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task EmptyOrderedIds_ShouldReturnBadRequest()
+    public async Task ReorderEducations_EmptyOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -94,7 +94,7 @@ public class ReorderEducationsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task DuplicateOrderedIds_ShouldReturnBadRequest()
+    public async Task ReorderEducations_DuplicateOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -112,7 +112,7 @@ public class ReorderEducationsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task CrossUserReorder_ShouldReturnForbidden()
+    public async Task ReorderEducations_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

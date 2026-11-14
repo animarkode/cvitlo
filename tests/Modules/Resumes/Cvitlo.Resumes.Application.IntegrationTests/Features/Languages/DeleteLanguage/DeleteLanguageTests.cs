@@ -28,7 +28,7 @@ public class DeleteLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteLanguage_ShouldRemoveLanguage()
+    public async Task DeleteLanguage_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -57,7 +57,7 @@ public class DeleteLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentLanguage_ShouldReturnNotFound()
+    public async Task DeleteLanguage_UnknownLanguage_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -73,7 +73,7 @@ public class DeleteLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteLanguage_ShouldReturnForbidden()
+    public async Task DeleteLanguage_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

@@ -29,7 +29,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateCourse_ShouldModifyFields()
+    public async Task UpdateCourse_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -93,7 +93,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateCourse_ShouldReturnForbidden()
+    public async Task UpdateCourse_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -148,7 +148,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task UpdateCourse_WithUnsafeDescription_ShouldPersistSanitizedHtml()
+    public async Task UpdateCourse_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

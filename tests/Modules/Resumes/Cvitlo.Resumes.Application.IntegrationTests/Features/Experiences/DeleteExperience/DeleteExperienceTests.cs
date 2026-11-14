@@ -28,7 +28,7 @@ public class DeleteExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteExperience_ShouldRemoveExperience()
+    public async Task DeleteExperience_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -58,7 +58,7 @@ public class DeleteExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentExperience_ShouldReturnNotFound()
+    public async Task DeleteExperience_UnknownExperience_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -74,7 +74,7 @@ public class DeleteExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteExperience_ShouldReturnForbidden()
+    public async Task DeleteExperience_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

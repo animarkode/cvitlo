@@ -29,7 +29,7 @@ public class UpdateLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateLanguage_ShouldModifyFields()
+    public async Task UpdateLanguage_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -79,7 +79,7 @@ public class UpdateLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateLanguage_ShouldReturnForbidden()
+    public async Task UpdateLanguage_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

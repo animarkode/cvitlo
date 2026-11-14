@@ -41,7 +41,7 @@ public class CreateLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreateLanguageForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreateLanguage_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

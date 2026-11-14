@@ -28,7 +28,7 @@ public class DeleteCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteCourse_ShouldRemoveCourse()
+    public async Task DeleteCourse_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -57,7 +57,7 @@ public class DeleteCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentCourse_ShouldReturnNotFound()
+    public async Task DeleteCourse_UnknownCourse_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -73,7 +73,7 @@ public class DeleteCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteCourse_ShouldReturnForbidden()
+    public async Task DeleteCourse_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

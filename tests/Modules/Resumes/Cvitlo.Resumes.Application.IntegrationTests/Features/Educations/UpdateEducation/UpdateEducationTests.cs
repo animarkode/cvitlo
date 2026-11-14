@@ -29,7 +29,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateEducation_ShouldModifyFields()
+    public async Task UpdateEducation_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -64,7 +64,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentEducation_ShouldReturnNotFound()
+    public async Task UpdateEducation_UnknownItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +82,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateEducation_ShouldReturnForbidden()
+    public async Task UpdateEducation_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -131,7 +131,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task UpdateEducation_WithUnsafeDescription_ShouldPersistSanitizedHtml()
+    public async Task UpdateEducation_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

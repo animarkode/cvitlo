@@ -47,7 +47,7 @@ public class CreateExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreateExperienceForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreateExperience_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

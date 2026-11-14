@@ -28,7 +28,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetExperience_ShouldReturnCreatedExperience()
+    public async Task GetExperience_ExistingItem_ShouldReturnTheCreatedExperience()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -54,7 +54,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllExperiences_ShouldReturnExperiencesForResume()
+    public async Task GetAllExperiences_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -84,7 +84,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentExperience_ShouldReturnNotFound()
+    public async Task GetExperience_UnknownExperience_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -100,7 +100,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllExperiencesForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllExperiences_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -116,7 +116,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllExperiencesEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllExperiences_ResumeWithoutExperiences_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -134,7 +134,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetExperience_ShouldReturnForbidden()
+    public async Task GetExperience_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -159,7 +159,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllExperiences_ShouldReturnForbidden()
+    public async Task GetAllExperiences_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

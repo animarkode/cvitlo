@@ -29,7 +29,7 @@ public class UpdateExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateExperience_ShouldModifyFields()
+    public async Task UpdateExperience_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -83,7 +83,7 @@ public class UpdateExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateExperience_ShouldReturnForbidden()
+    public async Task UpdateExperience_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -133,7 +133,7 @@ public class UpdateExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task UpdateExperience_WithUnsafeDescription_ShouldPersistSanitizedHtml()
+    public async Task UpdateExperience_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

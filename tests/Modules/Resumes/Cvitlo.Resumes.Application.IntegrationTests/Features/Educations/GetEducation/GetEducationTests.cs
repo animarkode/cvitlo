@@ -28,7 +28,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetEducation_ShouldReturnCreatedEducation()
+    public async Task GetEducation_ExistingItem_ShouldReturnTheCreatedEducation()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -53,7 +53,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllEducations_ShouldReturnEducationsForResume()
+    public async Task GetAllEducations_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -80,7 +80,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentEducation_ShouldReturnNotFound()
+    public async Task GetEducation_UnknownEducation_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -96,7 +96,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllEducationsForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllEducations_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -111,7 +111,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllEducationsEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllEducations_ResumeWithoutEducations_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -128,7 +128,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetEducation_ShouldReturnForbidden()
+    public async Task GetEducation_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -152,7 +152,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllEducations_ShouldReturnForbidden()
+    public async Task GetAllEducations_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

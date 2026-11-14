@@ -28,7 +28,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetLanguage_ShouldReturnCreatedLanguage()
+    public async Task GetLanguage_ExistingItem_ShouldReturnTheCreatedLanguage()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -53,7 +53,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllLanguages_ShouldReturnLanguagesForResume()
+    public async Task GetAllLanguages_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -80,7 +80,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentLanguage_ShouldReturnNotFound()
+    public async Task GetLanguage_UnknownLanguage_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -96,7 +96,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllLanguagesForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllLanguages_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -111,7 +111,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllLanguagesEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllLanguages_ResumeWithoutLanguages_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -128,7 +128,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetLanguage_ShouldReturnForbidden()
+    public async Task GetLanguage_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -152,7 +152,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllLanguages_ShouldReturnForbidden()
+    public async Task GetAllLanguages_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
