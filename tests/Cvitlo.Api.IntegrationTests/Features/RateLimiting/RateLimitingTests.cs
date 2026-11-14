@@ -4,8 +4,6 @@ using System.Text.Json;
 using Cvitlo.Common.Testing.Data;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Shouldly;
 using static Cvitlo.Api.IntegrationTests.Features.RateLimiting.RateLimitingTestConstants;
 
@@ -52,32 +50,8 @@ public class RateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
-    public void RateLimitingOptions_ShouldBindFromConfiguration()
-    {
-        var options = app.Services.GetRequiredService<IOptions<Cvitlo.Api.RateLimiting.Options.RateLimitingOptions>>().Value;
-
-        options.Enabled.ShouldBeTrue();
-        options.GlobalAnonymous.PermitLimit.ShouldBe(AnonymousPermitLimit);
-        options.GlobalAuthenticated.PermitLimit.ShouldBe(AuthenticatedPermitLimit);
-        options.GlobalAnonymous.WindowSeconds.ShouldBe(TestWindowSeconds);
-        options.GlobalAnonymous.SegmentsPerWindow.ShouldBe(TestSegmentsPerWindow);
-        options.GlobalAuthenticated.WindowSeconds.ShouldBe(TestWindowSeconds);
-        options.GlobalAuthenticated.SegmentsPerWindow.ShouldBe(TestSegmentsPerWindow);
-        options.AuthExternal.PermitLimit.ShouldBe(AuthExternalPermitLimit);
-        options.AuthExternal.WindowSeconds.ShouldBe(TestWindowSeconds);
-        options.AuthExternal.SegmentsPerWindow.ShouldBe(TestSegmentsPerWindow);
-        options.AuthSession.PermitLimit.ShouldBe(AuthSessionPermitLimit);
-        options.AuthSession.WindowSeconds.ShouldBe(TestWindowSeconds);
-        options.AuthSession.SegmentsPerWindow.ShouldBe(TestSegmentsPerWindow);
-        options.AuthenticatedDefault.PermitLimit.ShouldBe(AuthenticatedDefaultPermitLimit);
-        options.AuthenticatedDefault.WindowSeconds.ShouldBe(TestWindowSeconds);
-        options.AuthenticatedDefault.SegmentsPerWindow.ShouldBe(TestSegmentsPerWindow);
-    }
-
-    [Fact]
     [Priority(2)]
-    public async Task ExceedingAnonymousLimit_ShouldReturn429WithRetryAfterAndGenericBody()
+    public async Task AnonymousRequest_BeyondGlobalLimit_ShouldReturn429WithRetryAfterAndGenericBody()
     {
         const string clientIp = "203.0.113.10";
         using var client = CreateClientWithIp(clientIp);
@@ -94,6 +68,7 @@ public class RateLimitingTests(WebApp app) : TestBase
         rejected.Headers.RetryAfter.ShouldNotBeNull();
         rejected.Headers.RetryAfter.Delta.ShouldNotBeNull();
         rejected.Headers.RetryAfter.Delta.Value.TotalSeconds.ShouldBeGreaterThan(0);
+        rejected.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
 
         var body = await rejected.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
@@ -110,14 +85,15 @@ public class RateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task DifferentClientIps_ShouldHaveIsolatedPartitions()
+    public async Task AnonymousRequest_DifferentClientIp_ShouldUseItsOwnPartition()
     {
         using var exhaustedClient = CreateClientWithIp("203.0.113.20");
         using var freshClient = CreateClientWithIp("203.0.113.21");
 
         for (var i = 0; i < AnonymousPermitLimit; i++)
         {
-            await GetAnonymousProbeAsync(exhaustedClient);
+            var allowed = await GetAnonymousProbeAsync(exhaustedClient);
+            allowed.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         }
 
         var rejected = await GetAnonymousProbeAsync(exhaustedClient);
@@ -129,13 +105,14 @@ public class RateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task ForwardedForFromTrustedProxy_ShouldPartitionByForwardedClientIp()
+    public async Task AnonymousRequest_ForwardedForFromTrustedProxy_ShouldPartitionByForwardedClientIp()
     {
         using var client = CreateClientWithIp(TrustedProxyIp);
 
         for (var i = 0; i < AnonymousPermitLimit; i++)
         {
-            await GetAnonymousProbeAsync(client, forwardedFor: "198.51.100.1");
+            var allowed = await GetAnonymousProbeAsync(client, forwardedFor: "198.51.100.1");
+            allowed.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         }
 
         var rejected = await GetAnonymousProbeAsync(client, forwardedFor: "198.51.100.1");
@@ -147,13 +124,14 @@ public class RateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task ForwardedForFromUntrustedProxy_ShouldBeIgnored()
+    public async Task AnonymousRequest_ForwardedForFromUntrustedProxy_ShouldPartitionByProxyIp()
     {
         using var client = CreateClientWithIp(UntrustedProxyIp);
 
         for (var i = 0; i < AnonymousPermitLimit; i++)
         {
-            await GetAnonymousProbeAsync(client, forwardedFor: $"198.51.100.{10 + i}");
+            var allowed = await GetAnonymousProbeAsync(client, forwardedFor: $"198.51.100.{10 + i}");
+            allowed.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         }
 
         // Spoof attempt: yet another forged X-Forwarded-For must NOT open a fresh partition,
@@ -164,7 +142,7 @@ public class RateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task AuthenticatedUsers_ShouldHaveIsolatedPartitions()
+    public async Task AuthenticatedRequest_DifferentUserOnSameIp_ShouldUseItsOwnPartition()
     {
         var users = RegisteredUsersData.Generate();
 

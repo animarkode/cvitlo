@@ -5,6 +5,8 @@ public static class RateLimitingTestConstants
     public const string UserUri = "api/v1/auth/user";
     public const string LoginUri = "api/v1/auth/login";
     public const string LogoutUri = "api/v1/auth/logout";
+    public const string RegisterUri = "api/v1/auth/register";
+    public const string BackchannelLogoutUri = "api/v1/auth/backchannel-logout";
 
     public const string ForwardedForHeader = "X-Forwarded-For";
 

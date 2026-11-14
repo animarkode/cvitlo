@@ -35,11 +35,8 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 
     private GatedDocumentsModuleApi Documents => app.Services.GetRequiredService<GatedDocumentsModuleApi>();
 
-    // A Keycloak access token for one of the reserved accounts. The client IP is no longer spent on a
-    // sign-in request (Keycloak issues the token), but each caller keeps its reserved octet.
-    private async Task<string> SignInAsync(int userIndex, string clientIp)
+    private async Task<string> SignInAsync(int userIndex)
     {
-        _ = clientIp;
         var user = RateLimitingUsersData.Generate()[userIndex];
         var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
 
@@ -85,9 +82,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task SecondSimultaneousGenerate_ShouldReturn429WithRetryAfterAndGenericBody()
+    public async Task GenerateDocument_AnotherRenderInProgress_ShouldReturn429WithRetryAfterAndGenericBody()
     {
-        var token = await SignInAsync(9, "203.0.113.170");
+        var token = await SignInAsync(9);
 
         const string clientIp = "203.0.113.171";
         using var client = CreateClientWithIp(clientIp).WithAuthToken(token);
@@ -132,9 +129,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task DownloadWhileGenerating_ShouldShareOneExpensiveResourceBudget()
+    public async Task DownloadDocument_RenderInProgress_ShouldReturn429()
     {
-        var token = await SignInAsync(10, "203.0.113.172");
+        var token = await SignInAsync(10);
 
         using var client = CreateClientWithIp("203.0.113.173").WithAuthToken(token);
 
@@ -160,9 +157,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task SpentAuthenticatedDefaultBudget_ShouldNotThrottleDocumentGeneration()
+    public async Task GenerateDocument_AuthenticatedDefaultBudgetSpent_ShouldReturnOk()
     {
-        var token = await SignInAsync(11, "203.0.113.174");
+        var token = await SignInAsync(11);
 
         using var crudClient = CreateClientWithIp("203.0.113.175").WithAuthToken(token);
 
