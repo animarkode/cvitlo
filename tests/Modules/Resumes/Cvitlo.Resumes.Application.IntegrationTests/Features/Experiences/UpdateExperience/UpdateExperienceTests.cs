@@ -67,7 +67,7 @@ public class UpdateExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentExperience_ShouldReturnForbidden()
+    public async Task UpdateExperience_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -203,6 +203,23 @@ public class UpdateExperienceTests(WebApp app) : TestBase
                 new GetExperienceRequest(resumeA.Id, item.Id));
 
         after.JobTitle.ShouldBe(item.JobTitle);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task UpdateExperience_UnknownItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var source = new CreateExperienceRequestFaker(resume.Id).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateExperienceEndpoint, UpdateExperienceRequest>(new UpdateExperienceRequest(Guid.NewGuid(), resume.Id, source.JobTitle, source.Employer, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
     private async Task<CreateExperienceResponse> CreateExperienceAsync(

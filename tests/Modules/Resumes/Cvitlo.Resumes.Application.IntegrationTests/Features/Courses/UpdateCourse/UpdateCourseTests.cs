@@ -71,7 +71,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentCourse_ShouldReturnForbidden()
+    public async Task UpdateCourse_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -215,6 +215,23 @@ public class UpdateCourseTests(WebApp app) : TestBase
                 new GetCourseRequest(resumeA.Id, item.Id));
 
         after.Name.ShouldBe(item.Name);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task UpdateCourse_UnknownItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var source = new CreateCourseRequestFaker(resume.Id).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(new UpdateCourseRequest(Guid.NewGuid(), resume.Id, source.School, source.Name, source.StartDate, source.EndDate, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
     private async Task<CreateCourseResponse> CreateCourseAsync(

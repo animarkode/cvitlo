@@ -65,7 +65,7 @@ public class UpdateLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentLanguage_ShouldReturnForbidden()
+    public async Task UpdateLanguage_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -154,6 +154,23 @@ public class UpdateLanguageTests(WebApp app) : TestBase
                 new GetLanguageRequest(resumeA.Id, item.Id));
 
         after.Name.ShouldBe(item.Name);
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateLanguage_UnknownItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var source = new CreateLanguageRequestFaker(resume.Id).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest>(new UpdateLanguageRequest(Guid.NewGuid(), resume.Id, source.Name, source.Level));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
     private async Task<CreateLanguageResponse> CreateLanguageAsync(
