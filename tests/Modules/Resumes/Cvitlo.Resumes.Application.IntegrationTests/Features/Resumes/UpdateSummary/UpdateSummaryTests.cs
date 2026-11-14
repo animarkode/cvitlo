@@ -161,7 +161,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
         stored.Summary.ShouldBe("owner");
     }
 
-    [Fact(Skip = "test-audit 04-B3: the summary is validated on visible length but stored as markup, so a long href overflows the column and answers 500")]
+    [Fact(Skip = "test-audit 04-B3: the summary text is validated on visible length but stored as markup, so a long href overflows the column and answers 500")]
     public async Task UpdateSummary_MarkupLongerThanTheColumn_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;

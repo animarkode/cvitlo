@@ -84,10 +84,8 @@ public class ResumeLimitTests(ResumeLimitsWebApp app) : TestBase
 
     private async Task<HttpResponseMessage> PostResumeAsync(string token)
     {
-        // A client per call: WithAuthToken mutates the shared client's default headers.
-        using var client = app.CreateClient();
+        using var client = app.Client.WithAuthToken(token);
         var (response, _) = await client
-            .WithAuthToken(token)
             .POSTAsync<CreateResumeEndpoint, CreateResumeRequest, CreateResumeResponse>(
                 new CreateResumeRequest("en-us"));
 

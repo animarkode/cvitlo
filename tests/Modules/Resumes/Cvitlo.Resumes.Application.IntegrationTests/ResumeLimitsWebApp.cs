@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests;
 
-/// <summary>
-/// Runs the API with finite resume limits (regular 1, premium 2); <see cref="WebApp"/> keeps both at
-/// <c>int.MaxValue</c>, so the rejecting branch of the creation policy is only reachable here.
-/// </summary>
+// WebApp keeps both resume limits at int.MaxValue, so the rejecting branch of the creation
+// policy is reachable only with these finite limits.
 public class ResumeLimitsWebApp : WebApp
 {
     protected override void ConfigureApp(IWebHostBuilder builder)

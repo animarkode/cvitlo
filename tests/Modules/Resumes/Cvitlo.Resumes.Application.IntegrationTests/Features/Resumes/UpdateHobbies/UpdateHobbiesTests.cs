@@ -161,7 +161,7 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
         stored.Hobbies.ShouldBe("owner");
     }
 
-    [Fact(Skip = "test-audit 04-B3: the hobbies is validated on visible length but stored as markup, so a long href overflows the column and answers 500")]
+    [Fact(Skip = "test-audit 04-B3: hobbies are validated on visible length but stored as markup, so a long href overflows the column and answers 500")]
     public async Task UpdateHobbies_MarkupLongerThanTheColumn_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
