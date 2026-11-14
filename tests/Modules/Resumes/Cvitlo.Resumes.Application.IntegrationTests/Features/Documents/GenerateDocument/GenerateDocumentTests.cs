@@ -46,7 +46,7 @@ public class GenerateDocumentTests(WebApp app) : TestBase
                 new DocumentRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        response.Base64Pdf.ShouldNotBeNullOrEmpty();
+        Convert.FromBase64String(response.Base64Pdf).ShouldBe([0x25, 0x50, 0x44, 0x46]);
     }
 
     [Fact]
