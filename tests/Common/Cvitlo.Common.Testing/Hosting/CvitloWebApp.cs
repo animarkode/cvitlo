@@ -33,7 +33,7 @@ public abstract class CvitloWebApp : AppFixture<Program>
 
     protected virtual bool UsesRedis => false;
 
-    protected virtual string AppOrigin => "https://localhost";
+    protected virtual string WebOrigin => "https://localhost";
 
     protected virtual string BackchannelLogoutUrl => "http://localhost/backchannel-logout";
 
@@ -71,7 +71,7 @@ public abstract class CvitloWebApp : AppFixture<Program>
         }
 
         await Task.WhenAll(startTasks);
-        _keycloak = await CvitloKeycloak.StartAsync(_network, AppOrigin.TrimEnd('/'), BackchannelLogoutUrl);
+        _keycloak = await CvitloKeycloak.StartAsync(_network, WebOrigin.TrimEnd('/'), BackchannelLogoutUrl);
 
         await OnKeycloakStartedAsync(CancellationToken.None);
 
