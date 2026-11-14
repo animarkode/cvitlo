@@ -18,7 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\api\Aspire\Cvitlo.AppHost\Cvitlo.AppHost.csproj"/>
         <ProjectReference Include="..\..\..\src\api\Jobs\Cvitlo.Migrations\Cvitlo.Migrations.csproj"/>
         <ProjectReference Include="..\..\..\src\api\Modules\Auth\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Infrastructure\Cvitlo.Resumes.Infrastructure.csproj"/>

@@ -1,19 +1,8 @@
-using Cvitlo.Migrations;
-using Cvitlo.Auth.Infrastructure.Database;
-using Cvitlo.Resumes.Infrastructure.Database;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Npgsql;
 using Shouldly;
-using Testcontainers.PostgreSql;
-using AuthDbConst = Cvitlo.Auth.Infrastructure.Database.DbConstants;
-using ResumesDbConst = Cvitlo.Resumes.Infrastructure.Database.DbConstants;
 
 namespace Cvitlo.Migrations.IntegrationTests;
 
@@ -21,7 +10,7 @@ namespace Cvitlo.Migrations.IntegrationTests;
 public class MigrationWorkerSetupFailureTests
 {
     [Fact]
-    public async Task MissingDbContextRegistration_ShouldSetExitCode1AndStopApplication()
+    public async Task RunWorker_DbContextNotRegistered_ShouldSetExitCode1AndStopTheHost()
     {
         Environment.ExitCode = 0;
         using var serviceProvider = new ServiceCollection()

@@ -32,47 +32,21 @@ public class MigrationWorkerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunWorker_AppliesMigrationsForBothContexts()
+    public async Task RunWorker_EmptyDatabase_ShouldApplyEveryMigrationOfBothContexts()
     {
         var connStr = _postgres.GetConnectionString();
-
         var ct = TestContext.Current.CancellationToken;
+
         await BuildHost(connStr).RunAsync(ct);
 
-        await using var conn = new NpgsqlConnection(connStr);
-        await conn.OpenAsync(ct);
-
-        var resumesRows = await QueryCount(conn,
-            $"SELECT COUNT(*) FROM \"{ResumesDbConst.SchemaName}\".\"{ResumesDbConst.MigrationsHistoryTableName}\"", ct);
-        resumesRows.ShouldBeGreaterThan(0, "ResumesDbContext migration history should have rows");
-
-        var authRows = await QueryCount(conn,
-            $"SELECT COUNT(*) FROM \"{AuthDbConst.SchemaName}\".\"{AuthDbConst.MigrationsHistoryTableName}\"", ct);
-        authRows.ShouldBeGreaterThan(0, "AuthDbContext migration history should have rows");
+        await using var resumes = TestDbContexts.Resumes(connStr);
+        await resumes.ShouldHaveEveryMigrationAppliedAsync(ct);
+        await using var auth = TestDbContexts.Auth(connStr);
+        await auth.ShouldHaveEveryMigrationAppliedAsync(ct);
     }
 
     [Fact]
-    public async Task RunWorker_InDevelopment_AppliesMigrationsForBothContexts()
-    {
-        var connStr = _postgres.GetConnectionString();
-        var ct = TestContext.Current.CancellationToken;
-
-        await BuildHost(connStr, Environments.Development).RunAsync(ct);
-
-        await using var conn = new NpgsqlConnection(connStr);
-        await conn.OpenAsync(ct);
-
-        var resumesRows = await QueryCount(conn,
-            $"SELECT COUNT(*) FROM \"{ResumesDbConst.SchemaName}\".\"{ResumesDbConst.MigrationsHistoryTableName}\"", ct);
-        resumesRows.ShouldBeGreaterThan(0, "Development must run ResumesDbContext migrations");
-
-        var authRows = await QueryCount(conn,
-            $"SELECT COUNT(*) FROM \"{AuthDbConst.SchemaName}\".\"{AuthDbConst.MigrationsHistoryTableName}\"", ct);
-        authRows.ShouldBeGreaterThan(0, "Development must run AuthDbContext migrations");
-    }
-
-    [Fact]
-    public async Task RunWorker_WithoutExternalSchemas_ShouldCreateNoKeycloakSchema()
+    public async Task RunWorker_NoExternalSchemas_ShouldCreateNoKeycloakSchema()
     {
         var connStr = _postgres.GetConnectionString();
         var ct = TestContext.Current.CancellationToken;
@@ -88,7 +62,7 @@ public class MigrationWorkerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunWorker_WithExternalSchema_ShouldCreateIt()
+    public async Task RunWorker_ExternalSchemaDeclared_ShouldCreateIt()
     {
         var connStr = _postgres.GetConnectionString();
         var ct = TestContext.Current.CancellationToken;
@@ -146,7 +120,7 @@ public class MigrationWorkerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunWorker_Idempotent_SecondRunAddsNoNewMigrationRows()
+    public async Task RunWorker_SecondRun_ShouldAddNoMigrationRows()
     {
         Environment.ExitCode = 0;
         var connStr = _postgres.GetConnectionString();
@@ -158,15 +132,13 @@ public class MigrationWorkerTests : IAsyncLifetime
 
             await using var conn1 = new NpgsqlConnection(connStr);
             await conn1.OpenAsync(ct);
-            var rowsAfterFirst = await QueryCount(conn1,
-                $"SELECT COUNT(*) FROM \"{ResumesDbConst.SchemaName}\".\"{ResumesDbConst.MigrationsHistoryTableName}\"", ct);
+            var rowsAfterFirst = await QueryCount(conn1, HistoryRowsOfBothContexts, ct);
 
             await BuildHost(connStr, externalSchemas: ["keycloak"]).RunAsync(ct);
 
             await using var conn2 = new NpgsqlConnection(connStr);
             await conn2.OpenAsync(ct);
-            var rowsAfterSecond = await QueryCount(conn2,
-                $"SELECT COUNT(*) FROM \"{ResumesDbConst.SchemaName}\".\"{ResumesDbConst.MigrationsHistoryTableName}\"", ct);
+            var rowsAfterSecond = await QueryCount(conn2, HistoryRowsOfBothContexts, ct);
 
             rowsAfterSecond.ShouldBe(rowsAfterFirst, "Second run should not insert additional migration rows");
             Environment.ExitCode.ShouldBe(0, "creating an existing Keycloak schema must succeed");
@@ -178,7 +150,7 @@ public class MigrationWorkerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunWorker_SetsExitCode1_WhenDatabaseIsUnreachable()
+    public async Task RunWorker_DatabaseUnreachable_ShouldSetExitCode1()
     {
         Environment.ExitCode = 0;
         var ct = TestContext.Current.CancellationToken;
@@ -195,7 +167,84 @@ public class MigrationWorkerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunWorker_RenameMigrations_PreserveExistingRowData()
+    public async Task RunWorker_OneContextFailsToMigrate_ShouldSetExitCode1AndStillMigrateTheOther()
+    {
+        Environment.ExitCode = 0;
+        var connStr = _postgres.GetConnectionString();
+        var ct = TestContext.Current.CancellationToken;
+
+        try
+        {
+            // A table the first Auth migration creates already exists, so that migration fails.
+            await using (var conn = new NpgsqlConnection(connStr))
+            {
+                await conn.OpenAsync(ct);
+                await Execute(conn,
+                    $"""
+                     CREATE SCHEMA "{AuthDbConst.SchemaName}";
+                     CREATE TABLE "{AuthDbConst.SchemaName}".sessions (id integer);
+                     """, ct);
+            }
+
+            await BuildHost(connStr).RunAsync(ct);
+
+            Environment.ExitCode.ShouldBe(1, "a job that left one module unmigrated must not report success");
+            await using var resumes = TestDbContexts.Resumes(connStr);
+            await resumes.ShouldHaveEveryMigrationAppliedAsync(ct);
+            await using var auth = TestDbContexts.Auth(connStr);
+            (await auth.Database.GetPendingMigrationsAsync(ct)).ShouldNotBeEmpty();
+        }
+        finally
+        {
+            Environment.ExitCode = 0;
+        }
+    }
+
+    [Fact]
+    public async Task RunWorker_ExternalSchemaCannotBeCreated_ShouldSetExitCode1AndMigrateNothing()
+    {
+        Environment.ExitCode = 0;
+        var connStr = _postgres.GetConnectionString();
+        var ct = TestContext.Current.CancellationToken;
+
+        try
+        {
+            await using (var admin = new NpgsqlConnection(connStr))
+            {
+                await admin.OpenAsync(ct);
+                await Execute(admin,
+                    $"""
+                     CREATE ROLE limited_migrator LOGIN PASSWORD 'limited';
+                     REVOKE CREATE ON DATABASE "{admin.Database}" FROM PUBLIC;
+                     """, ct);
+            }
+
+            var limitedConnStr = new NpgsqlConnectionStringBuilder(connStr)
+            {
+                Username = "limited_migrator",
+                Password = "limited"
+            }.ConnectionString;
+
+            await BuildHost(limitedConnStr, externalSchemas: ["keycloak"]).RunAsync(ct);
+
+            Environment.ExitCode.ShouldBe(1);
+            await using var conn = new NpgsqlConnection(connStr);
+            await conn.OpenAsync(ct);
+            var moduleSchemas = await QueryCount(conn,
+                $"""
+                 SELECT COUNT(*) FROM information_schema.schemata
+                 WHERE schema_name IN ('{ResumesDbConst.SchemaName}', '{AuthDbConst.SchemaName}')
+                 """, ct);
+            moduleSchemas.ShouldBe(0, "Keycloak cannot start without its schema, so nothing else should be migrated");
+        }
+        finally
+        {
+            Environment.ExitCode = 0;
+        }
+    }
+
+    [Fact]
+    public async Task RunWorker_DatabaseBeforeRenameMigrations_ShouldPreserveRowData()
     {
         const string lastPreRenameMigration = "20260310201313_AlignValidatorsAndAddUserIdIndex";
         var resumeId = Guid.NewGuid();
@@ -203,7 +252,7 @@ public class MigrationWorkerTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         var connStr = _postgres.GetConnectionString();
 
-        await using (var seedContext = BuildResumesContext(connStr))
+        await using (var seedContext = TestDbContexts.Resumes(connStr))
         {
             await seedContext.Database.GetService<IMigrator>()
                 .MigrateAsync(lastPreRenameMigration, ct);
@@ -242,6 +291,12 @@ public class MigrationWorkerTests : IAsyncLifetime
         experienceCount.ShouldBe(1, "the renamed table must keep its foreign key to resumes");
     }
 
+    private const string HistoryRowsOfBothContexts =
+        $"""
+         SELECT (SELECT COUNT(*) FROM "{ResumesDbConst.SchemaName}"."{ResumesDbConst.MigrationsHistoryTableName}")
+              + (SELECT COUNT(*) FROM "{AuthDbConst.SchemaName}"."{AuthDbConst.MigrationsHistoryTableName}")
+         """;
+
     private static IHost BuildHost(
         string connectionString,
         string? environmentName = null,
@@ -268,19 +323,6 @@ public class MigrationWorkerTests : IAsyncLifetime
         cmd.CommandText = sql;
         var result = await cmd.ExecuteScalarAsync(ct);
         return Convert.ToInt64(result, CultureInfo.InvariantCulture);
-    }
-
-    private static ResumesDbContext BuildResumesContext(string connectionString)
-    {
-        var options = new DbContextOptionsBuilder<ResumesDbContext>()
-            .UseNpgsql(connectionString, npgsql =>
-                npgsql.MigrationsHistoryTable(
-                    ResumesDbConst.MigrationsHistoryTableName,
-                    ResumesDbConst.SchemaName))
-            .UseSnakeCaseNamingConvention()
-            .Options;
-
-        return new ResumesDbContext(options);
     }
 
     private static async Task Execute(NpgsqlConnection conn, string sql, CancellationToken ct)
