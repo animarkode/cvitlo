@@ -10,6 +10,7 @@ using FastEndpoints.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -28,6 +29,8 @@ public class WebApp : AppFixture<Program>
     private RedisContainer? _redisContainer;
 
     public CvitloKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not initialized");
+
+    public CollectingLoggerProvider Logs { get; } = new();
 
     public List<TestUser> Users { get; } = RegisteredUsersData.Generate();
 
@@ -100,6 +103,8 @@ public class WebApp : AppFixture<Program>
 
             services.AddScoped<IDocumentsModuleApi>(_ => documentsModuleApiMock);
         });
+
+        builder.ConfigureLogging(logging => logging.AddProvider(Logs));
 
         builder.UseSetting("ConnectionStrings:cvitlodb", Postgres.GetConnectionString());
 

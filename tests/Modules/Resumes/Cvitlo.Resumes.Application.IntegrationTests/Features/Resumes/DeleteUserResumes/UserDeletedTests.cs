@@ -24,7 +24,7 @@ public class UserDeletedTests(WebApp app) : TestBase
     private const int UserBIndex = 4;
 
     [Fact]
-    public async Task UserDeleted_ShouldRemoveOnlyThatUsersResumesAndChildren()
+    public async Task UserDeleted_UserWithResumes_ShouldRemoveOnlyThatUsersData()
     {
         var ct = TestContext.Current.CancellationToken;
         var (tokenA, subA) = await SignInAsync(UserAIndex, ct);
@@ -47,7 +47,7 @@ public class UserDeletedTests(WebApp app) : TestBase
     }
 
     [Fact]
-    public async Task UserDeletedPublishedTwice_ShouldNotThrowAndKeepSameState()
+    public async Task UserDeleted_PublishedTwice_ShouldNotThrowAndKeepSameState()
     {
         var ct = TestContext.Current.CancellationToken;
         var (tokenA, subA) = await SignInAsync(UserAIndex, ct);
@@ -65,7 +65,7 @@ public class UserDeletedTests(WebApp app) : TestBase
     }
 
     [Fact]
-    public async Task UserDeleted_ShouldEmptyTheCachedResumeList()
+    public async Task UserDeleted_AfterCachedList_ShouldEmptyTheList()
     {
         var ct = TestContext.Current.CancellationToken;
         var (tokenA, subA) = await SignInAsync(UserAIndex, ct);
@@ -87,7 +87,7 @@ public class UserDeletedTests(WebApp app) : TestBase
     }
 
     [Fact]
-    public async Task UserDeletedWithNonGuidSubject_ShouldBeNoOp()
+    public async Task UserDeleted_NonGuidSubject_ShouldBeNoOp()
     {
         var ct = TestContext.Current.CancellationToken;
         var (tokenA, _) = await SignInAsync(UserAIndex, ct);

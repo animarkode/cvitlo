@@ -19,8 +19,6 @@ public class DeleteLinkTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteLink_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteLinkEndpoint, DeleteLinkRequest>(
                 new DeleteLinkRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class DeleteLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteLink_ShouldRemoveLink()
+    public async Task DeleteLink_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +57,7 @@ public class DeleteLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentLink_ShouldReturnNotFound()
+    public async Task DeleteLink_UnknownLink_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class DeleteLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteLink_ShouldReturnForbidden()
+    public async Task DeleteLink_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -95,5 +93,66 @@ public class DeleteLinkTests(WebApp app) : TestBase
                 new DeleteLinkRequest(resume.Id, linkResponse.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(4)]
+    public async Task DeleteLink_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndKeepIt()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateLinkAsync(userAToken, resumeA.Id);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .DELETEAsync<DeleteLinkEndpoint, DeleteLinkRequest>(
+                new DeleteLinkRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (getResponse, _) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetLinkEndpoint, GetLinkRequest, GetLinkResponse>(
+                new GetLinkRequest(resumeA.Id, item.Id));
+
+        getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    private async Task<CreateLinkResponse> CreateLinkAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LinkSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLinkEndpoint, CreateLinkRequest, CreateLinkResponse>(
+                new CreateLinkRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
+
+    [Fact]
+    [Priority(5)]
+    public async Task DeleteLink_AlreadyDeleted_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateLinkAsync(accessToken, resume.Id);
+
+        var first = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteLinkEndpoint, DeleteLinkRequest>(new DeleteLinkRequest(resume.Id, item.Id));
+
+        first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var second = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteLinkEndpoint, DeleteLinkRequest>(new DeleteLinkRequest(resume.Id, item.Id));
+
+        second.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 }

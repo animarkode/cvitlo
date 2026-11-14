@@ -19,8 +19,6 @@ public class GetLinkTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetLink_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetLinkEndpoint, GetLinkRequest, GetLinkResponse>(
                 new GetLinkRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetLink_ShouldReturnCreatedLink()
+    public async Task GetLink_ExistingItem_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -55,7 +53,7 @@ public class GetLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllLinks_ShouldReturnLinksForResume()
+    public async Task GetAllLinks_ResumeWithItems_ShouldReturnThem()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class GetLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentLink_ShouldReturnNotFound()
+    public async Task GetLink_UnknownLink_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -98,7 +96,7 @@ public class GetLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllLinksForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllLinks_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +111,7 @@ public class GetLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllLinksEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllLinks_ResumeWithoutItems_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -130,7 +128,7 @@ public class GetLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetLink_ShouldReturnForbidden()
+    public async Task GetLink_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -154,7 +152,7 @@ public class GetLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllLinks_ShouldReturnForbidden()
+    public async Task GetAllLinks_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -168,5 +166,66 @@ public class GetLinkTests(WebApp app) : TestBase
                 new GetAllLinksRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetLink_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateLinkAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetLinkEndpoint, GetLinkRequest, GetLinkResponse>(
+                new GetLinkRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetLink_ItemOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateLinkAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetLinkEndpoint, GetLinkRequest, GetLinkResponse>(
+                new GetLinkRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateLinkResponse> CreateLinkAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LinkSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLinkEndpoint, CreateLinkRequest, CreateLinkResponse>(
+                new CreateLinkRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllLinks_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllLinksEndpoint, GetAllLinksRequest, GetAllLinksResponse>(
+                new GetAllLinksRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

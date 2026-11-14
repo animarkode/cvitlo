@@ -1,3 +1,4 @@
+using Cvitlo.Resumes.Application.Features.Persons.DeletePerson;
 using System.Net;
 using Cvitlo.Resumes.Application.Features.Persons.CreatePerson;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
@@ -19,7 +20,7 @@ public class CreatePersonTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(ValidPersonData))]
     [Priority(1)]
-    public async Task CreatePerson_ShouldReturnCreated(CreatePersonRequest request)
+    public async Task CreatePerson_ValidRequest_ShouldReturnTheCreatedItem(CreatePersonRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -41,7 +42,7 @@ public class CreatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreatePersonForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreatePerson_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -58,8 +59,9 @@ public class CreatePersonTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidPersonData))]
     [Priority(2)]
-    public async Task CreatePerson_WithInvalidData_ShouldReturnBadRequest(
-        CreatePersonRequest invalidRequest)
+    public async Task CreatePerson_InvalidField_ShouldReturnBadRequest(
+        CreatePersonRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -67,16 +69,17 @@ public class CreatePersonTests(WebApp app) : TestBase
 
         var createRequest = invalidRequest with { ResumeId = resume.Id };
 
-        var (httpResponse, _) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(createRequest);
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, ErrorResponse>(createRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]
     [Priority(3)]
-    public async Task CreatePerson_ShouldReturnConflict_WhenPersonAlreadyExists()
+    public async Task CreatePerson_PersonAlreadyExists_ShouldReturnConflict()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -146,5 +149,105 @@ public class CreatePersonTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
 
         getResponse.Title.ShouldBe(new string('a', 100));
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task CreatePerson_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(Guid.NewGuid()).Generate());
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task CreatePerson_AfterDeletingThePerson_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var request = new CreatePersonRequestFaker(resume.Id).Generate();
+
+        var (_, first) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(request);
+
+        var deleteResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeletePersonEndpoint, DeletePersonRequest>(new DeletePersonRequest(resume.Id, first.Id));
+
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (secondResponse, second) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(request);
+
+        secondResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        second.Id.ShouldNotBe(first.Id);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task CreatePerson_DateOfBirthToday_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(resume.Id).Generate() with { DateOfBirth = today });
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.DateOfBirth.ShouldBe(today);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task CreatePerson_AllFieldsNull_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequest(resume.Id, null, null, null, null, null, null, null, null, null, null, null, null));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Id.ShouldNotBe(Guid.Empty);
+        response.Email.ShouldBeNull();
+        response.Firstname.ShouldBeNull();
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task CreatePerson_ValidRequest_ShouldNotLogContactDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var marker = Guid.NewGuid().ToString("N");
+        var request = new CreatePersonRequestFaker(resume.Id).Generate() with
+        {
+            Email = $"{marker}@pii.example",
+            Phone = $"phone-{marker}",
+            Street = $"street-{marker}"
+        };
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(request);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        // Control: the request itself was logged, so an empty match below means no leak, not no logs.
+        app.Logs.Entries.ShouldContain(e => e.Contains(resume.Id.ToString(), StringComparison.Ordinal));
+        app.Logs.Entries.Where(e => e.Contains(marker, StringComparison.Ordinal)).ShouldBeEmpty();
     }
 }

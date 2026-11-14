@@ -50,7 +50,7 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GenerateAfterDownload_ShouldReuseRenderedPdf()
+    public async Task GenerateDocument_AfterDownload_ShouldReuseRenderedPdf()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

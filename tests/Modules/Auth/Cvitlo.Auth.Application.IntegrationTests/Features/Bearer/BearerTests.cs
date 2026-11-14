@@ -9,7 +9,7 @@ namespace Cvitlo.Auth.Application.IntegrationTests.Features.Bearer;
 public class BearerTests(WebApp app)
 {
     [Fact]
-    public async Task AccessToken_ShouldBeAccepted()
+    public async Task BearerRequest_AccessToken_ShouldBeAccepted()
     {
         var user = app.Users[0];
         var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
@@ -20,7 +20,7 @@ public class BearerTests(WebApp app)
     }
 
     [Fact]
-    public async Task IdToken_ShouldBeRejected()
+    public async Task BearerRequest_IdToken_ShouldReturnUnauthorized()
     {
         var user = app.Users[0];
         var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
@@ -31,7 +31,7 @@ public class BearerTests(WebApp app)
     }
 
     [Fact]
-    public async Task GarbageToken_ShouldBeRejected()
+    public async Task BearerRequest_GarbageToken_ShouldReturnUnauthorized()
     {
         using var response = await SendAsync("not-a-token");
 

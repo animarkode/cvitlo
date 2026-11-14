@@ -19,8 +19,6 @@ public class UpdateTitleTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateTitle_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(
                 new UpdateTitleRequest(Guid.NewGuid(), "Title"));
@@ -30,7 +28,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateTitle_ShouldModifyTitle()
+    public async Task UpdateTitle_ValidRequest_ShouldModifyTitle()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -53,7 +51,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task UpdateTitle_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -68,7 +66,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task TitleLongerThan100Characters_ShouldReturnBadRequest()
+    public async Task UpdateTitle_101Characters_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -86,7 +84,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task WhitespaceTitle_ShouldPersistAsEmptyFallbackValue()
+    public async Task UpdateTitle_WhitespaceTitle_ShouldPersistAsEmptyString()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -103,5 +101,63 @@ public class UpdateTitleTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
 
         getResponse.Title.ShouldBe(string.Empty);
+    }
+
+    [Fact]
+    public async Task UpdateTitle_OtherUsersResume_ShouldReturnForbiddenAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var ownerToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var intruderToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, ownerToken, ct: ct);
+
+        var ownerUpdate = await app.Client
+            .WithAuthToken(ownerToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(new UpdateTitleRequest(resume.Id, "owner"));
+        ownerUpdate.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var intruderUpdate = await app.Client
+            .WithAuthToken(intruderToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(new UpdateTitleRequest(resume.Id, "intruder"));
+        intruderUpdate.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        var (_, stored) = await app.Client
+            .WithAuthToken(ownerToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
+        stored.Title.ShouldBe("owner");
+    }
+
+    [Fact]
+    public async Task UpdateTitle_Exactly100Characters_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(
+                new UpdateTitleRequest(resume.Id, new string('a', 100)));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task UpdateTitle_PaddedTitle_ShouldStoreItTrimmed()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var updateResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(new UpdateTitleRequest(resume.Id, "  My CV  "));
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
+
+        getResponse.Title.ShouldBe("My CV");
     }
 }

@@ -20,8 +20,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateEducation_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(
                 new UpdateEducationRequest(Guid.NewGuid(), Guid.NewGuid(), "School", "Degree", null, null, null, null));
@@ -31,7 +29,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateEducation_ShouldModifyFields()
+    public async Task UpdateEducation_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -66,7 +64,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentEducation_ShouldReturnNotFound()
+    public async Task UpdateEducation_UnknownItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -84,7 +82,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateEducation_ShouldReturnForbidden()
+    public async Task UpdateEducation_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -112,31 +110,28 @@ public class UpdateEducationTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateEducationData))]
     [Priority(4)]
-    public async Task UpdateEducation_WithInvalidData_ShouldReturnBadRequest(
-        UpdateEducationRequest invalidRequest)
+    public async Task UpdateEducation_InvalidField_ShouldReturnBadRequest(
+        UpdateEducationRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateEducationAsync(accessToken, resume.Id);
 
-        var createRequest = new CreateEducationRequestFaker(resume.Id).Generate();
+        var updateRequest = invalidRequest with { Id = created.Id, ResumeId = resume.Id };
 
-        var (_, educationResponse) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateEducationEndpoint, CreateEducationRequest, CreateEducationResponse>(createRequest);
-
-        var updateRequest = invalidRequest with { Id = educationResponse.Id, ResumeId = resume.Id };
-
-        var httpResponse = await app.Client
-            .WithAuthToken(accessToken)
-            .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(updateRequest);
+            .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]
     [Priority(5)]
-    public async Task UpdateEducation_WithUnsafeDescription_ShouldPersistSanitizedHtml()
+    public async Task UpdateEducation_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -172,5 +167,85 @@ public class UpdateEducationTests(WebApp app) : TestBase
         getResponse.Description.ShouldNotContain("<script");
         getResponse.Description.ShouldNotContain("onerror");
         getResponse.Description.ShouldContain("<strong>Thesis</strong>");
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateEducation_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateEducationAsync(userAToken, resumeA.Id);
+
+        var source = new CreateEducationRequestFaker(resumeB.Id, 62003).Generate() with { School = "intruder" };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(new UpdateEducationRequest(item.Id, resumeB.Id, source.School, source.Degree, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, after) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetEducationEndpoint, GetEducationRequest, GetEducationResponse>(
+                new GetEducationRequest(resumeA.Id, item.Id));
+
+        after.School.ShouldBe(item.School);
+    }
+
+    [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
+    [Priority(7)]
+    public async Task UpdateEducation_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateEducationAsync(accessToken, resume.Id);
+
+        var source = new CreateEducationRequestFaker(resume.Id, 62004).Generate() with { Description = new string('&', 1000) };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(new UpdateEducationRequest(created.Id, resume.Id, source.School, source.Degree, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+    }
+
+    [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
+    [Priority(8)]
+    public async Task UpdateEducation_FutureStartDate_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateEducationAsync(accessToken, resume.Id);
+
+        var source = new CreateEducationRequestFaker(resume.Id, 62005).Generate() with
+        {
+            StartDate = new DateOnly(2099, 1, 1),
+            EndDate = null
+        };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(new UpdateEducationRequest(created.Id, resume.Id, source.School, source.Degree, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    private async Task<CreateEducationResponse> CreateEducationAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.EducationSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateEducationEndpoint, CreateEducationRequest, CreateEducationResponse>(
+                new CreateEducationRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

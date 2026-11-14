@@ -15,12 +15,12 @@ namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Documents.Downloa
 [Priority(80)]
 public class DownloadDocumentTests(WebApp app) : TestBase
 {
+    private static readonly byte[] PdfStub = [0x25, 0x50, 0x44, 0x46];
+
     [Fact]
     [Priority(0)]
     public async Task DownloadDocument_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .GETAsync<DownloadDocumentEndpoint, DocumentRequest>(
                 new DocumentRequest(Guid.NewGuid()));
@@ -49,11 +49,13 @@ public class DownloadDocumentTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         httpResponse.Content.Headers.ContentType?.MediaType.ShouldBe("application/pdf");
+        (await httpResponse.Content.ReadAsByteArrayAsync(ct)).ShouldBe(PdfStub);
+        FileNameOf(httpResponse).ShouldBe($"{personRequest.JobTitle}.pdf");
     }
 
     [Fact]
     [Priority(2)]
-    public async Task DownloadNonExistentDocument_ShouldReturnForbidden()
+    public async Task DownloadDocument_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -68,7 +70,7 @@ public class DownloadDocumentTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDownloadDocument_ShouldReturnForbidden()
+    public async Task DownloadDocument_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,5 +84,48 @@ public class DownloadDocumentTests(WebApp app) : TestBase
                 new DocumentRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task DownloadDocument_ResumeWithoutPerson_ShouldNameTheFileResume()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<DownloadDocumentEndpoint, DocumentRequest>(new DocumentRequest(resume.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        FileNameOf(httpResponse).ShouldBe("resume.pdf");
+    }
+
+    [Fact(Skip = "#160: an empty job title is not null, so the file name becomes .pdf")]
+    public async Task DownloadDocument_EmptyJobTitle_ShouldNameTheFileResume()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var personRequest = new CreatePersonRequestFaker(resume.Id).Generate() with { JobTitle = "" };
+
+        var (personResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(personRequest);
+        personResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<DownloadDocumentEndpoint, DocumentRequest>(new DocumentRequest(resume.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        FileNameOf(httpResponse).ShouldBe("resume.pdf");
+    }
+
+    private static string? FileNameOf(HttpResponseMessage response)
+    {
+        var disposition = response.Content.Headers.ContentDisposition;
+
+        return disposition?.FileNameStar ?? disposition?.FileName?.Trim('"');
     }
 }

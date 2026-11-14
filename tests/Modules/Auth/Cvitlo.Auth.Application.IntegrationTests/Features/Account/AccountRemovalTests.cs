@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
+using Cvitlo.Common.Testing.Containers;
 using Cvitlo.Common.Testing.Data;
+using Cvitlo.Common.Testing.Http;
 using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Account;
@@ -16,7 +18,7 @@ public class AccountRemovalTests(WebApp app)
     [InlineData("account/linked-accounts/google")]
     [InlineData("account/sessions/some-id")]
     [InlineData("account/sessions/others")]
-    public async Task Remove_WithoutSession_ShouldReturnUnauthorized(string route)
+    public async Task Remove_NoSession_ShouldReturnUnauthorized(string route)
     {
         using var client = app.CreateBrowserClient();
 
@@ -26,7 +28,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task Remove_WithoutCsrfHeader_ShouldReturnForbidden()
+    public async Task Remove_NoCsrfHeader_ShouldReturnForbidden()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;
@@ -38,7 +40,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteCredential_WhenItIsTheOnlySignInMethod_ShouldReturnConflictAndKeepIt()
+    public async Task DeleteCredential_PasswordThatKeycloakDoesNotLetGo_ShouldReturnConflictNotRemovable()
     {
         var user = await CreateUserAsync(5101);
         var (client, _) = await app.SignInAsync(user, ct: Ct);
@@ -48,11 +50,43 @@ public class AccountRemovalTests(WebApp app)
         using var response = await client.DeleteAsync($"api/v1/auth/account/credentials/{passwordId}", Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await ReadCodeAsync(response)).ShouldBe("Account.CredentialNotRemovable");
         (await FindPasswordIdAsync(client)).ShouldBe(passwordId);
     }
 
     [Fact]
-    public async Task Remove_WhenTwoRemovalsOfTheTwoSignInMethodsRunAtOnce_ShouldLetAtMostOneSucceed()
+    public async Task UnlinkAccount_OnlySignInMethod_ShouldReturnConflictLastSignInMethodAndKeepIt()
+    {
+        var provider = WebApp.StandIn;
+        const string username = "unlink.only.provider";
+        const string password = "provider-password-4";
+        await app.Keycloak.Container.AddStandInUserAsync(CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword,
+            provider, username, password, "unlink.only@standin.test", emailVerified: true, Ct);
+        using var signInClient = app.CreateBrowserClient();
+        using var driver = new KeycloakLoginDriver(signInClient);
+        var loginPage = await driver.StartAsync("api/v1/auth/login", Ct);
+        var providerPage = await driver.ClickAsync(loginPage, $"social-{provider.Alias}", Ct);
+        using var submitted = await driver.SubmitAsync(providerPage, "kc-form-login", new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["username"] = username,
+            ["password"] = password,
+            ["credentialId"] = string.Empty
+        }, Ct);
+        var (_, callback) = await driver.FollowAsync(submitted, Ct);
+        callback.ShouldNotBeNull();
+        callback.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+
+        using var response = await signInClient.DeleteAsync($"api/v1/auth/account/linked-accounts/{provider.Alias}", Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await ReadCodeAsync(response)).ShouldBe("Account.LastSignInMethod");
+        var accounts = await signInClient.GetFromJsonAsync<JsonArray>("api/v1/auth/account/linked-accounts", Ct);
+        accounts!.Single(a => string.Equals(a!["providerAlias"]!.GetValue<string>(), provider.Alias, StringComparison.Ordinal))!
+            ["connected"]!.GetValue<bool>().ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Remove_PasswordAndLinkAtOnce_ShouldRefuseThePasswordAndAllowTheUnlink()
     {
         var user = await CreateUserAsync(5107);
         var userId = (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct))!;
@@ -65,10 +99,13 @@ public class AccountRemovalTests(WebApp app)
             client.DeleteAsync($"api/v1/auth/account/credentials/{passwordId}", Ct),
             client.DeleteAsync($"api/v1/auth/account/linked-accounts/{WebApp.StandIn.Alias}", Ct));
         var statuses = responses.Select(r => r.StatusCode).ToList();
-        responses.ToList().ForEach(r => r.Dispose());
-
         statuses.Count(s => s == HttpStatusCode.NoContent).ShouldBe(1);
         statuses.Count(s => s == HttpStatusCode.Conflict).ShouldBe(1);
+        var refusedCode = await ReadCodeAsync(responses.Single(r => r.StatusCode == HttpStatusCode.Conflict));
+        responses.ToList().ForEach(r => r.Dispose());
+        // Keycloak never lets a password go, so the guard refuses it before the last-method check: this test
+        // cannot prove the lock until a second removable method (a second provider) exists in the fixture.
+        refusedCode.ShouldBe("Account.CredentialNotRemovable");
         var credentials = await client.GetFromJsonAsync<JsonArray>("api/v1/auth/account/credentials", Ct);
         var accounts = await client.GetFromJsonAsync<JsonArray>("api/v1/auth/account/linked-accounts", Ct);
         var storedPasswords = credentials!
@@ -80,7 +117,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteCredential_WithUnknownId_ShouldReturnNotFound()
+    public async Task DeleteCredential_UnknownId_ShouldReturnNotFound()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5102), ct: Ct);
         using var _client = client;
@@ -91,7 +128,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task UnlinkAccount_WhenNotConnected_ShouldReturnNotFound()
+    public async Task UnlinkAccount_NotConnected_ShouldReturnNotFound()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5103), ct: Ct);
         using var _client = client;
@@ -102,7 +139,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task EndSession_WhenItIsTheCurrentSession_ShouldReturnConflict()
+    public async Task EndSession_CurrentSession_ShouldReturnConflict()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5104), ct: Ct);
         using var _client = client;
@@ -132,7 +169,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task EndOtherSessions_ShouldEndAllButTheCurrentOne()
+    public async Task EndOtherSessions_TwoSessions_ShouldEndAllButTheCurrentOne()
     {
         var user = await CreateUserAsync(5106);
         var (first, _) = await app.SignInAsync(user, ct: Ct);
@@ -146,6 +183,13 @@ public class AccountRemovalTests(WebApp app)
         (await WaitUntilSignedOutAsync(second)).ShouldBe(HttpStatusCode.Unauthorized);
         using var stillSignedIn = await first.GetAsync("api/v1/auth/user", Ct);
         stillSignedIn.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    private static async Task<string?> ReadCodeAsync(HttpResponseMessage response)
+    {
+        var problem = await response.Content.ReadFromJsonAsync<JsonObject>(Ct);
+
+        return problem?["code"]?.GetValue<string>();
     }
 
     /// <summary>A user of its own, so that sessions and credentials are not shared with other tests.</summary>

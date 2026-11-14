@@ -14,7 +14,7 @@ public class CreateResumeTests(WebApp app) : TestBase
 {
     [Fact]
     [Priority(1)]
-    public async Task ValidCreateResume_ShouldReturnOk()
+    public async Task CreateResume_ValidRequest_ShouldReturnCreatedResume()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -28,11 +28,12 @@ public class CreateResumeTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Id.ShouldNotBe(Guid.Empty);
         response.Localization.ShouldBe("en-us");
+        response.CreatedAt.ShouldBe(DateTimeOffset.UtcNow, TimeSpan.FromMinutes(1));
     }
 
     [Fact]
     [Priority(2)]
-    public async Task RegularUser_ShouldCreateOneResume()
+    public async Task CreateResume_RegularUser_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsUserAsync(app, 2, ct);
@@ -48,35 +49,40 @@ public class CreateResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
-    public async Task RegularUser_ShouldCreateSecondResume()
+    public async Task CreateResume_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest, CreateResumeResponse>(
+                new CreateResumeRequest("en-us"));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact(Skip = "#150: POST /resumes has no validator, a localization over 100 characters reaches varchar(100) and answers 500")]
+    public async Task CreateResume_LocalizationLongerThan100_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
-        var accessToken = await ResumesTestHelper.SignInAsUserAsync(app, 2, ct);
+        var accessToken = await ResumesTestHelper.SignInAsUserAsync(app, 4, ct);
 
-        var request = new CreateResumeRequest("uk-ua");
-
-        var (httpResponse, _) = await app.Client
+        var httpResponse = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest, CreateResumeResponse>(request);
+            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest>(new CreateResumeRequest(new string('a', 101)));
 
-        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    [Priority(4)]
-    public async Task PremiumUser_ShouldCreateMultipleResumes()
+    public async Task CreateResume_NullLocalization_ShouldApplyTheColumnDefault()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
 
-        var request = new CreateResumeRequest("uk-ua");
-
-        var (httpResponse, _) = await app.Client
+        var (httpResponse, response) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest, CreateResumeResponse>(request);
+            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest, CreateResumeResponse>(new CreateResumeRequest(null));
 
+        // EF omits a null on a property that has a database default, so the column default applies.
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Localization.ShouldBe("en-us");
     }
-
 }

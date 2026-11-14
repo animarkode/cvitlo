@@ -20,8 +20,6 @@ public class UpdateLanguageTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateLanguage_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest>(
                 new UpdateLanguageRequest(Guid.NewGuid(), Guid.NewGuid(), "Name", "B2"));
@@ -31,7 +29,7 @@ public class UpdateLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateLanguage_ShouldModifyFields()
+    public async Task UpdateLanguage_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -65,7 +63,7 @@ public class UpdateLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentLanguage_ShouldReturnForbidden()
+    public async Task UpdateLanguage_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -81,7 +79,7 @@ public class UpdateLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateLanguage_ShouldReturnForbidden()
+    public async Task UpdateLanguage_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -108,24 +106,79 @@ public class UpdateLanguageTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateLanguageData))]
     [Priority(4)]
-    public async Task UpdateLanguage_WithInvalidData_ShouldReturnBadRequest(UpdateLanguageRequest invalidRequest)
+    public async Task UpdateLanguage_InvalidField_ShouldReturnBadRequest(
+        UpdateLanguageRequest invalidRequest,
+        string expectedKey)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateLanguageAsync(accessToken, resume.Id);
+
+        var updateRequest = invalidRequest with { Id = created.Id, ResumeId = resume.Id };
+
+        var (httpResponse, error) = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest, ErrorResponse>(updateRequest);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
+    }
+
+    [Fact]
+    [Priority(5)]
+    public async Task UpdateLanguage_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateLanguageAsync(userAToken, resumeA.Id);
+
+        var source = new CreateLanguageRequestFaker(resumeB.Id, 62003).Generate() with { Name = "intruder" };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest>(new UpdateLanguageRequest(item.Id, resumeB.Id, source.Name, source.Level));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, after) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetLanguageEndpoint, GetLanguageRequest, GetLanguageResponse>(
+                new GetLanguageRequest(resumeA.Id, item.Id));
+
+        after.Name.ShouldBe(item.Name);
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateLanguage_UnknownItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
 
-        var createRequest = new CreateLanguageRequestFaker(resume.Id).Generate();
-
-        var (_, languageResponse) = await app.Client
-            .WithAuthToken(accessToken)
-            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, CreateLanguageResponse>(createRequest);
-
-        var updateRequest = invalidRequest with { Id = languageResponse.Id, ResumeId = resume.Id };
+        var source = new CreateLanguageRequestFaker(resume.Id).Generate();
 
         var httpResponse = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest>(updateRequest);
+            .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest>(new UpdateLanguageRequest(Guid.NewGuid(), resume.Id, source.Name, source.Level));
 
-        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateLanguageResponse> CreateLanguageAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LanguageSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, CreateLanguageResponse>(
+                new CreateLanguageRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

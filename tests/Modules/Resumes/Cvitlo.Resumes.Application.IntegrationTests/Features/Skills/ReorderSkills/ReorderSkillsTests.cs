@@ -1,3 +1,4 @@
+using System.Text;
 using System.Net;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
 using Cvitlo.Resumes.Application.Features.Resumes.Shared;
@@ -20,8 +21,6 @@ public class ReorderSkillsTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task ReorderSkills_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<ReorderSkillsEndpoint, ReorderSkillsRequest>(
                 new ReorderSkillsRequest(Guid.NewGuid(), new List<Guid> { Guid.NewGuid() }));
@@ -31,7 +30,7 @@ public class ReorderSkillsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task ReorderSkills_ShouldPersistNewOrder()
+    public async Task ReorderSkills_NewOrder_ShouldPersistIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +58,7 @@ public class ReorderSkillsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task MismatchedIds_ShouldReturnNotFound()
+    public async Task ReorderSkills_UnknownId_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -79,7 +78,7 @@ public class ReorderSkillsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task EmptyOrderedIds_ShouldReturnBadRequest()
+    public async Task ReorderSkills_EmptyOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -95,7 +94,7 @@ public class ReorderSkillsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task DuplicateOrderedIds_ShouldReturnBadRequest()
+    public async Task ReorderSkills_DuplicateOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +112,7 @@ public class ReorderSkillsTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task CrossUserReorder_ShouldReturnForbidden()
+    public async Task ReorderSkills_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -129,6 +128,66 @@ public class ReorderSkillsTests(WebApp app) : TestBase
                 new ReorderSkillsRequest(resume.Id, new List<Guid> { ids[1], ids[0] }));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task ReorderSkills_IdsFromAnotherResume_ShouldReturnNotFoundAndKeepOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var foreignIds = await CreateSkillsAsync(userAToken, resumeA.Id, 1);
+        var ownIds = await CreateSkillsAsync(userBToken, resumeB.Id, 2);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<ReorderSkillsEndpoint, ReorderSkillsRequest>(
+                new ReorderSkillsRequest(resumeB.Id, new List<Guid> { foreignIds[0], ownIds[0] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, resumeResponse) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(
+                new GetResumeRequest(resumeB.Id));
+
+        resumeResponse.Skills.Select(i => i.Id).ShouldBe(ownIds);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task ReorderSkills_FewerIdsThanItems_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var ids = await CreateSkillsAsync(accessToken, resume.Id, 3);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<ReorderSkillsEndpoint, ReorderSkillsRequest>(
+                new ReorderSkillsRequest(resume.Id, new List<Guid> { ids[0], ids[1] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; body {} answers 500 (NullReferenceException) instead of 400")]
+    [Priority(8)]
+    public async Task ReorderSkills_BodyWithoutOrderedIds_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        using var body = new StringContent("{}", Encoding.UTF8, "application/json");
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PutAsync($"api/v1/resumes/{resume.Id}/skills/reorder", body, ct);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     private async Task<List<Guid>> CreateSkillsAsync(string accessToken, Guid resumeId, int count)

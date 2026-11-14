@@ -15,7 +15,7 @@ public class AccountTests(WebApp app)
     [InlineData("account/credentials")]
     [InlineData("account/devices")]
     [InlineData("account/linked-accounts")]
-    public async Task Read_WithoutSession_ShouldReturnUnauthorized(string route)
+    public async Task Read_NoSession_ShouldReturnUnauthorized(string route)
     {
         using var client = app.CreateBrowserClient();
 
@@ -25,7 +25,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task UpdateProfile_WithoutSession_ShouldReturnUnauthorized()
+    public async Task UpdateProfile_NoSession_ShouldReturnUnauthorized()
     {
         using var client = app.CreateBrowserClient();
 
@@ -35,7 +35,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task GetProfile_WithSession_ShouldReturnTheUsersData()
+    public async Task GetProfile_SignedIn_ShouldReturnTheUsersData()
     {
         var user = app.Users[0];
         var (client, _) = await app.SignInAsync(user, ct: Ct);
@@ -53,7 +53,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task UpdateProfile_WithNewNames_ShouldChangeThemAndLeaveTheEmailUnchanged()
+    public async Task UpdateProfile_NewNames_ShouldChangeThemAndLeaveTheEmailUnchanged()
     {
         var user = app.Users[4];
         var (client, _) = await app.SignInAsync(user, ct: Ct);
@@ -90,7 +90,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task UpdateProfile_WithNewNames_ShouldShowThemInTheSignedInUser()
+    public async Task UpdateProfile_NewNames_ShouldShowThemInTheSignedInUser()
     {
         var user = app.Users[4];
         var (client, _) = await app.SignInAsync(user, ct: Ct);
@@ -116,7 +116,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task UpdateProfile_WithTooLongName_ShouldReturnBadRequest()
+    public async Task UpdateProfile_NameOf256Characters_ShouldReturnBadRequest()
     {
         var (client, _) = await app.SignInAsync(app.Users[1], ct: Ct);
         using var _client = client;
@@ -128,7 +128,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task GetCredentials_WithSession_ShouldListThePassword()
+    public async Task GetCredentials_SignedIn_ShouldListThePassword()
     {
         var (client, _) = await app.SignInAsync(app.Users[1], ct: Ct);
         using var _client = client;
@@ -141,7 +141,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task GetDevices_WithSession_ShouldIncludeTheCurrentSession()
+    public async Task GetDevices_SignedIn_ShouldIncludeTheCurrentSession()
     {
         var (client, _) = await app.SignInAsync(app.Users[2], ct: Ct);
         using var _client = client;
@@ -152,7 +152,7 @@ public class AccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task GetLinkedAccounts_WithSession_ShouldListTheEnabledProvidersAsNotConnected()
+    public async Task GetLinkedAccounts_SignedIn_ShouldListTheEnabledProvidersAsNotConnected()
     {
         var (client, _) = await app.SignInAsync(app.Users[3], ct: Ct);
         using var _client = client;

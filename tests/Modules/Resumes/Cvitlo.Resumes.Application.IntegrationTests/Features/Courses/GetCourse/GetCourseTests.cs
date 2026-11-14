@@ -19,8 +19,6 @@ public class GetCourseTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetCourse_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetCourseEndpoint, GetCourseRequest, GetCourseResponse>(
                 new GetCourseRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetCourse_ShouldReturnCreatedCourse()
+    public async Task GetCourse_ExistingItem_ShouldReturnTheCreatedCourse()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -55,7 +53,7 @@ public class GetCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllCourses_ShouldReturnCoursesForResume()
+    public async Task GetAllCourses_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class GetCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentCourse_ShouldReturnNotFound()
+    public async Task GetCourse_UnknownCourse_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -98,7 +96,7 @@ public class GetCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllCoursesForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllCourses_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +111,7 @@ public class GetCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllCoursesEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllCourses_ResumeWithoutCourses_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -130,7 +128,7 @@ public class GetCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetCourse_ShouldReturnForbidden()
+    public async Task GetCourse_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -154,7 +152,7 @@ public class GetCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllCourses_ShouldReturnForbidden()
+    public async Task GetAllCourses_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -168,5 +166,66 @@ public class GetCourseTests(WebApp app) : TestBase
                 new GetAllCoursesRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetCourse_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateCourseAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetCourseEndpoint, GetCourseRequest, GetCourseResponse>(
+                new GetCourseRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetCourse_CourseOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateCourseAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetCourseEndpoint, GetCourseRequest, GetCourseResponse>(
+                new GetCourseRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllCourses_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllCoursesEndpoint, GetAllCoursesRequest, GetAllCoursesResponse>(
+                new GetAllCoursesRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    private async Task<CreateCourseResponse> CreateCourseAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(
+                new CreateCourseRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

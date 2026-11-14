@@ -19,8 +19,6 @@ public class GetSkillTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetSkill_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetSkillEndpoint, GetSkillRequest, GetSkillResponse>(
                 new GetSkillRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetSkill_ShouldReturnCreatedSkill()
+    public async Task GetSkill_ExistingItem_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -55,7 +53,7 @@ public class GetSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllSkills_ShouldReturnSkillsForResume()
+    public async Task GetAllSkills_ResumeWithItems_ShouldReturnThem()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class GetSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentSkill_ShouldReturnNotFound()
+    public async Task GetSkill_UnknownSkill_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -98,7 +96,7 @@ public class GetSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllSkillsForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllSkills_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +111,7 @@ public class GetSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllSkillsEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllSkills_ResumeWithoutItems_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -130,7 +128,7 @@ public class GetSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetSkill_ShouldReturnForbidden()
+    public async Task GetSkill_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -154,7 +152,7 @@ public class GetSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllSkills_ShouldReturnForbidden()
+    public async Task GetAllSkills_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -168,5 +166,66 @@ public class GetSkillTests(WebApp app) : TestBase
                 new GetAllSkillsRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetSkill_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateSkillAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetSkillEndpoint, GetSkillRequest, GetSkillResponse>(
+                new GetSkillRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetSkill_ItemOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateSkillAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetSkillEndpoint, GetSkillRequest, GetSkillResponse>(
+                new GetSkillRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateSkillResponse> CreateSkillAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.SkillSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateSkillEndpoint, CreateSkillRequest, CreateSkillResponse>(
+                new CreateSkillRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllSkills_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllSkillsEndpoint, GetAllSkillsRequest, GetAllSkillsResponse>(
+                new GetAllSkillsRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

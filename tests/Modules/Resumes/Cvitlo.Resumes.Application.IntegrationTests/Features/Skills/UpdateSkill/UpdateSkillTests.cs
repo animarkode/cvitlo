@@ -20,8 +20,6 @@ public class UpdateSkillTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateSkill_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateSkillEndpoint, UpdateSkillRequest>(
                 new UpdateSkillRequest(Guid.NewGuid(), Guid.NewGuid(), "Name", "B2"));
@@ -31,7 +29,7 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateSkill_ShouldModifyFields()
+    public async Task UpdateSkill_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -65,7 +63,7 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentSkill_ShouldReturnNotFound()
+    public async Task UpdateSkill_UnknownSkill_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateSkill_ShouldReturnForbidden()
+    public async Task UpdateSkill_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -108,7 +106,9 @@ public class UpdateSkillTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateSkillData))]
     [Priority(4)]
-    public async Task UpdateSkill_WithInvalidData_ShouldReturnBadRequest(UpdateSkillRequest invalidRequest)
+    public async Task UpdateSkill_InvalidField_ShouldReturnBadRequest(
+        UpdateSkillRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -122,10 +122,51 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
         var updateRequest = invalidRequest with { Id = skillResponse.Id, ResumeId = resume.Id };
 
-        var httpResponse = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdateSkillEndpoint, UpdateSkillRequest>(updateRequest);
+            .PUTAsync<UpdateSkillEndpoint, UpdateSkillRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
+    }
+
+    [Fact]
+    [Priority(5)]
+    public async Task UpdateSkill_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateSkillAsync(userAToken, resumeA.Id);
+        var changed = new CreateSkillRequestFaker(resumeB.Id, 72901).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateSkillEndpoint, UpdateSkillRequest>(
+                new UpdateSkillRequest(item.Id, resumeB.Id, changed.Name, changed.Level));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetSkillEndpoint, GetSkillRequest, GetSkillResponse>(
+                new GetSkillRequest(resumeA.Id, item.Id));
+
+        getResponse.Name.ShouldBe(item.Name);
+    }
+
+    private async Task<CreateSkillResponse> CreateSkillAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.SkillSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateSkillEndpoint, CreateSkillRequest, CreateSkillResponse>(
+                new CreateSkillRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

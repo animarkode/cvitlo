@@ -19,8 +19,6 @@ public class GetExperienceTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetExperience_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetExperienceEndpoint, GetExperienceRequest, GetExperienceResponse>(
                 new GetExperienceRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetExperience_ShouldReturnCreatedExperience()
+    public async Task GetExperience_ExistingItem_ShouldReturnTheCreatedExperience()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -56,7 +54,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllExperiences_ShouldReturnExperiencesForResume()
+    public async Task GetAllExperiences_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -86,7 +84,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentExperience_ShouldReturnNotFound()
+    public async Task GetExperience_UnknownExperience_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -102,7 +100,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllExperiencesForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllExperiences_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -118,7 +116,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllExperiencesEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllExperiences_ResumeWithoutExperiences_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -136,7 +134,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetExperience_ShouldReturnForbidden()
+    public async Task GetExperience_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -161,7 +159,7 @@ public class GetExperienceTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllExperiences_ShouldReturnForbidden()
+    public async Task GetAllExperiences_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -176,5 +174,66 @@ public class GetExperienceTests(WebApp app) : TestBase
                 new GetAllExperiencesRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetExperience_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateExperienceAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetExperienceEndpoint, GetExperienceRequest, GetExperienceResponse>(
+                new GetExperienceRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetExperience_ExperienceOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateExperienceAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetExperienceEndpoint, GetExperienceRequest, GetExperienceResponse>(
+                new GetExperienceRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllExperiences_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllExperiencesEndpoint, GetAllExperiencesRequest, GetAllExperiencesResponse>(
+                new GetAllExperiencesRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    private async Task<CreateExperienceResponse> CreateExperienceAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.ExperienceSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, CreateExperienceResponse>(
+                new CreateExperienceRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

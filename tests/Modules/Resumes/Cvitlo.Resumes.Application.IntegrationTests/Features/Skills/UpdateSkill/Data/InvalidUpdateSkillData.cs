@@ -4,19 +4,24 @@ using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.Data;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Skills.UpdateSkill.Data;
 
-public class InvalidUpdateSkillData : IEnumerable<TheoryDataRow<UpdateSkillRequest>>
+public class InvalidUpdateSkillData : IEnumerable<TheoryDataRow<UpdateSkillRequest, string>>
 {
-    public IEnumerator<TheoryDataRow<UpdateSkillRequest>> GetEnumerator()
+    public IEnumerator<TheoryDataRow<UpdateSkillRequest, string>> GetEnumerator()
     {
-        var baseFaker = new CreateSkillRequestFaker(Guid.Empty);
+        var source = new CreateSkillRequestFaker(Guid.Empty).Generate();
+        var baseRequest = new UpdateSkillRequest(Guid.NewGuid(), Guid.Empty, source.Name, source.Level);
 
-        yield return new TheoryDataRow<UpdateSkillRequest>(
-            new UpdateSkillRequest(Guid.Empty, Guid.Empty, new string('a', 256),
-                baseFaker.Generate().Level));
+        yield return new TheoryDataRow<UpdateSkillRequest, string>(
+            baseRequest with { Level = "InvalidLevel" },
+            "level");
 
-        yield return new TheoryDataRow<UpdateSkillRequest>(
-            new UpdateSkillRequest(Guid.Empty, Guid.Empty, baseFaker.Generate().Name,
-                "InvalidLevel"));
+        yield return new TheoryDataRow<UpdateSkillRequest, string>(
+            baseRequest with { Level = "beginner" },
+            "level");
+
+        yield return new TheoryDataRow<UpdateSkillRequest, string>(
+            baseRequest with { Name = new string('a', 101) },
+            "name");
     }
 
     IEnumerator IEnumerable.GetEnumerator()

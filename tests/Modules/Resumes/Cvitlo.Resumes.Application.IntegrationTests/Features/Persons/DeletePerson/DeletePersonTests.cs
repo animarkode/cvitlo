@@ -19,8 +19,6 @@ public class DeletePersonTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeletePerson_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeletePersonEndpoint, DeletePersonRequest>(
                 new DeletePersonRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class DeletePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeletePerson_ShouldRemovePerson()
+    public async Task DeletePerson_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +57,7 @@ public class DeletePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentPerson_ShouldReturnNotFound()
+    public async Task DeletePerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class DeletePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeletePerson_ShouldReturnForbidden()
+    public async Task DeletePerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -95,5 +93,41 @@ public class DeletePersonTests(WebApp app) : TestBase
                 new DeletePersonRequest(resume.Id, personResponse.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(4)]
+    public async Task DeletePerson_OwnResumeWithAnotherUsersPerson_ShouldReturnNotFoundAndKeepIt()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var person = await CreatePersonAsync(userAToken, resumeA.Id);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .DELETEAsync<DeletePersonEndpoint, DeletePersonRequest>(
+                new DeletePersonRequest(resumeB.Id, person.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (getResponse, _) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetPersonEndpoint, GetPersonRequest, GetPersonResponse>(
+                new GetPersonRequest(resumeA.Id, person.Id));
+
+        getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    private async Task<CreatePersonResponse> CreatePersonAsync(string accessToken, Guid resumeId, int seed = ResumesTestConstants.PersonSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

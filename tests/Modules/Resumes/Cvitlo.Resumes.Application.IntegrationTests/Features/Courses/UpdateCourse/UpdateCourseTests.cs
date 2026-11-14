@@ -20,8 +20,6 @@ public class UpdateCourseTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateCourse_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(
                 new UpdateCourseRequest(Guid.NewGuid(), Guid.NewGuid(), "School", "Course", null, null, null));
@@ -31,7 +29,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateCourse_ShouldModifyFields()
+    public async Task UpdateCourse_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -71,7 +69,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentCourse_ShouldReturnForbidden()
+    public async Task UpdateCourse_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -95,7 +93,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateCourse_ShouldReturnForbidden()
+    public async Task UpdateCourse_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -129,30 +127,28 @@ public class UpdateCourseTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateCourseData))]
     [Priority(4)]
-    public async Task UpdateCourse_WithInvalidData_ShouldReturnBadRequest(UpdateCourseRequest invalidRequest)
+    public async Task UpdateCourse_InvalidField_ShouldReturnBadRequest(
+        UpdateCourseRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateCourseAsync(accessToken, resume.Id);
 
-        var createRequest = new CreateCourseRequestFaker(resume.Id).Generate();
+        var updateRequest = invalidRequest with { Id = created.Id, ResumeId = resume.Id };
 
-        var (_, courseResponse) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(createRequest);
-
-        var updateRequest = invalidRequest with { Id = courseResponse.Id, ResumeId = resume.Id };
-
-        var httpResponse = await app.Client
-            .WithAuthToken(accessToken)
-            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(updateRequest);
+            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]
     [Priority(5)]
-    public async Task UpdateCourse_WithUnsafeDescription_ShouldPersistSanitizedHtml()
+    public async Task UpdateCourse_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -188,5 +184,102 @@ public class UpdateCourseTests(WebApp app) : TestBase
         getResponse.Description.ShouldNotContain("<script");
         getResponse.Description.ShouldNotContain("onerror");
         getResponse.Description.ShouldContain("<strong>Module</strong>");
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateCourse_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateCourseAsync(userAToken, resumeA.Id);
+
+        var source = new CreateCourseRequestFaker(resumeB.Id, 62003).Generate() with { Name = "intruder" };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(new UpdateCourseRequest(item.Id, resumeB.Id, source.School, source.Name, source.StartDate, source.EndDate, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, after) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetCourseEndpoint, GetCourseRequest, GetCourseResponse>(
+                new GetCourseRequest(resumeA.Id, item.Id));
+
+        after.Name.ShouldBe(item.Name);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task UpdateCourse_UnknownItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var source = new CreateCourseRequestFaker(resume.Id).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(new UpdateCourseRequest(Guid.NewGuid(), resume.Id, source.School, source.Name, source.StartDate, source.EndDate, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
+    [Priority(8)]
+    public async Task UpdateCourse_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateCourseAsync(accessToken, resume.Id);
+
+        var source = new CreateCourseRequestFaker(resume.Id, 62004).Generate() with { Description = new string('&', 1000) };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(new UpdateCourseRequest(created.Id, resume.Id, source.School, source.Name, source.StartDate, source.EndDate, source.Description));
+
+        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+    }
+
+    [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
+    [Priority(9)]
+    public async Task UpdateCourse_FutureStartDate_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateCourseAsync(accessToken, resume.Id);
+
+        var source = new CreateCourseRequestFaker(resume.Id, 62005).Generate() with
+        {
+            StartDate = new DateOnly(2099, 1, 1),
+            EndDate = null
+        };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(new UpdateCourseRequest(created.Id, resume.Id, source.School, source.Name, source.StartDate, source.EndDate, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    private async Task<CreateCourseResponse> CreateCourseAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(
+                new CreateCourseRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

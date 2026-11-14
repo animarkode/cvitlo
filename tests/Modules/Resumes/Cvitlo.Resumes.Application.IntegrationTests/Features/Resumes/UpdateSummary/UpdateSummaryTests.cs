@@ -19,8 +19,6 @@ public class UpdateSummaryTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateSummary_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateSummaryEndpoint, UpdateSummaryRequest>(
                 new UpdateSummaryRequest(Guid.NewGuid(), "Summary"));
@@ -30,7 +28,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateSummary_ShouldModifySummary()
+    public async Task UpdateSummary_ValidRequest_ShouldModifySummary()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -60,7 +58,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task UpdateSummary_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task SummaryWithExactly200VisibleCharacters_ShouldReturnNoContent()
+    public async Task UpdateSummary_Exactly200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -98,7 +96,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task SummaryWithTwoParagraphsContaining200VisibleCharacters_ShouldReturnNoContent()
+    public async Task UpdateSummary_TwoParagraphsWith200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -117,7 +115,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task SummaryWith201VisibleCharacters_ShouldReturnBadRequest()
+    public async Task UpdateSummary_201VisibleCharacters_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -137,5 +135,45 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         response.Errors.ShouldContainKey("summary");
+    }
+
+    [Fact]
+    public async Task UpdateSummary_OtherUsersResume_ShouldReturnForbiddenAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var ownerToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var intruderToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, ownerToken, ct: ct);
+
+        var ownerUpdate = await app.Client
+            .WithAuthToken(ownerToken)
+            .PUTAsync<UpdateSummaryEndpoint, UpdateSummaryRequest>(new UpdateSummaryRequest(resume.Id, "owner"));
+        ownerUpdate.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var intruderUpdate = await app.Client
+            .WithAuthToken(intruderToken)
+            .PUTAsync<UpdateSummaryEndpoint, UpdateSummaryRequest>(new UpdateSummaryRequest(resume.Id, "intruder"));
+        intruderUpdate.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        var (_, stored) = await app.Client
+            .WithAuthToken(ownerToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
+        stored.Summary.ShouldBe("owner");
+    }
+
+    [Fact(Skip = "#148: the summary text is validated on visible length but stored as markup, so a long href overflows the column and answers 500")]
+    public async Task UpdateSummary_MarkupLongerThanTheColumn_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var markup = $"<a href=\"https://e.example/{new string('a', 2000)}\">x</a>";
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateSummaryEndpoint, UpdateSummaryRequest>(new UpdateSummaryRequest(resume.Id, markup));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 }

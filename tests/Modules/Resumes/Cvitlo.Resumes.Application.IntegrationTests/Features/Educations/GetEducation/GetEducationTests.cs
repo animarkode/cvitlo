@@ -19,8 +19,6 @@ public class GetEducationTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetEducation_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetEducationEndpoint, GetEducationRequest, GetEducationResponse>(
                 new GetEducationRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetEducation_ShouldReturnCreatedEducation()
+    public async Task GetEducation_ExistingItem_ShouldReturnTheCreatedEducation()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -55,7 +53,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllEducations_ShouldReturnEducationsForResume()
+    public async Task GetAllEducations_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentEducation_ShouldReturnNotFound()
+    public async Task GetEducation_UnknownEducation_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -98,7 +96,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllEducationsForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllEducations_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +111,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllEducationsEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllEducations_ResumeWithoutEducations_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -130,7 +128,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetEducation_ShouldReturnForbidden()
+    public async Task GetEducation_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -154,7 +152,7 @@ public class GetEducationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllEducations_ShouldReturnForbidden()
+    public async Task GetAllEducations_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -168,5 +166,66 @@ public class GetEducationTests(WebApp app) : TestBase
                 new GetAllEducationsRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetEducation_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateEducationAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetEducationEndpoint, GetEducationRequest, GetEducationResponse>(
+                new GetEducationRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetEducation_EducationOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateEducationAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetEducationEndpoint, GetEducationRequest, GetEducationResponse>(
+                new GetEducationRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllEducations_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllEducationsEndpoint, GetAllEducationsRequest, GetAllEducationsResponse>(
+                new GetAllEducationsRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    private async Task<CreateEducationResponse> CreateEducationAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.EducationSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateEducationEndpoint, CreateEducationRequest, CreateEducationResponse>(
+                new CreateEducationRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

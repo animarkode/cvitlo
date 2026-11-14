@@ -11,7 +11,7 @@ namespace Cvitlo.Auth.Application.IntegrationTests.Features.SignIn;
 public class SignInTests(WebApp app)
 {
     [Fact]
-    public async Task Login_ShouldRedirectToKeycloakWithCodeFlowPkceAndState()
+    public async Task Login_NoSession_ShouldRedirectToKeycloakWithCodeFlowPkceAndState()
     {
         using var client = app.CreateBrowserClient();
 
@@ -31,7 +31,7 @@ public class SignInTests(WebApp app)
     }
 
     [Fact]
-    public async Task Register_ShouldAskKeycloakForTheRegistrationPage()
+    public async Task Register_NoSession_ShouldAskKeycloakForTheRegistrationPage()
     {
         using var client = app.CreateBrowserClient();
 
@@ -44,7 +44,7 @@ public class SignInTests(WebApp app)
     // The registration page has no password field: whoever submits it has not yet proved they own the
     // address, so Keycloak must send the verification link before it lets them set a password.
     [Fact]
-    public async Task Register_ShouldVerifyTheEmailBeforeAskingForAPassword()
+    public async Task Register_NewEmail_ShouldVerifyTheEmailBeforeAskingForAPassword()
     {
         var user = new TestUserFaker(9201).Generate();
         using var client = app.CreateBrowserClient();
@@ -73,8 +73,23 @@ public class SignInTests(WebApp app)
         afterLink.ShouldContain("<!-- template: login-update-password.ftl -->", customMessage: "the password is set once the link is followed");
     }
 
+    [Theory]
+    [InlineData("login")]
+    [InlineData("register")]
+    public async Task Login_IdpHintInTheQuery_ShouldNotForwardIt(string path)
+    {
+        using var client = app.CreateBrowserClient();
+
+        using var response = await client.GetAsync(
+            $"api/v1/auth/{path}?kc_idp_hint={WebApp.StandIn.Alias}&returnUrl=/", TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        var query = HttpUtility.ParseQueryString(response.Headers.Location!.Query);
+        query["kc_idp_hint"].ShouldBeNull("a provider choice from the request must never reach Keycloak");
+    }
+
     [Fact]
-    public async Task SignIn_ShouldIssueAnHttpOnlySecureStrictSessionCookie()
+    public async Task SignIn_ValidCredentials_ShouldIssueAnHttpOnlySecureStrictSessionCookie()
     {
         var (client, callback) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _ = client;
@@ -92,7 +107,7 @@ public class SignInTests(WebApp app)
     }
 
     [Fact]
-    public async Task SignIn_WithRememberMe_ShouldIssueAPersistentCookie()
+    public async Task SignIn_RememberMe_ShouldIssueAPersistentCookie()
     {
         var (client, callback) = await app.SignInAsync(app.Users[1], rememberMe: true, ct: TestContext.Current.CancellationToken);
         using var _ = client;
@@ -115,7 +130,7 @@ public class SignInTests(WebApp app)
     [InlineData("//evil.example/steal")]
     [InlineData("/\\evil.example/steal")]
     [InlineData("javascript:alert(1)")]
-    public async Task SignIn_WithForeignReturnUrl_ShouldReturnToTheAppRoot(string returnUrl)
+    public async Task SignIn_ForeignReturnUrl_ShouldReturnToTheAppRoot(string returnUrl)
     {
         var (client, callback) = await app.SignInAsync(app.Users[0], returnUrl: returnUrl, ct: TestContext.Current.CancellationToken);
         using var _ = client;
@@ -124,7 +139,7 @@ public class SignInTests(WebApp app)
     }
 
     [Fact]
-    public async Task SignIn_ShouldNeverPutTokensInAResponseTheBrowserCanRead()
+    public async Task SignIn_ValidCredentials_ShouldNeverPutTokensInAResponseTheBrowserCanRead()
     {
         var (client, callback) = await app.SignInAsync(app.Users[2], ct: TestContext.Current.CancellationToken);
         using var _ = client;
@@ -137,7 +152,7 @@ public class SignInTests(WebApp app)
     }
 
     [Fact]
-    public async Task SignIn_WithWrongPassword_ShouldStayOnKeycloak()
+    public async Task SignIn_WrongPassword_ShouldStayOnKeycloak()
     {
         using var client = app.CreateBrowserClient();
         using var driver = new KeycloakLoginDriver(client);

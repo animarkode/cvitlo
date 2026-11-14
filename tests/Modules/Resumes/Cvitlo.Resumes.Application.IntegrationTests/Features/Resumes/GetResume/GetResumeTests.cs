@@ -18,8 +18,6 @@ public class GetResumeTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetResume_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(
                 new GetResumeRequest(Guid.NewGuid()));
@@ -53,7 +51,7 @@ public class GetResumeTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task GetResume_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -69,7 +67,7 @@ public class GetResumeTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserGet_ShouldReturnForbidden()
+    public async Task GetResume_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -83,5 +81,27 @@ public class GetResumeTests(WebApp app) : TestBase
                 new GetResumeRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetResume_ResumeWithEverySection_ShouldReturnAllSections()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var token = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var seeded = await ResumeWithEverySectionSeeder.SeedAsync(app, token, ct);
+
+        var (httpResponse, resume) = await app.Client
+            .WithAuthToken(token)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(seeded.ResumeId));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        resume.Person.ShouldNotBeNull().Id.ShouldBe(seeded.PersonId);
+        resume.Experience.Select(x => x.Id).ShouldBe([seeded.ExperienceId]);
+        resume.Educations.Select(x => x.Id).ShouldBe([seeded.EducationId]);
+        resume.Skills.Select(x => x.Id).ShouldBe([seeded.SkillId]);
+        resume.Languages.Select(x => x.Id).ShouldBe([seeded.LanguageId]);
+        resume.Courses.Select(x => x.Id).ShouldBe([seeded.CourseId]);
+        resume.Projects.Select(x => x.Id).ShouldBe([seeded.ProjectId]);
+        resume.Links.Select(x => x.Id).ShouldBe([seeded.LinkId]);
     }
 }

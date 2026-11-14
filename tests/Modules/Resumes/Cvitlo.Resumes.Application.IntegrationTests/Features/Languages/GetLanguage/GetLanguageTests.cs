@@ -19,8 +19,6 @@ public class GetLanguageTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetLanguage_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetLanguageEndpoint, GetLanguageRequest, GetLanguageResponse>(
                 new GetLanguageRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetLanguage_ShouldReturnCreatedLanguage()
+    public async Task GetLanguage_ExistingItem_ShouldReturnTheCreatedLanguage()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -55,7 +53,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllLanguages_ShouldReturnLanguagesForResume()
+    public async Task GetAllLanguages_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentLanguage_ShouldReturnNotFound()
+    public async Task GetLanguage_UnknownLanguage_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -98,7 +96,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllLanguagesForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllLanguages_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +111,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllLanguagesEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllLanguages_ResumeWithoutLanguages_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -130,7 +128,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetLanguage_ShouldReturnForbidden()
+    public async Task GetLanguage_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -154,7 +152,7 @@ public class GetLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllLanguages_ShouldReturnForbidden()
+    public async Task GetAllLanguages_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -168,5 +166,66 @@ public class GetLanguageTests(WebApp app) : TestBase
                 new GetAllLanguagesRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetLanguage_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateLanguageAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetLanguageEndpoint, GetLanguageRequest, GetLanguageResponse>(
+                new GetLanguageRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetLanguage_LanguageOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateLanguageAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetLanguageEndpoint, GetLanguageRequest, GetLanguageResponse>(
+                new GetLanguageRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllLanguages_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllLanguagesEndpoint, GetAllLanguagesRequest, GetAllLanguagesResponse>(
+                new GetAllLanguagesRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    private async Task<CreateLanguageResponse> CreateLanguageAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LanguageSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, CreateLanguageResponse>(
+                new CreateLanguageRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

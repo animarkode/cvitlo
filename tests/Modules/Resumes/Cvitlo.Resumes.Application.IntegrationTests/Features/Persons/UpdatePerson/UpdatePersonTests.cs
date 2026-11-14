@@ -24,8 +24,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdatePerson_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
                 new UpdatePersonRequest(Guid.NewGuid(), Guid.NewGuid(), null, null, null, null, null, null, null, null, null, null, null, null));
@@ -35,7 +33,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdatePerson_ShouldModifyFields()
+    public async Task UpdatePerson_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentPerson_ShouldReturnNotFound()
+    public async Task UpdatePerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -102,7 +100,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdatePerson_ShouldReturnForbidden()
+    public async Task UpdatePerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -131,7 +129,9 @@ public class UpdatePersonTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdatePersonData))]
     [Priority(4)]
-    public async Task UpdatePerson_WithInvalidData_ShouldReturnBadRequest(UpdatePersonRequest invalidRequest)
+    public async Task UpdatePerson_InvalidField_ShouldReturnBadRequest(
+        UpdatePersonRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -144,16 +144,17 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
         var updateRequest = invalidRequest with { Id = createResponse.Id, ResumeId = resume.Id };
 
-        var httpResponse = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(updateRequest);
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]
     [Priority(5)]
-    public async Task FirstNameUpdate_ShouldSnapshotFullNameIntoResumeTitle()
+    public async Task UpdatePerson_FirstNameSetWhileTitleIsEmpty_ShouldSnapshotFullNameIntoResumeTitle()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -199,7 +200,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task SecondNameUpdate_ShouldLeaveResumeTitleUnchanged()
+    public async Task UpdatePerson_NameChangedAfterTitleSnapshot_ShouldLeaveResumeTitleUnchanged()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -251,7 +252,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task ManualTitleUpdateThenNameUpdate_ShouldLeaveManualTitleUnchanged()
+    public async Task UpdatePerson_ManualTitleSet_ShouldLeaveManualTitleUnchanged()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -297,7 +298,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(8)]
-    public async Task NameUpdateWithBlankNames_ShouldLeaveResumeTitleNull()
+    public async Task UpdatePerson_BlankNames_ShouldLeaveResumeTitleNull()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -339,5 +340,102 @@ public class UpdatePersonTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
 
         getResumeResponse.Title.ShouldBeNull();
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task UpdatePerson_OwnResumeWithAnotherUsersPerson_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var person = await CreatePersonAsync(userAToken, resumeA.Id);
+        var changed = new CreatePersonRequestFaker(resumeB.Id, 12901).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
+                new UpdatePersonRequest(
+                    person.Id, resumeB.Id, changed.JobTitle, changed.Firstname, changed.Lastname,
+                    changed.Email, changed.Phone, changed.Country, changed.City, changed.Street,
+                    changed.PostCode, changed.Nationality, changed.DateOfBirth, changed.DrivingLicense));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetPersonEndpoint, GetPersonRequest, GetPersonResponse>(
+                new GetPersonRequest(resumeA.Id, person.Id));
+
+        getResponse.Email.ShouldBe(person.Email);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task UpdatePerson_FieldsAtMaximumLength_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var person = await CreatePersonAsync(accessToken, resume.Id);
+        var text = new string('a', 100);
+        var email = new string('a', 91) + "@test.com";
+
+        var updateResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
+                new UpdatePersonRequest(
+                    person.Id, resume.Id, text, text, text, email, text, text, text, text, text, text,
+                    new DateOnly(1990, 1, 1), text));
+
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetPersonEndpoint, GetPersonRequest, GetPersonResponse>(
+                new GetPersonRequest(resume.Id, person.Id));
+
+        getResponse.Email.ShouldBe(email);
+        getResponse.JobTitle!.Length.ShouldBe(100);
+        getResponse.DrivingLicense!.Length.ShouldBe(100);
+        getResponse.Street!.Length.ShouldBe(100);
+    }
+
+    [Fact]
+    [Priority(11)]
+    public async Task UpdatePerson_ValidRequest_ShouldNotLogContactDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var person = await CreatePersonAsync(accessToken, resume.Id);
+        var marker = Guid.NewGuid().ToString("N");
+        var changed = new CreatePersonRequestFaker(resume.Id, 12902).Generate();
+
+        var updateResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
+                new UpdatePersonRequest(
+                    person.Id, resume.Id, changed.JobTitle, changed.Firstname, changed.Lastname,
+                    $"{marker}@pii.example", $"phone-{marker}", changed.Country, changed.City,
+                    $"street-{marker}", changed.PostCode, changed.Nationality, changed.DateOfBirth,
+                    changed.DrivingLicense));
+
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        // Control: the request itself was logged, so an empty match below means no leak, not no logs.
+        app.Logs.Entries.ShouldContain(e => e.Contains(person.Id.ToString(), StringComparison.Ordinal));
+        app.Logs.Entries.Where(e => e.Contains(marker, StringComparison.Ordinal)).ShouldBeEmpty();
+    }
+
+    private async Task<CreatePersonResponse> CreatePersonAsync(string accessToken, Guid resumeId, int seed = ResumesTestConstants.PersonSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

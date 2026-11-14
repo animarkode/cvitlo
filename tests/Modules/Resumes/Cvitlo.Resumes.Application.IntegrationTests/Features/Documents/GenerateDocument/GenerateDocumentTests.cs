@@ -19,8 +19,6 @@ public class GenerateDocumentTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GenerateDocument_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .POSTAsync<GenerateDocumentEndpoint, DocumentRequest, GenerateDocumentResponse>(
                 new DocumentRequest(Guid.NewGuid()));
@@ -48,12 +46,12 @@ public class GenerateDocumentTests(WebApp app) : TestBase
                 new DocumentRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        response.Base64Pdf.ShouldNotBeNullOrEmpty();
+        Convert.FromBase64String(response.Base64Pdf).ShouldBe([0x25, 0x50, 0x44, 0x46]);
     }
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task GenerateDocument_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -68,7 +66,7 @@ public class GenerateDocumentTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserGenerateDocument_ShouldReturnForbidden()
+    public async Task GenerateDocument_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

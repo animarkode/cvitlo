@@ -19,8 +19,6 @@ public class DeleteLanguageTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteLanguage_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteLanguageEndpoint, DeleteLanguageRequest>(
                 new DeleteLanguageRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class DeleteLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteLanguage_ShouldRemoveLanguage()
+    public async Task DeleteLanguage_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +57,7 @@ public class DeleteLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentLanguage_ShouldReturnNotFound()
+    public async Task DeleteLanguage_UnknownLanguage_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class DeleteLanguageTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteLanguage_ShouldReturnForbidden()
+    public async Task DeleteLanguage_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -95,5 +93,66 @@ public class DeleteLanguageTests(WebApp app) : TestBase
                 new DeleteLanguageRequest(resume.Id, languageResponse.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(4)]
+    public async Task DeleteLanguage_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndKeepIt()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateLanguageAsync(userAToken, resumeA.Id);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .DELETEAsync<DeleteLanguageEndpoint, DeleteLanguageRequest>(
+                new DeleteLanguageRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (getResponse, _) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetLanguageEndpoint, GetLanguageRequest, GetLanguageResponse>(
+                new GetLanguageRequest(resumeA.Id, item.Id));
+
+        getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    [Priority(5)]
+    public async Task DeleteLanguage_AlreadyDeleted_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateLanguageAsync(accessToken, resume.Id);
+
+        var first = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteLanguageEndpoint, DeleteLanguageRequest>(new DeleteLanguageRequest(resume.Id, item.Id));
+
+        first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var second = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteLanguageEndpoint, DeleteLanguageRequest>(new DeleteLanguageRequest(resume.Id, item.Id));
+
+        second.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateLanguageResponse> CreateLanguageAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LanguageSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, CreateLanguageResponse>(
+                new CreateLanguageRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

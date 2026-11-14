@@ -20,8 +20,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateProject_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(
                 new UpdateProjectRequest(Guid.NewGuid(), Guid.NewGuid(), "Tagline", "Project", null, null, null, null));
@@ -31,7 +29,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateProject_ShouldModifyFields()
+    public async Task UpdateProject_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -72,7 +70,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentProject_ShouldReturnForbidden()
+    public async Task UpdateProject_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -97,7 +95,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateProject_ShouldReturnForbidden()
+    public async Task UpdateProject_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -132,7 +130,9 @@ public class UpdateProjectTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateProjectData))]
     [Priority(4)]
-    public async Task UpdateProject_WithInvalidData_ShouldReturnBadRequest(UpdateProjectRequest invalidRequest)
+    public async Task UpdateProject_InvalidField_ShouldReturnBadRequest(
+        UpdateProjectRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -146,11 +146,12 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
         var updateRequest = invalidRequest with { Id = projectResponse.Id, ResumeId = resume.Id };
 
-        var httpResponse = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(updateRequest);
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]
@@ -191,5 +192,110 @@ public class UpdateProjectTests(WebApp app) : TestBase
         getResponse.Description.ShouldNotContain("<script");
         getResponse.Description.ShouldNotContain("onerror");
         getResponse.Description.ShouldContain("<strong>Module</strong>");
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateProject_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateProjectAsync(userAToken, resumeA.Id);
+        var changed = new CreateProjectRequestFaker(resumeB.Id, 72901).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(
+                new UpdateProjectRequest(item.Id, resumeB.Id, changed.Tagline, changed.Name, changed.Url, changed.StartDate, changed.EndDate, changed.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetProjectEndpoint, GetProjectRequest, GetProjectResponse>(
+                new GetProjectRequest(resumeA.Id, item.Id));
+
+        getResponse.Name.ShouldBe(item.Name);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task UpdateProject_UnknownProject_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var project = new CreateProjectRequestFaker(resume.Id).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(
+                new UpdateProjectRequest(
+                    Guid.NewGuid(),
+                    resume.Id,
+                    project.Tagline,
+                    project.Name,
+                    project.Url,
+                    project.StartDate,
+                    project.EndDate,
+                    project.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact(Skip = "#147: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
+    [Priority(8)]
+    public async Task UpdateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var project = await CreateProjectAsync(accessToken, resume.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest, ErrorResponse>(
+                new UpdateProjectRequest(
+                    project.Id, resume.Id, project.Tagline, project.Name, project.Url,
+                    project.StartDate, project.EndDate, "<p>" + new string('a', 1000) + "</p>"));
+
+        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+    }
+
+    [Fact(Skip = "#149: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]
+    [Priority(9)]
+    public async Task UpdateProject_FutureStartDate_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var project = await CreateProjectAsync(accessToken, resume.Id);
+
+        var (httpResponse, error) = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest, ErrorResponse>(
+                new UpdateProjectRequest(
+                    project.Id, resume.Id, project.Tagline, project.Name, project.Url,
+                    new DateOnly(2099, 1, 1), null, project.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe(["startDate"]);
+    }
+
+    private async Task<CreateProjectResponse> CreateProjectAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, CreateProjectResponse>(
+                new CreateProjectRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

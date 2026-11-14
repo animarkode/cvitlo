@@ -4,55 +4,28 @@ using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.Data;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Courses.UpdateCourse.Data;
 
-public class InvalidUpdateCourseData : IEnumerable<TheoryDataRow<UpdateCourseRequest>>
+public class InvalidUpdateCourseData : IEnumerable<TheoryDataRow<UpdateCourseRequest, string>>
 {
-    private const int DescriptionMaxLength = 1000;
-    private const int NameMaxLength = 100;
-    private const int SchoolMaxLength = 100;
-
-    public IEnumerator<TheoryDataRow<UpdateCourseRequest>> GetEnumerator()
+    public IEnumerator<TheoryDataRow<UpdateCourseRequest, string>> GetEnumerator()
     {
-        var baseRequest = new CreateCourseRequestFaker(Guid.Empty).Generate();
+        var source = new CreateCourseRequestFaker(Guid.Empty).Generate();
+        var baseRequest = new UpdateCourseRequest(Guid.NewGuid(), Guid.Empty, source.School, source.Name, source.StartDate, source.EndDate, source.Description);
 
-        yield return new TheoryDataRow<UpdateCourseRequest>(
-            new UpdateCourseRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                baseRequest.School,
-                baseRequest.Name,
-                new DateOnly(2023, 6, 1),
-                new DateOnly(2023, 1, 1),
-                baseRequest.Description));
+        yield return new TheoryDataRow<UpdateCourseRequest, string>(
+            baseRequest with { Name = new string('a', 101) },
+            "name");
 
-        yield return new TheoryDataRow<UpdateCourseRequest>(
-            new UpdateCourseRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                baseRequest.School,
-                baseRequest.Name,
-                baseRequest.StartDate,
-                baseRequest.EndDate,
-                new string('x', DescriptionMaxLength + 1)));
+        yield return new TheoryDataRow<UpdateCourseRequest, string>(
+            baseRequest with { School = new string('b', 101) },
+            "school");
 
-        yield return new TheoryDataRow<UpdateCourseRequest>(
-            new UpdateCourseRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                baseRequest.School,
-                new string('a', NameMaxLength + 1),
-                baseRequest.StartDate,
-                baseRequest.EndDate,
-                baseRequest.Description));
+        yield return new TheoryDataRow<UpdateCourseRequest, string>(
+            baseRequest with { Description = new string('A', 1001) },
+            "description");
 
-        yield return new TheoryDataRow<UpdateCourseRequest>(
-            new UpdateCourseRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                new string('b', SchoolMaxLength + 1),
-                baseRequest.Name,
-                baseRequest.StartDate,
-                baseRequest.EndDate,
-                baseRequest.Description));
+        yield return new TheoryDataRow<UpdateCourseRequest, string>(
+            baseRequest with { StartDate = new DateOnly(2024, 12, 31), EndDate = new DateOnly(2024, 1, 1) },
+            "endDate");
     }
 
     IEnumerator IEnumerable.GetEnumerator()

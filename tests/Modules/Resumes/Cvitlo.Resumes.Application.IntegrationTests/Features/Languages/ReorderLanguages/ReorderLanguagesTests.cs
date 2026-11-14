@@ -9,6 +9,7 @@ using Cvitlo.Common.Testing.Http;
 using FastEndpoints;
 using FastEndpoints.Testing;
 using Shouldly;
+using System.Text;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Languages.ReorderLanguages;
 
@@ -20,8 +21,6 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task ReorderLanguages_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<ReorderLanguagesEndpoint, ReorderLanguagesRequest>(
                 new ReorderLanguagesRequest(Guid.NewGuid(), new List<Guid> { Guid.NewGuid() }));
@@ -31,7 +30,7 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task ReorderLanguages_ShouldPersistNewOrder()
+    public async Task ReorderLanguages_NewOrder_ShouldPersistIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +58,7 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task MismatchedIds_ShouldReturnNotFound()
+    public async Task ReorderLanguages_UnknownId_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -79,7 +78,7 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task EmptyOrderedIds_ShouldReturnBadRequest()
+    public async Task ReorderLanguages_EmptyOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -95,7 +94,7 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task DuplicateOrderedIds_ShouldReturnBadRequest()
+    public async Task ReorderLanguages_DuplicateOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +112,7 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task CrossUserReorder_ShouldReturnForbidden()
+    public async Task ReorderLanguages_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -129,6 +128,90 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
                 new ReorderLanguagesRequest(resume.Id, new List<Guid> { ids[1], ids[0] }));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task ReorderLanguages_IdsFromAnotherResume_ShouldReturnNotFoundAndKeepOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var foreignIds = await CreateLanguagesAsync(userAToken, resumeA.Id, 1);
+        var ownIds = await CreateLanguagesAsync(userBToken, resumeB.Id, 2);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<ReorderLanguagesEndpoint, ReorderLanguagesRequest>(
+                new ReorderLanguagesRequest(resumeB.Id, new List<Guid> { foreignIds[0], ownIds[0] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, resumeResponse) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(
+                new GetResumeRequest(resumeB.Id));
+
+        resumeResponse.Languages.Select(i => i.Id).ShouldBe(ownIds);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task ReorderLanguages_FewerIdsThanItems_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var ids = await CreateLanguagesAsync(accessToken, resume.Id, 3);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<ReorderLanguagesEndpoint, ReorderLanguagesRequest>(
+                new ReorderLanguagesRequest(resume.Id, new List<Guid> { ids[0], ids[1] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task ReorderLanguages_SameOrder_ShouldReturnNoContentAndKeepOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var ids = await CreateLanguagesAsync(accessToken, resume.Id, 3);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<ReorderLanguagesEndpoint, ReorderLanguagesRequest>(new ReorderLanguagesRequest(resume.Id, ids));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (_, resumeResponse) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(
+                new GetResumeRequest(resume.Id));
+
+        resumeResponse.Languages.Select(i => i.Id).ShouldBe(ids);
+        resumeResponse.Languages.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
+    }
+
+    [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; answers 500")]
+    [Priority(9)]
+    public async Task ReorderLanguages_BodyWithoutOrderedIds_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        using var body = new StringContent("{}", Encoding.UTF8, "application/json");
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PutAsync($"api/v1/resumes/{resume.Id}/languages/reorder", body, ct);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     private async Task<List<Guid>> CreateLanguagesAsync(string accessToken, Guid resumeId, int count)
