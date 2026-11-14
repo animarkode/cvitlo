@@ -32,18 +32,13 @@ public class DeleteAccountCommandHandler(
     ILogger<DeleteAccountCommandHandler> logger)
     : ICommandHandler<DeleteAccountCommand, ErrorOr<Deleted>>
 {
-    private const string HandlerName = nameof(DeleteAccountCommandHandler);
-
     /// <summary>The longest ago the person may have typed their credentials and still delete the account.</summary>
     public static readonly TimeSpan MaxSignInAge = TimeSpan.FromMinutes(5);
 
     public async Task<ErrorOr<Deleted>> ExecuteAsync(DeleteAccountCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName}", HandlerName);
-
         if (!SignedInRecently(command.IdToken))
         {
-            logger.LogWarning("[FAIL] {HandlerName} | The last sign-in is too old", HandlerName);
             return Error.Forbidden(
                 "Account.ReauthenticationRequired",
                 "Sign in again to delete the account.");
@@ -56,7 +51,6 @@ public class DeleteAccountCommandHandler(
         {
             // The row stays: a timeout can hide a deletion Keycloak did make. The sweep asks Keycloak and
             // forgets the row if the user still exists.
-            logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, deleted.FirstError.Code);
             return deleted.FirstError;
         }
 
@@ -67,7 +61,6 @@ public class DeleteAccountCommandHandler(
             await ForgetPendingErasureAsync(command.Subject);
         }
 
-        logger.LogInformation("[SUCCESS] {HandlerName}", HandlerName);
         return Result.Deleted;
     }
 
@@ -109,8 +102,7 @@ public class DeleteAccountCommandHandler(
         {
             logger.LogError(
                 exception,
-                "[FAIL] {HandlerName} | The data of {Subject} was not erased; the pending erasure is kept for the hourly sweep",
-                HandlerName,
+                "The data of {Subject} was not erased; the pending erasure is kept for the hourly sweep",
                 subject);
             return false;
         }

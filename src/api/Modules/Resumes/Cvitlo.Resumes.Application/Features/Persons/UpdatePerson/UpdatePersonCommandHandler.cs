@@ -3,29 +3,20 @@ using Cvitlo.Resumes.Application.Features.Persons;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Persons.UpdatePerson;
 
-public class UpdatePersonCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<UpdatePersonCommandHandler> logger)
+public class UpdatePersonCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<UpdatePersonCommand, ErrorOr<bool>>
 {
-    private const string HandlerName = nameof(UpdatePersonCommandHandler);
-
     public async Task<ErrorOr<bool>> ExecuteAsync(UpdatePersonCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for {PersonId}", HandlerName, command.Id);
-
         var person = await dbContext.Persons
             .Include(p => p.Resume)
             .FirstOrDefaultAsync(p => p.Id == command.Id && p.ResumeId == command.ResumeId, ct);
 
         if (person is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Person {PersonId} not found", HandlerName, command.Id);
-
             return Error.NotFound("Person.NotFound", $"Person with id '{command.Id}' was not found");
         }
 
@@ -52,8 +43,6 @@ public class UpdatePersonCommandHandler(
         }
 
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation("[SUCCESS] {HandlerName} | Person {PersonId} updated", HandlerName, command.Id);
 
         return true;
     }

@@ -5,11 +5,10 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Resumes.CreateResume;
 
-public class CreateResumeEndpoint(ILogger<CreateResumeEndpoint> logger)
+public class CreateResumeEndpoint
     : Endpoint<CreateResumeRequest, Results<Ok<CreateResumeResponse>, UnauthorizedHttpResult>>
 {
     public override void Configure()
@@ -25,15 +24,10 @@ public class CreateResumeEndpoint(ILogger<CreateResumeEndpoint> logger)
         CreateResumeRequest req,
         CancellationToken ct)
     {
-        var path = HttpContext.Request.Path.Value;
-        logger.LogInformation("[HTTP POST] {Path} started", path);
-
         var userId = HttpContext.User.FindFirst(JwtClaimTypes.Aliases.UserId)?.Value;
 
         if (string.IsNullOrEmpty(userId))
         {
-            logger.LogWarning("[HTTP POST] {Path} failed: UserId claim not found", path);
-
             return TypedResults.Unauthorized();
         }
 
@@ -41,15 +35,8 @@ public class CreateResumeEndpoint(ILogger<CreateResumeEndpoint> logger)
 
         if (result.IsError)
         {
-            logger.LogWarning(
-                "[HTTP POST] {Path} failed: {Error}",
-                path,
-                result.FirstError.Description);
-
             return TypedResults.Unauthorized();
         }
-
-        logger.LogInformation("[HTTP POST] {Path} completed successfully", path);
 
         return TypedResults.Ok(result.Value);
     }

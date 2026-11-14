@@ -6,13 +6,10 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Documents.GenerateDocument;
 
-public class GenerateDocumentEndpoint(
-    ResumePdfCache resumePdfCache,
-    ILogger<GenerateDocumentEndpoint> logger)
+public class GenerateDocumentEndpoint(ResumePdfCache resumePdfCache)
     : Endpoint<DocumentRequest, Results<Ok<GenerateDocumentResponse>, NotFound>>
 {
     public override void Configure()
@@ -28,23 +25,16 @@ public class GenerateDocumentEndpoint(
         DocumentRequest req,
         CancellationToken ct)
     {
-        var path = HttpContext.Request.Path.Value;
-        logger.LogInformation("[HTTP POST] {Path} started", path);
-
         var userId = Guid.Parse(HttpContext.User.FindFirst(JwtClaimTypes.Aliases.UserId)!.Value);
         var result = await resumePdfCache.GetOrRenderAsync(userId, req.ResumeId, ct);
 
         if (result.IsError)
         {
-            logger.LogWarning("[HTTP POST] {Path} failed: {Error}", path, result.FirstError.Description);
-
             return TypedResults.NotFound();
         }
 
         var pdf = result.Value;
         var base64String = Convert.ToBase64String(pdf.Content);
-
-        logger.LogInformation("[HTTP POST] {Path} completed successfully", path);
 
         return TypedResults.Ok(new GenerateDocumentResponse(base64String));
     }

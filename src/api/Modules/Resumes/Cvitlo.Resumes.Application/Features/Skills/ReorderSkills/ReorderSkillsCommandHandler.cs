@@ -2,21 +2,14 @@ using ErrorOr;
 using Cvitlo.Resumes.Application.Features.Resumes.Shared;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Skills.ReorderSkills;
 
-public class ReorderSkillsCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<ReorderSkillsCommandHandler> logger)
+public class ReorderSkillsCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<ReorderSkillsCommand, ErrorOr<bool>>
 {
-    private const string HandlerName = nameof(ReorderSkillsCommandHandler);
-
     public async Task<ErrorOr<bool>> ExecuteAsync(ReorderSkillsCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var result = await SectionReorder.ApplyAsync(
             dbContext,
             dbContext.Skills,
@@ -26,12 +19,8 @@ public class ReorderSkillsCommandHandler(
 
         if (result.IsError)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, result.FirstError.Description);
-
             return result;
         }
-
-        logger.LogInformation("[SUCCESS] {HandlerName} | resume {ResumeId} reordered", HandlerName, command.ResumeId);
 
         return result;
     }

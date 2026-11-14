@@ -5,11 +5,10 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Resumes.GetAllResumes;
 
-public class GetAllResumesEndpoint(ILogger<GetAllResumesEndpoint> logger)
+public class GetAllResumesEndpoint
     : EndpointWithoutRequest<Results<Ok<GetAllResumesResponse>, UnauthorizedHttpResult>>
 {
     public override void Configure()
@@ -23,21 +22,14 @@ public class GetAllResumesEndpoint(ILogger<GetAllResumesEndpoint> logger)
     public override async Task<Results<Ok<GetAllResumesResponse>, UnauthorizedHttpResult>> ExecuteAsync(
         CancellationToken ct)
     {
-        var path = HttpContext.Request.Path.Value;
-        logger.LogInformation("[HTTP GET] {Path} started", path);
-
         var userId = HttpContext.User.FindFirst(JwtClaimTypes.Aliases.UserId)?.Value;
 
         if (string.IsNullOrEmpty(userId))
         {
-            logger.LogWarning("[HTTP GET] {Path} failed: UserId claim not found", path);
-
             return TypedResults.Unauthorized();
         }
 
         var result = await new GetAllResumesCommand(Guid.Parse(userId)).ExecuteAsync(ct);
-
-        logger.LogInformation("[HTTP GET] {Path} completed successfully", path);
 
         return TypedResults.Ok(result.Value);
     }

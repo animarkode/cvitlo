@@ -4,28 +4,19 @@ using Cvitlo.Resumes.Domain.Entities;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Courses.CreateCourse;
 
-public class CreateCourseCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateCourseCommandHandler> logger)
+public class CreateCourseCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateCourseCommand, ErrorOr<CreateCourseResponse>>
 {
-    private const string HandlerName = nameof(CreateCourseCommandHandler);
-
     public async Task<ErrorOr<CreateCourseResponse>> ExecuteAsync(CreateCourseCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
@@ -47,12 +38,6 @@ public class CreateCourseCommandHandler(
 
         dbContext.Courses.Add(course);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Course {CourseId} created for resume {ResumeId}",
-            HandlerName,
-            course.Id,
-            command.ResumeId);
 
         return course.MapToResponse();
     }

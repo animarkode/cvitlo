@@ -20,16 +20,12 @@ public class UserDeletedHandler(
     ILogger<UserDeletedHandler> logger)
     : IEventHandler<UserDeleted>
 {
-    private const string HandlerName = nameof(UserDeletedHandler);
-
     /// <inheritdoc />
     public async Task HandleAsync(UserDeleted eventModel, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName}", HandlerName);
-
         if (!Guid.TryParse(eventModel.Subject, out var userId))
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Subject is not a valid user id", HandlerName);
+            logger.LogWarning("Skipping resume erasure: the event subject is not a valid user id");
 
             return;
         }
@@ -44,7 +40,7 @@ public class UserDeletedHandler(
 
         if (resumes.Count == 0)
         {
-            logger.LogInformation("[SUCCESS] {HandlerName} | User {UserId} has no resumes", HandlerName, userId);
+            logger.LogInformation("User {UserId} has no resumes to erase", userId);
 
             return;
         }
@@ -52,10 +48,6 @@ public class UserDeletedHandler(
         dbContext.Resumes.RemoveRange(resumes);
         await dbContext.SaveChangesAsync(ct);
 
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | {Count} resumes of user {UserId} deleted",
-            HandlerName,
-            resumes.Count,
-            userId);
+        logger.LogInformation("Erased {Count} resumes of user {UserId}", resumes.Count, userId);
     }
 }

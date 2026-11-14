@@ -2,28 +2,19 @@ using ErrorOr;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Links.CreateLink;
 
-public class CreateLinkCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateLinkCommandHandler> logger)
+public class CreateLinkCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateLinkCommand, ErrorOr<CreateLinkResponse>>
 {
-    private const string HandlerName = nameof(CreateLinkCommandHandler);
-
     public async Task<ErrorOr<CreateLinkResponse>> ExecuteAsync(CreateLinkCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
@@ -42,12 +33,6 @@ public class CreateLinkCommandHandler(
 
         dbContext.Links.Add(link);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Link {LinkId} created for resume {ResumeId}",
-            HandlerName,
-            link.Id,
-            command.ResumeId);
 
         return link.MapToResponse();
     }

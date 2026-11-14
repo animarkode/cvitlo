@@ -2,21 +2,14 @@ using ErrorOr;
 using Cvitlo.Resumes.Application.Features.Resumes.Shared;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Languages.ReorderLanguages;
 
-public class ReorderLanguagesCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<ReorderLanguagesCommandHandler> logger)
+public class ReorderLanguagesCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<ReorderLanguagesCommand, ErrorOr<bool>>
 {
-    private const string HandlerName = nameof(ReorderLanguagesCommandHandler);
-
     public async Task<ErrorOr<bool>> ExecuteAsync(ReorderLanguagesCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var result = await SectionReorder.ApplyAsync(
             dbContext,
             dbContext.Languages,
@@ -26,12 +19,8 @@ public class ReorderLanguagesCommandHandler(
 
         if (result.IsError)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, result.FirstError.Description);
-
             return result;
         }
-
-        logger.LogInformation("[SUCCESS] {HandlerName} | resume {ResumeId} reordered", HandlerName, command.ResumeId);
 
         return result;
     }

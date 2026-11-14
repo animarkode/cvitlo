@@ -2,21 +2,14 @@ using ErrorOr;
 using Cvitlo.Resumes.Domain.Entities;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Resumes.CreateResume;
 
-public class CreateResumeCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateResumeCommandHandler> logger)
+public class CreateResumeCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateResumeCommand, ErrorOr<CreateResumeResponse>>
 {
-    private const string HandlerName = nameof(CreateResumeCommandHandler);
-
     public async Task<ErrorOr<CreateResumeResponse>> ExecuteAsync(CreateResumeCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for {UserId}", HandlerName, command.UserId);
-
         var resume = new Resume
         {
             Id = Guid.NewGuid(),
@@ -27,12 +20,6 @@ public class CreateResumeCommandHandler(
 
         dbContext.Resumes.Add(resume);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Resume {ResumeId} created for {UserId}",
-            HandlerName,
-            resume.Id,
-            command.UserId);
 
         return resume.MapToResponse();
     }

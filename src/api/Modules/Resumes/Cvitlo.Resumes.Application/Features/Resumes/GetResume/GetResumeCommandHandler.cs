@@ -6,22 +6,16 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Resumes.GetResume;
 
 public class GetResumeCommandHandler(
     IServiceScopeFactory scopeFactory,
-    HybridCache cache,
-    ILogger<GetResumeCommandHandler> logger)
+    HybridCache cache)
     : ICommandHandler<GetResumeCommand, ErrorOr<ResumeResponse>>
 {
-    private const string HandlerName = nameof(GetResumeCommandHandler);
-
     public async Task<ErrorOr<ResumeResponse>> ExecuteAsync(GetResumeCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for {ResumeId}", HandlerName, command.Id);
-
         var response = await cache.GetOrCreateAsync(
             ResumesCacheKeys.Resume(command.UserId, command.Id),
             async cacheCt =>
@@ -47,12 +41,6 @@ public class GetResumeCommandHandler(
                     .Include(r => r.Links.OrderBy(l => l.Order))
                     .FirstOrDefaultAsync(r => r.Id == command.Id && r.UserId == command.UserId, cacheCt);
 
-                logger.LogInformation(
-                    "[STEP] {HandlerName} | Resume {ResumeId} {Outcome} in the database",
-                    HandlerName,
-                    command.Id,
-                    resume is null ? "not found" : "found");
-
                 return resume?.ToResponse();
             },
             tags: [ResumesCacheKeys.ResumeTag(command.Id)],
@@ -60,12 +48,8 @@ public class GetResumeCommandHandler(
 
         if (response is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.Id);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.Id}' was not found");
         }
-
-        logger.LogInformation("[SUCCESS] {HandlerName} | Resume {ResumeId} found", HandlerName, command.Id);
 
         return response;
     }

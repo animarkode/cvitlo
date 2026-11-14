@@ -2,28 +2,19 @@ using ErrorOr;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Skills.CreateSkill;
 
-public class CreateSkillCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateSkillCommandHandler> logger)
+public class CreateSkillCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateSkillCommand, ErrorOr<CreateSkillResponse>>
 {
-    private const string HandlerName = nameof(CreateSkillCommandHandler);
-
     public async Task<ErrorOr<CreateSkillResponse>> ExecuteAsync(CreateSkillCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
@@ -42,12 +33,6 @@ public class CreateSkillCommandHandler(
 
         dbContext.Skills.Add(skill);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Skill {SkillId} created for resume {ResumeId}",
-            HandlerName,
-            skill.Id,
-            command.ResumeId);
 
         return skill.MapToResponse();
     }

@@ -17,8 +17,6 @@ public class ResumePdfCache(
     HybridCache cache,
     ILogger<ResumePdfCache> logger)
 {
-    private const string ServiceName = nameof(ResumePdfCache);
-
     /// <summary>Gets the cached rendered PDF for a resume, rendering and caching it when missing.</summary>
     /// <param name="userId">The id of the user who owns the resume.</param>
     /// <param name="resumeId">The id of the resume to render.</param>
@@ -26,8 +24,6 @@ public class ResumePdfCache(
     /// <returns>The rendered PDF, or a <c>Resume.NotFound</c> error when the resume does not exist or is not owned by the user.</returns>
     public async Task<ErrorOr<ResumePdf>> GetOrRenderAsync(Guid userId, Guid resumeId, CancellationToken ct)
     {
-        logger.LogInformation("[START] {ServiceName} for resume {ResumeId}", ServiceName, resumeId);
-
         var pdf = await cache.GetOrCreateAsync(
             ResumesCacheKeys.Pdf(userId, resumeId, typeof(FirstTemplate)),
             async cacheCt =>
@@ -46,11 +42,6 @@ public class ResumePdfCache(
 
                 if (result.IsError)
                 {
-                    logger.LogInformation(
-                        "[STEP] {ServiceName} | Resume {ResumeId} not found, skipping render",
-                        ServiceName,
-                        resumeId);
-
                     return null;
                 }
 
@@ -64,10 +55,7 @@ public class ResumePdfCache(
                 using var buffer = new MemoryStream();
                 await stream.CopyToAsync(buffer, cacheCt);
 
-                logger.LogInformation(
-                    "[STEP] {ServiceName} | Resume {ResumeId} rendered",
-                    ServiceName,
-                    resumeId);
+                logger.LogInformation("Rendered the PDF of resume {ResumeId}", resumeId);
 
                 return new ResumePdf(buffer.ToArray(), $"{resume.Person?.JobTitle ?? "resume"}.pdf");
             },
@@ -76,12 +64,8 @@ public class ResumePdfCache(
 
         if (pdf is null)
         {
-            logger.LogWarning("[FAIL] {ServiceName} | Resume {ResumeId} not found", ServiceName, resumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{resumeId}' was not found");
         }
-
-        logger.LogInformation("[SUCCESS] {ServiceName} | Resume {ResumeId} rendered", ServiceName, resumeId);
 
         return pdf;
     }

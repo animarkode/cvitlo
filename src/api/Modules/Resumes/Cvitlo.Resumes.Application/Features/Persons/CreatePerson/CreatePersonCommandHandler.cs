@@ -3,28 +3,19 @@ using Cvitlo.Resumes.Application.Features.Persons;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Persons.CreatePerson;
 
-public class CreatePersonCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreatePersonCommandHandler> logger)
+public class CreatePersonCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreatePersonCommand, ErrorOr<CreatePersonResponse>>
 {
-    private const string HandlerName = nameof(CreatePersonCommandHandler);
-
     public async Task<ErrorOr<CreatePersonResponse>> ExecuteAsync(CreatePersonCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
@@ -33,8 +24,6 @@ public class CreatePersonCommandHandler(
 
         if (personExists)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Person already exists for resume {ResumeId}", HandlerName, command.ResumeId);
-
             return Error.Conflict("Person.Conflict", "A person profile already exists for this resume.");
         }
 
@@ -67,12 +56,6 @@ public class CreatePersonCommandHandler(
 
         dbContext.Persons.Add(person);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Person {PersonId} created for resume {ResumeId}",
-            HandlerName,
-            person.Id,
-            command.ResumeId);
 
         return person.MapToResponse();
     }

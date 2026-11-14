@@ -2,7 +2,6 @@ using ErrorOr;
 using Cvitlo.Auth.Application.Features.Account.GetProfile;
 using Cvitlo.Auth.Application.Sessions;
 using FastEndpoints;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.Features.Account.UpdateProfile;
 
@@ -11,26 +10,20 @@ namespace Cvitlo.Auth.Application.Features.Account.UpdateProfile;
 /// only the editable parts are changed. The e-mail is never one of them (it changes through the
 /// <c>UPDATE_EMAIL</c> action, which verifies it), and neither is any read-only field.
 /// </summary>
-public class UpdateProfileCommandHandler(KeycloakAccountClient keycloak, ILogger<UpdateProfileCommandHandler> logger)
+public class UpdateProfileCommandHandler(KeycloakAccountClient keycloak)
     : ICommandHandler<UpdateProfileCommand, ErrorOr<GetProfileResponse>>
 {
-    private const string HandlerName = nameof(UpdateProfileCommandHandler);
-
     public async Task<ErrorOr<GetProfileResponse>> ExecuteAsync(UpdateProfileCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName}", HandlerName);
-
         var current = await keycloak.GetProfileAsync(command.AccessToken, ct);
         if (current.IsError)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Profile could not be read: {Error}", HandlerName, current.FirstError.Code);
             return current.FirstError;
         }
 
         var updated = await keycloak.UpdateProfileAsync(command.AccessToken, Merge(current.Value, command), ct);
         if (updated.IsError)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Keycloak refused the update: {Error}", HandlerName, updated.FirstError.Code);
             return updated.FirstError;
         }
 
@@ -40,7 +33,6 @@ public class UpdateProfileCommandHandler(KeycloakAccountClient keycloak, ILogger
             return reread.FirstError;
         }
 
-        logger.LogInformation("[SUCCESS] {HandlerName}", HandlerName);
         return reread.Value.MapToResponse();
     }
 
