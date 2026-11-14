@@ -3,30 +3,21 @@ using Cvitlo.Resumes.Application.Features.Resumes.Shared;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Educations.CreateEducation;
 
-public class CreateEducationCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateEducationCommandHandler> logger)
+public class CreateEducationCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateEducationCommand, ErrorOr<CreateEducationResponse>>
 {
-    private const string HandlerName = nameof(CreateEducationCommandHandler);
-
     public async Task<ErrorOr<CreateEducationResponse>> ExecuteAsync(
         CreateEducationCommand command,
         CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
@@ -49,12 +40,6 @@ public class CreateEducationCommandHandler(
 
         dbContext.Educations.Add(education);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Education {EducationId} created for resume {ResumeId}",
-            HandlerName,
-            education.Id,
-            command.ResumeId);
 
         return education.MapToResponse();
     }

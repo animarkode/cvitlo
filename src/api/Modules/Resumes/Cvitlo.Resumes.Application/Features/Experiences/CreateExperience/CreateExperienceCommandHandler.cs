@@ -3,30 +3,21 @@ using Cvitlo.Resumes.Application.Features.Resumes.Shared;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Experiences.CreateExperience;
 
-public class CreateExperienceCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<CreateExperienceCommandHandler> logger)
+public class CreateExperienceCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<CreateExperienceCommand, ErrorOr<CreateExperienceResponse>>
 {
-    private const string HandlerName = nameof(CreateExperienceCommandHandler);
-
     public async Task<ErrorOr<CreateExperienceResponse>> ExecuteAsync(
         CreateExperienceCommand command,
         CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var resume = await dbContext.Resumes
             .FirstOrDefaultAsync(r => r.Id == command.ResumeId, ct);
 
         if (resume is null)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | Resume {ResumeId} not found", HandlerName, command.ResumeId);
-
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.ResumeId}' was not found");
         }
 
@@ -49,12 +40,6 @@ public class CreateExperienceCommandHandler(
 
         dbContext.Experiences.Add(experience);
         await dbContext.SaveChangesAsync(ct);
-
-        logger.LogInformation(
-            "[SUCCESS] {HandlerName} | Experience {ExperienceId} created for resume {ResumeId}",
-            HandlerName,
-            experience.Id,
-            command.ResumeId);
 
         return experience.MapToResponse();
     }

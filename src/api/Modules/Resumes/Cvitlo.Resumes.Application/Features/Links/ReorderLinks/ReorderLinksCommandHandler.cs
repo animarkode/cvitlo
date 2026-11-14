@@ -2,21 +2,14 @@ using ErrorOr;
 using Cvitlo.Resumes.Application.Features.Resumes.Shared;
 using Cvitlo.Resumes.Infrastructure.Database;
 using FastEndpoints;
-using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Links.ReorderLinks;
 
-public class ReorderLinksCommandHandler(
-    ResumesDbContext dbContext,
-    ILogger<ReorderLinksCommandHandler> logger)
+public class ReorderLinksCommandHandler(ResumesDbContext dbContext)
     : ICommandHandler<ReorderLinksCommand, ErrorOr<bool>>
 {
-    private const string HandlerName = nameof(ReorderLinksCommandHandler);
-
     public async Task<ErrorOr<bool>> ExecuteAsync(ReorderLinksCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName} for resume {ResumeId}", HandlerName, command.ResumeId);
-
         var result = await SectionReorder.ApplyAsync(
             dbContext,
             dbContext.Links,
@@ -26,12 +19,8 @@ public class ReorderLinksCommandHandler(
 
         if (result.IsError)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, result.FirstError.Description);
-
             return result;
         }
-
-        logger.LogInformation("[SUCCESS] {HandlerName} | resume {ResumeId} reordered", HandlerName, command.ResumeId);
 
         return result;
     }
