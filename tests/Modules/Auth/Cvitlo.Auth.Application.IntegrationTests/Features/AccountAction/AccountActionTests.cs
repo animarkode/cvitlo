@@ -1,6 +1,5 @@
 using System.Net;
 using System.Web;
-using Cvitlo.Auth.Application.Features.AccountAction;
 using Cvitlo.Auth.Infrastructure.Database;
 using Cvitlo.Common.Testing.Http;
 using Microsoft.EntityFrameworkCore;
@@ -13,15 +12,6 @@ namespace Cvitlo.Auth.Application.IntegrationTests.Features.AccountAction;
 public class AccountActionTests(WebApp app)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
-    [Theory]
-    [InlineData("passkey", "/account/signing-in?action=passkey&status=success")]
-    [InlineData("email", "/account/personal-info?action=email&status=success")]
-    [InlineData("link-github", "/account/linked-accounts?action=link-github&status=success")]
-    public void ReturnPath_ForAnAction_ShouldPointAtItsAccountSection(string action, string expected)
-    {
-        AccountActions.ReturnPath(action, AccountActions.StatusSuccess).ShouldBe(expected);
-    }
 
     [Fact]
     public async Task AccountAction_WithoutSession_ShouldReturnUnauthorized()

@@ -97,6 +97,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cvitlo.Auth.Application.Int
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cvitlo.Auth.Infrastructure", "src\api\Modules\Auth\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj", "{74540F38-F711-4B16-8DE8-7008CB119164}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cvitlo.Auth.Application.UnitTests", "tests\Modules\Auth\Cvitlo.Auth.Application.UnitTests\Cvitlo.Auth.Application.UnitTests.csproj", "{FF818553-3F75-46C9-AD02-196906D97C2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -359,6 +361,18 @@ Global
 		{74540F38-F711-4B16-8DE8-7008CB119164}.Release|x64.Build.0 = Release|Any CPU
 		{74540F38-F711-4B16-8DE8-7008CB119164}.Release|x86.ActiveCfg = Release|Any CPU
 		{74540F38-F711-4B16-8DE8-7008CB119164}.Release|x86.Build.0 = Release|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Debug|x64.Build.0 = Debug|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Debug|x86.Build.0 = Debug|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Release|x64.ActiveCfg = Release|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Release|x64.Build.0 = Release|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Release|x86.ActiveCfg = Release|Any CPU
+		{FF818553-3F75-46C9-AD02-196906D97C2E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -400,5 +414,6 @@ Global
 		{B1D06AEF-9B01-4633-54EE-BF3F0D4EAA83} = {CBDC54F4-8F95-411A-93C0-BAB6E5E3EFD8}
 		{BAA071FE-AB66-4F1D-9D0F-FBD59C08752C} = {B1D06AEF-9B01-4633-54EE-BF3F0D4EAA83}
 		{74540F38-F711-4B16-8DE8-7008CB119164} = {7F784E74-3350-424D-AAE3-5B55CFB6D748}
+		{FF818553-3F75-46C9-AD02-196906D97C2E} = {B1D06AEF-9B01-4633-54EE-BF3F0D4EAA83}
 	EndGlobalSection
 EndGlobal
