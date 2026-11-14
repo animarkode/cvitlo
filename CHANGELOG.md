@@ -1,5 +1,68 @@
 # Changelog
 
+## [0.4.0](https://github.com/animarkode/cvitlo/compare/cvitlo-v0.3.1...cvitlo-v0.4.0) (2026-11-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* **infra:** the product is renamed from Faber to Cvitlo, and every deployment-facing name changes with it.
+    - Images: faber-api, faber-web, faber-keycloak and faber-migrations
+    become cvitlo-api, cvitlo-web, cvitlo-keycloak and cvitlo-migrations.
+    - Keycloak env vars: FABER_APP_URL, FABER_API_CLIENT_SECRET,
+    FABER_ADMIN_CLIENT_SECRET and FABER_BACKCHANNEL_LOGOUT_URL become
+    CVITLO_*.
+    - Connection string: ConnectionStrings__faberdb becomes
+    ConnectionStrings__cvitlodb, for database cvitlodb.
+    - Realm: becomes cvitlo, so set Keycloak__Issuer to
+    <KEYCLOAK_ORIGIN>/realms/cvitlo. The clients faber-api and faber-admin
+    become cvitlo-api and cvitlo-admin.
+    - OAuth: the Google and GitHub apps must redirect to
+    <KEYCLOAK_ORIGIN>/realms/cvitlo/broker/{google,github}/endpoint.
+    - Session cookie: becomes __Host-cvitlo, so existing sessions end.
+
+### Features
+
+* **api:** add internal production readiness probes ([#35](https://github.com/animarkode/cvitlo/issues/35)) ([44b0fb2](https://github.com/animarkode/cvitlo/commit/44b0fb2c95ab38171cb09a09332baec51f3bc784))
+* **auth:** add external sign-in redirect and callback endpoints ([#58](https://github.com/animarkode/cvitlo/issues/58)) ([cf238e7](https://github.com/animarkode/cvitlo/commit/cf238e74dcf613bbc3c14724d5daf5c0e38b89dc))
+* **auth:** add Google and GitHub sign-in with verified e-mail account linking ([#62](https://github.com/animarkode/cvitlo/issues/62)) ([cd7b5ea](https://github.com/animarkode/cvitlo/commit/cd7b5ea3a5300c15c3e0a8207f62a0eccf77a078))
+* **auth:** delete the account through the API and erase the user's data ([#101](https://github.com/animarkode/cvitlo/issues/101)) ([1fd7520](https://github.com/animarkode/cvitlo/commit/1fd7520d00a9a1f5492b0e9f424814477185d9ab))
+* **auth:** Faber-branded Keycloak login theme ([#91](https://github.com/animarkode/cvitlo/issues/91)) ([301a9f9](https://github.com/animarkode/cvitlo/commit/301a9f91ec3036bb1bf520a3907e6efc4ed427c1))
+* **auth:** lead the auth pages with Google and GitHub sign-in ([#78](https://github.com/animarkode/cvitlo/issues/78)) ([a5c7dc4](https://github.com/animarkode/cvitlo/commit/a5c7dc41440fd7f1feaed004825ca95ead127b59))
+* **auth:** manage the account in the app and disable Keycloak's account console ([#93](https://github.com/animarkode/cvitlo/issues/93)) ([d7fbfcd](https://github.com/animarkode/cvitlo/commit/d7fbfcd120fad2d1f89065de7544ae6a8e98b655))
+* **auth:** move sign-in to Keycloak hosted login with a BFF session ([#81](https://github.com/animarkode/cvitlo/issues/81)) ([0fb929b](https://github.com/animarkode/cvitlo/commit/0fb929b69b430edeaa3d55262d3e7bdee7d535d2))
+* **identity:** add Google and GitHub identity providers to the Keycloak realm ([#56](https://github.com/animarkode/cvitlo/issues/56)) ([b1f584d](https://github.com/animarkode/cvitlo/commit/b1f584d15c9c96703a316c69d76537f5a44704bd))
+* **resumes:** add projects section to resumes ([#20](https://github.com/animarkode/cvitlo/issues/20)) ([ac33bd5](https://github.com/animarkode/cvitlo/commit/ac33bd5a80c36474ca891b47328f668ffb9fd844))
+* **resumes:** cache resumes and generated PDFs in Redis ([#22](https://github.com/animarkode/cvitlo/issues/22)) ([3c44de0](https://github.com/animarkode/cvitlo/commit/3c44de0a5eb55cc15067049dc955ac8eb80afcf8))
+
+
+### Bug Fixes
+
+* **auth:** fix Google sign-in from registration and warn on unconfigured providers ([#84](https://github.com/animarkode/cvitlo/issues/84)) ([bb91005](https://github.com/animarkode/cvitlo/commit/bb910057b32536752e5cc4dcc56d46227be0b900))
+* **auth:** verify the e-mail before the password is set ([#100](https://github.com/animarkode/cvitlo/issues/100)) ([3daaaf6](https://github.com/animarkode/cvitlo/commit/3daaaf6e1e7703073cf4b1d2857793777f6a840b))
+* **ci:** publish release images under a lowercase GHCR namespace ([8c88ba9](https://github.com/animarkode/cvitlo/commit/8c88ba905c68393920c5261e8b9f1eab2d4d3a45))
+* **ci:** publish release images under a lowercase GHCR namespace ([f085cda](https://github.com/animarkode/cvitlo/commit/f085cdacffee3d0ecc64ed77ddaeae8cabe4e3ab)), closes [#4](https://github.com/animarkode/cvitlo/issues/4)
+* **identity:** stop writing user e-mail addresses to logs and messages ([#10](https://github.com/animarkode/cvitlo/issues/10)) ([70dc184](https://github.com/animarkode/cvitlo/commit/70dc1845d75ff0c6f65ebf167b217ba1eef5decb))
+* **infra:** correct HTTP headers and shared runtime configuration ([#40](https://github.com/animarkode/cvitlo/issues/40)) ([d0984d4](https://github.com/animarkode/cvitlo/commit/d0984d44d2622764d57eb9f68a2c74e1881d271d))
+* **infra:** rate-limit the OIDC callback and close gaps in the host tests ([#141](https://github.com/animarkode/cvitlo/issues/141)) ([1021460](https://github.com/animarkode/cvitlo/commit/1021460b08d2ffc04814e5796a9df19362a4a938))
+* **notifications:** correct SMTP server setting name ([#34](https://github.com/animarkode/cvitlo/issues/34)) ([4cd36a7](https://github.com/animarkode/cvitlo/commit/4cd36a7256e6c60ac4775695dbe10dc8b20e0ac4))
+* **notifications:** keep sign-up working when SMTP delivery fails ([#63](https://github.com/animarkode/cvitlo/issues/63)) ([bbaabc6](https://github.com/animarkode/cvitlo/commit/bbaabc674b54222d86dc98f154707f413f61d7c4))
+* **resumes:** bundle the PDF.js worker into the web build ([#46](https://github.com/animarkode/cvitlo/issues/46)) ([5eb8573](https://github.com/animarkode/cvitlo/commit/5eb8573320b74cbfe6e678936f00b401b3cae23a))
+* **vault:** renew API tokens before expiry ([#33](https://github.com/animarkode/cvitlo/issues/33)) ([37b50d1](https://github.com/animarkode/cvitlo/commit/37b50d145e79955635cf4c1c2b54697aaccdb1a7))
+
+
+### Refactoring
+
+* **api:** drop the Modules segment and adopt the Cvitlo project prefix ([#124](https://github.com/animarkode/cvitlo/issues/124)) ([7f9389a](https://github.com/animarkode/cvitlo/commit/7f9389a276aefee5f0afc7c1e93b2dd5093ce7a1))
+* **api:** remove duplicated request logging ([#142](https://github.com/animarkode/cvitlo/issues/142)) ([fc82ae5](https://github.com/animarkode/cvitlo/commit/fc82ae57f77bce5eafb8b57974cfa4376a3f28ed))
+* **database:** standardize module schema and migration history constants ([#18](https://github.com/animarkode/cvitlo/issues/18)) ([e2c4c64](https://github.com/animarkode/cvitlo/commit/e2c4c64ad87ec87d71a642a35d7548bccb2af898))
+* **vault:** remove Vault; development uses user-secrets, production uses env ([#86](https://github.com/animarkode/cvitlo/issues/86)) ([93466bf](https://github.com/animarkode/cvitlo/commit/93466bf97aec711c5867c136b1306d8e473ee477))
+* **web:** reduce faber-web image to a static SPA server ([#13](https://github.com/animarkode/cvitlo/issues/13)) ([9a5df58](https://github.com/animarkode/cvitlo/commit/9a5df589e78012dd74379535e5e62a49e81e8ec7))
+
+
+### Chores
+
+* **infra:** rebrand Faber to Cvitlo ([#125](https://github.com/animarkode/cvitlo/issues/125)) ([6a3c448](https://github.com/animarkode/cvitlo/commit/6a3c44813738c1f9733ce7e6fc7bc265d2b2d30d))
+
 ## [0.3.1](https://github.com/animarkode/faber/compare/faber-v0.3.0...faber-v0.3.1) (2026-10-10)
 
 
