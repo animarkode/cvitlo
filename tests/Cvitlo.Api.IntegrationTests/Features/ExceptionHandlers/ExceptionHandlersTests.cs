@@ -5,7 +5,7 @@ using Shouldly;
 
 namespace Cvitlo.Api.IntegrationTests.Features.ExceptionHandlers;
 
-// IP octets 194-198 reserved for this class: every request here is anonymous and spends the
+// IP octets 194-199 reserved for this class: every request here is anonymous and spends the
 // global anonymous budget of its client IP.
 [Collection<CollectionRateLimiting>]
 [Priority(19)]
@@ -92,5 +92,16 @@ public class ExceptionHandlersTests(WebApp app) : TestBase
 
         ((int)response.StatusCode).ShouldBe(499);
         body.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData("concurrency")]
+    [InlineData("validation")]
+    [InlineData("unexpected")]
+    public async Task Request_ExceptionHandled_ShouldAnswerAsProblemJson(string kind)
+    {
+        var (response, _) = await ThrowAsync(kind, "203.0.113.199");
+
+        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
     }
 }
