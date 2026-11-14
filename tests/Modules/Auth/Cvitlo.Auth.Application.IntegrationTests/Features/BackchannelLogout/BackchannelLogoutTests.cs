@@ -45,4 +45,39 @@ public class BackchannelLogoutTests(WebApp app)
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task BackchannelLogout_NoLogoutToken_ShouldReturnBadRequest()
+    {
+        using var client = app.CreateClient(new FastEndpoints.Testing.ClientOptions { BaseAddress = WebApp.AppOrigin });
+
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.Ordinal));
+        using var response = await client.PostAsync("api/v1/auth/backchannel-logout", content, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task BackchannelLogout_JsonBody_ShouldReturnUnsupportedMediaType()
+    {
+        using var client = app.CreateClient(new FastEndpoints.Testing.ClientOptions { BaseAddress = WebApp.AppOrigin });
+
+        using var content = new StringContent("""{"logout_token":"eyJhbGciOiJub25lIn0.eyJzaWQiOiJ4In0."}""", System.Text.Encoding.UTF8, "application/json");
+        using var response = await client.PostAsync("api/v1/auth/backchannel-logout", content, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.UnsupportedMediaType);
+    }
+
+    [Fact]
+    public async Task BackchannelLogout_NoCsrfHeader_ShouldBeAccepted()
+    {
+        var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
+        using var _client = client;
+        client.DefaultRequestHeaders.Remove("X-CSRF");
+
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.Ordinal) { ["logout_token"] = "garbage" });
+        using var response = await client.PostAsync("api/v1/auth/backchannel-logout", content, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest, "Keycloak sends no CSRF header; the token check, not the CSRF check, answers");
+    }
 }
