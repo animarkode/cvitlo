@@ -7,7 +7,7 @@ using static Cvitlo.Api.IntegrationTests.Features.RateLimiting.RateLimitingTestC
 
 namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
-// IP octets 180-185 and RegisteredUsersData indices 3-4 are reserved for this class.
+// IP octets 180-187 and RegisteredUsersData indices 3-4 are reserved for this class.
 [Collection<CollectionRateLimiting>]
 [Priority(17)]
 public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
@@ -130,5 +130,38 @@ public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
         using var withToken = client.WithAuthToken(token);
         using var rejected = await withToken.PostAsync(LogoutUri, null, TestContext.Current.CancellationToken);
         rejected.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
+    }
+
+    // Keycloak's OIDC handler answers the callback inside UseAuthentication, before the endpoint
+    // rate limiter runs, so the callback has a limiter of its own.
+    [Fact]
+    public async Task Callback_BeyondAuthExternalLimit_ShouldReturn429()
+    {
+        using var client = CreateClientWithIp("203.0.113.186");
+
+        for (var i = 0; i < AuthExternalPermitLimit; i++)
+        {
+            using var allowed = await client.GetAsync(CallbackUri, TestContext.Current.CancellationToken);
+            allowed.StatusCode.ShouldNotBe(HttpStatusCode.TooManyRequests);
+        }
+
+        using var rejected = await client.GetAsync(CallbackUri, TestContext.Current.CancellationToken);
+        rejected.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
+        rejected.Headers.RetryAfter.ShouldNotBeNull();
+        rejected.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+    }
+
+    [Fact]
+    public async Task Login_CallbackBudgetSpent_ShouldStillRedirect()
+    {
+        using var client = CreateClientWithIp("203.0.113.187");
+
+        for (var i = 0; i <= AuthExternalPermitLimit; i++)
+        {
+            using var callback = await client.GetAsync(CallbackUri, TestContext.Current.CancellationToken);
+        }
+
+        using var login = await client.GetAsync(LoginUri, TestContext.Current.CancellationToken);
+        login.StatusCode.ShouldBe(HttpStatusCode.Redirect);
     }
 }

@@ -1,7 +1,9 @@
 using System.Threading.RateLimiting;
 using Cvitlo.Api.RateLimiting.Options;
 using Cvitlo.Api.RateLimiting.Policies;
+using Cvitlo.Auth.Application.Authentication;
 using Cvitlo.Common.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace Cvitlo.Api.RateLimiting;
@@ -41,6 +43,40 @@ public static class RateLimitingExtensions
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Limits the OIDC callback per client IP with the <c>auth-external</c> tuning, unless
+    /// <c>RateLimiting:Enabled</c> is false. The OIDC handler answers the callback inside
+    /// <c>UseAuthentication</c>, so <see cref="UseCvitloRateLimiting"/>, which has to run after
+    /// authentication to know the user, never sees it. Call this before <c>UseAuthentication</c>.
+    /// </summary>
+    /// <param name="app">The web application to add the callback limiter to.</param>
+    /// <returns>The same web application so calls can be chained.</returns>
+    public static WebApplication UseCvitloCallbackRateLimiting(this WebApplication app)
+    {
+        var options = app.Services.GetRequiredService<IOptions<RateLimitingOptions>>().Value;
+
+        if (!options.Enabled)
+        {
+            return app;
+        }
+
+        var limiter = new RateLimiterOptions
+        {
+            RejectionStatusCode = StatusCodes.Status429TooManyRequests,
+            OnRejected = (context, ct) => RateLimitRejectionHandler.HandleAsync(context, RateLimitPolicies.AuthExternal, ct),
+            GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                RateLimitPartitions.SlidingWindow(
+                    RateLimitPartitions.ByIp(context),
+                    context.RequestServices.GetRequiredService<IOptions<RateLimitingOptions>>().Value.AuthExternal))
+        };
+
+        app.UseWhen(
+            context => context.Request.Path.Equals(AuthSchemes.CallbackPath, StringComparison.OrdinalIgnoreCase),
+            branch => branch.UseRateLimiter(limiter));
+
+        return app;
     }
 
     /// <summary>Adds the rate limiting middleware unless <c>RateLimiting:Enabled</c> is false.</summary>

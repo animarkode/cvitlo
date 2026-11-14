@@ -98,6 +98,8 @@ if (app.Environment.IsProduction())
 
 app.UseCvitloCsrfProtection();
 
+app.UseCvitloCallbackRateLimiting();
+
 app.UseAuthentication();
 
 app.UseCvitloRateLimiting();
