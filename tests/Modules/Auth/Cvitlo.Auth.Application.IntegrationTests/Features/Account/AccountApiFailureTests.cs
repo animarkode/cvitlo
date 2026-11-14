@@ -7,10 +7,6 @@ using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Account;
 
-/// <summary>
-/// What the API answers when Keycloak's Account REST API fails: always the documented problem response with a
-/// stable <c>code</c>, never a 500.
-/// </summary>
 [Collection<CollectionAuth>]
 public class AccountApiFailureTests(WebApp app)
 {

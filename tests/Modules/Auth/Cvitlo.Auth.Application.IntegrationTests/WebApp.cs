@@ -46,7 +46,6 @@ public class WebApp : AppFixture<Program>
     /// <summary>Lets a test make Keycloak's token endpoint misbehave for the API's back-channel calls.</summary>
     public TokenEndpointInterceptor KeycloakBackChannel { get; } = new();
 
-    /// <summary>The same for the Account REST client, which reads and edits the signed-in user's own account.</summary>
     public TokenEndpointInterceptor KeycloakAccountBackChannel { get; } = new();
 
     /// <summary>The same for the Admin API client, which deletes accounts.</summary>

@@ -33,11 +33,17 @@ public class SignOutTests(WebApp app)
         using var _client = client;
         var stolen = callback.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("__Host-cvitlo=", StringComparison.Ordinal)).Split(';')[0];
 
+        using var other = app.CreateClient(new FastEndpoints.Testing.ClientOptions { BaseAddress = WebApp.AppOrigin });
+        using var control = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");
+        control.Headers.Add("Cookie", stolen);
+        control.Headers.Add("X-CSRF", "1");
+        using var before = await other.SendAsync(control, TestContext.Current.CancellationToken);
+        before.StatusCode.ShouldBe(HttpStatusCode.OK, "the copied cookie works until the logout");
+
         using var logout = await client.PostAsync("api/v1/auth/logout", null, TestContext.Current.CancellationToken);
         using var replay = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");
         replay.Headers.Add("Cookie", stolen);
         replay.Headers.Add("X-CSRF", "1");
-        using var other = app.CreateClient(new FastEndpoints.Testing.ClientOptions { BaseAddress = WebApp.AppOrigin });
         using var response = await other.SendAsync(replay, TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized, "the session lives on the server, so a copied cookie dies with it");

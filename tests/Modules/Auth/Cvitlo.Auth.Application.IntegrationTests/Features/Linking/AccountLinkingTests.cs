@@ -72,7 +72,7 @@ public class AccountLinkingTests(WebApp app)
     }
 
     [Fact]
-    public async Task ExistingEmail_HintSwappedToAnUnknownProvider_ShouldFallBackToTheLoginForm()
+    public async Task Login_UnknownIdpHint_ShouldShowTheLoginForm()
     {
         using var client = app.CreateBrowserClient();
         using var driver = new KeycloakLoginDriver(client);
@@ -147,12 +147,12 @@ public class AccountLinkingTests(WebApp app)
         (await app.Keycloak.Admin.FindUserIdAsync(email, Ct)).ShouldBeNull();
     }
 
-    /// <summary>What an attacker could do by hand: take the redirect to Keycloak and add a provider hint to it.</summary>
+    // What an attacker could do by hand: take the redirect to Keycloak and add a provider hint to it.
     private static async Task<string> StartWithHintAsync(HttpClient client, KeycloakLoginDriver driver, string hint)
     {
         using var challenge = await client.GetAsync("api/v1/auth/login", Ct);
         challenge.StatusCode.ShouldBe(HttpStatusCode.Redirect);
-        var hinted = new Uri($"{challenge.Headers.Location}&kc_idp_hint={Uri.EscapeDataString(hint)}");
+        var hinted = new Uri($"{challenge.Headers.Location!.AbsoluteUri}&kc_idp_hint={Uri.EscapeDataString(hint)}");
 
         return await driver.GetPageAsync(hinted, Ct);
     }

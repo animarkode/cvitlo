@@ -69,7 +69,7 @@ public class BackchannelLogoutTests(WebApp app)
     }
 
     [Fact]
-    public async Task BackchannelLogout_NoCsrfHeader_ShouldBeAccepted()
+    public async Task BackchannelLogout_GarbageTokenWithoutCsrfHeader_ShouldReturnBadRequestNotForbidden()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;

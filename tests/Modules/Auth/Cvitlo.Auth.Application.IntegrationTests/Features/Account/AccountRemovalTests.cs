@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
+using Cvitlo.Common.Testing.Containers;
 using Cvitlo.Common.Testing.Data;
 using Cvitlo.Common.Testing.Http;
 using Shouldly;
@@ -57,14 +58,18 @@ public class AccountRemovalTests(WebApp app)
     public async Task UnlinkAccount_OnlySignInMethod_ShouldReturnConflictLastSignInMethodAndKeepIt()
     {
         var provider = WebApp.StandIn;
+        const string username = "unlink.only.provider";
+        const string password = "provider-password-4";
+        await app.Keycloak.Container.AddStandInUserAsync(CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword,
+            provider, username, password, "unlink.only@standin.test", emailVerified: true, Ct);
         using var signInClient = app.CreateBrowserClient();
         using var driver = new KeycloakLoginDriver(signInClient);
         var loginPage = await driver.StartAsync("api/v1/auth/login", Ct);
         var providerPage = await driver.ClickAsync(loginPage, $"social-{provider.Alias}", Ct);
         using var submitted = await driver.SubmitAsync(providerPage, "kc-form-login", new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["username"] = provider.Username,
-            ["password"] = provider.Password,
+            ["username"] = username,
+            ["password"] = password,
             ["credentialId"] = string.Empty
         }, Ct);
         var (_, callback) = await driver.FollowAsync(submitted, Ct);
@@ -81,7 +86,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task Remove_TwoRemovalsAtOnce_ShouldLetAtMostOneSucceed()
+    public async Task Remove_PasswordAndLinkAtOnce_ShouldRefuseThePasswordAndAllowTheUnlink()
     {
         var user = await CreateUserAsync(5107);
         var userId = (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct))!;
@@ -94,11 +99,10 @@ public class AccountRemovalTests(WebApp app)
             client.DeleteAsync($"api/v1/auth/account/credentials/{passwordId}", Ct),
             client.DeleteAsync($"api/v1/auth/account/linked-accounts/{WebApp.StandIn.Alias}", Ct));
         var statuses = responses.Select(r => r.StatusCode).ToList();
-        var refusedCode = await ReadCodeAsync(responses.Single(r => r.StatusCode == HttpStatusCode.Conflict));
-        responses.ToList().ForEach(r => r.Dispose());
-
         statuses.Count(s => s == HttpStatusCode.NoContent).ShouldBe(1);
         statuses.Count(s => s == HttpStatusCode.Conflict).ShouldBe(1);
+        var refusedCode = await ReadCodeAsync(responses.Single(r => r.StatusCode == HttpStatusCode.Conflict));
+        responses.ToList().ForEach(r => r.Dispose());
         // Keycloak never lets a password go, so the guard refuses it before the last-method check: this test
         // cannot prove the lock until a second removable method (a second provider) exists in the fixture.
         refusedCode.ShouldBe("Account.CredentialNotRemovable");

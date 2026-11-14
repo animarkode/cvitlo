@@ -154,8 +154,11 @@ public class SessionTests(WebApp app)
         using var response = await other.SendAsync(request, TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
-        using var genuine = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
-        genuine.StatusCode.ShouldBe(HttpStatusCode.OK);
+        using var control = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");
+        control.Headers.Add("Cookie", cookie);
+        control.Headers.Add("X-CSRF", "1");
+        using var genuine = await other.SendAsync(control, TestContext.Current.CancellationToken);
+        genuine.StatusCode.ShouldBe(HttpStatusCode.OK, "the same path accepts the untampered cookie");
     }
 
     [Fact]

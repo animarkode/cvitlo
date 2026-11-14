@@ -136,13 +136,14 @@ public class AccountActionTests(WebApp app)
         profile.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    // Keycloak locks the re-authentication form to the signed-in user (the name is read-only), so another user's
-    // credentials never reach the callback; this pins that outcome, and that nothing changed on the API side.
+    // Keycloak locks the re-authentication form to the signed-in user, so another user's credentials never reach
+    // the callback. That is why OnTicketReceivedAsync's subject check stays unreached here; this only pins
+    // Keycloak's refusal and that the API's sessions are untouched.
     [Fact]
     public async Task AccountAction_CredentialsOfAnotherUser_ShouldBeRefusedByKeycloakAndKeepTheOriginalSession()
     {
-        var owner = app.Users[3];
-        var intruder = app.Users[2];
+        var owner = await CreateUserAsync(5501);
+        var intruder = await CreateUserAsync(5502);
         var ownerId = (await app.Keycloak.Admin.FindUserIdAsync(owner.Email, Ct))!;
         var intruderId = (await app.Keycloak.Admin.FindUserIdAsync(intruder.Email, Ct))!;
         using var client = app.CreateBrowserClient();
@@ -156,7 +157,9 @@ public class AccountActionTests(WebApp app)
 
         submitted.StatusCode.ShouldBe(HttpStatusCode.OK, "Keycloak shows its error on its own page and sends no code");
         submitted.Headers.Location.ShouldBeNull();
-        (await submitted.Content.ReadAsStringAsync(Ct)).ShouldContain("kc-attempted-username");
+        var refusal = await submitted.Content.ReadAsStringAsync(Ct);
+        refusal.ShouldContain(owner.Email, Case.Insensitive, "the form stays locked to the owner");
+        refusal.ShouldNotContain(intruder.Email, Case.Insensitive, "the intruder's name was not taken over");
         using var profile = await client.GetAsync("api/v1/auth/user", Ct);
         profile.StatusCode.ShouldBe(HttpStatusCode.OK);
         (await profile.Content.ReadAsStringAsync(Ct)).ShouldContain(owner.Email, Case.Insensitive);
@@ -167,7 +170,7 @@ public class AccountActionTests(WebApp app)
     [Fact]
     public async Task AccountAction_Reauthenticate_ShouldReplaceTheSessionAndReportSuccess()
     {
-        var user = app.Users[3];
+        var user = await CreateUserAsync(5503);
         var userId = (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct))!;
         using var client = app.CreateBrowserClient();
         using var driver = new KeycloakLoginDriver(client);
@@ -186,6 +189,14 @@ public class AccountActionTests(WebApp app)
         before.Except(after, StringComparer.Ordinal).ShouldHaveSingleItem();
         using var profile = await client.GetAsync("api/v1/auth/user", Ct);
         profile.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    private async Task<TestUser> CreateUserAsync(int seed)
+    {
+        var user = new TestUserFaker(seed).Generate();
+        await app.Keycloak.Admin.CreateUserAsync(user, ct: Ct);
+
+        return user;
     }
 
     private static Dictionary<string, string> Credentials(TestUser user)
