@@ -492,3 +492,4 @@ docs/issues/
 
 # Environment files (local secrets)
 .env
+docs/plans/
