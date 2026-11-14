@@ -67,10 +67,17 @@ public class SessionTests(WebApp app)
         var (client, _) = await app.SignInAsync(app.Users[1], ct: TestContext.Current.CancellationToken);
         using var _client = client;
 
-        app.Clock.Advance(TimeSpan.FromMinutes(6));
-        using var response = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
+        try
+        {
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+            using var response = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        }
+        finally
+        {
+            app.Clock.Realign();
+        }
     }
 
     [Fact]
@@ -79,14 +86,21 @@ public class SessionTests(WebApp app)
         var (client, _) = await app.SignInAsync(app.Users[2], ct: TestContext.Current.CancellationToken);
         using var _client = client;
 
-        app.Clock.Advance(TimeSpan.FromMinutes(6));
-        var responses = await Task.WhenAll(Enumerable.Range(0, 6)
-            .Select(_ => client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken)));
+        try
+        {
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+            var responses = await Task.WhenAll(Enumerable.Range(0, 6)
+                .Select(_ => client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken)));
 
-        responses.Select(r => r.StatusCode).ShouldAllBe(status => status == HttpStatusCode.OK,
-            "a refresh token works once, so concurrent refreshes would sign the user out");
-        using var after = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
-        after.StatusCode.ShouldBe(HttpStatusCode.OK);
+            responses.Select(r => r.StatusCode).ShouldAllBe(status => status == HttpStatusCode.OK,
+                "a refresh token works once, so concurrent refreshes would sign the user out");
+            using var after = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
+            after.StatusCode.ShouldBe(HttpStatusCode.OK);
+        }
+        finally
+        {
+            app.Clock.Realign();
+        }
     }
 
     [Fact]
@@ -98,10 +112,17 @@ public class SessionTests(WebApp app)
         var userId = (await app.Keycloak.Admin.FindUserIdAsync(user.Email, TestContext.Current.CancellationToken))!;
 
         await app.Keycloak.Admin.SignOutUserAsync(userId, TestContext.Current.CancellationToken);
-        app.Clock.Advance(TimeSpan.FromMinutes(6));
-        using var response = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
+        try
+        {
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+            using var response = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+            response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        }
+        finally
+        {
+            app.Clock.Realign();
+        }
     }
 
     [Fact]
@@ -114,5 +135,85 @@ public class SessionTests(WebApp app)
         using var response = await client.GetAsync("api/v1/auth/account/profile", TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task SessionCookie_TamperedValue_ShouldReturnUnauthorized()
+    {
+        var (client, callback) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
+        using var _client = client;
+        var cookie = callback.Headers.GetValues("Set-Cookie")
+            .Single(c => c.StartsWith("__Host-cvitlo=", StringComparison.Ordinal)).Split(';')[0];
+        var middle = cookie.Length / 2;
+        var tampered = cookie[..middle] + (cookie[middle] == 'A' ? 'B' : 'A') + cookie[(middle + 1)..];
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");
+        request.Headers.Add("Cookie", tampered);
+        request.Headers.Add("X-CSRF", "1");
+        using var other = app.CreateClient(new FastEndpoints.Testing.ClientOptions { BaseAddress = WebApp.AppOrigin });
+        using var response = await other.SendAsync(request, TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        using var genuine = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
+        genuine.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Session_PastItsThirtyDayLifetime_ShouldReturnUnauthorized()
+    {
+        var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
+        using var _client = client;
+
+        try
+        {
+            app.Clock.Advance(TimeSpan.FromDays(31));
+            using var response = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
+
+            response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        }
+        finally
+        {
+            app.Clock.Realign();
+        }
+    }
+
+    [Fact]
+    public async Task Refresh_KeycloakReturnsNoRefreshToken_ShouldKeepThePreviousOne()
+    {
+        var user = new Cvitlo.Common.Testing.Data.TestUserFaker(5401).Generate();
+        await app.Keycloak.Admin.CreateUserAsync(user, ct: TestContext.Current.CancellationToken);
+        var (client, _) = await app.SignInAsync(user, ct: TestContext.Current.CancellationToken);
+        using var _client = client;
+        var fresh = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
+        var answered = false;
+
+        try
+        {
+            // Keycloak is not asked, so the session's refresh token stays unspent for the next real refresh.
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+            app.KeycloakBackChannel.Replace = _ =>
+            {
+                answered = true;
+                var body = new JsonObject { ["access_token"] = fresh["access_token"]!.GetValue<string>(), ["expires_in"] = 300 };
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(body.ToJsonString(), System.Text.Encoding.UTF8, "application/json")
+                };
+            };
+            using var first = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
+            app.KeycloakBackChannel.Replace = null;
+
+            first.StatusCode.ShouldBe(HttpStatusCode.OK);
+            answered.ShouldBeTrue("the first request must have gone through the refresh");
+
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+            using var second = await client.GetAsync("api/v1/auth/user", TestContext.Current.CancellationToken);
+            second.StatusCode.ShouldBe(HttpStatusCode.OK, "the previous refresh token is still the one in the session");
+        }
+        finally
+        {
+            app.KeycloakBackChannel.Replace = null;
+            app.Clock.Realign();
+        }
     }
 }
