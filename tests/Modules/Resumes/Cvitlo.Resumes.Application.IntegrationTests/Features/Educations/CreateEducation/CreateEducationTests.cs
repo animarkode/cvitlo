@@ -8,6 +8,8 @@ using FastEndpoints;
 using FastEndpoints.Testing;
 using Shouldly;
 using Cvitlo.Resumes.Application.Features.Educations.GetEducation;
+using Cvitlo.Resumes.Application.Features.Educations.DeleteEducation;
+using Cvitlo.Resumes.Application.Features.Educations.GetAllEducations;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Educations.CreateEducation;
 
@@ -166,5 +168,72 @@ public class CreateEducationTests(WebApp app) : TestBase
             .POSTAsync<CreateEducationEndpoint, CreateEducationRequest, ErrorResponse>(request);
 
         httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task CreateEducation_SeveralItems_ShouldNumberThemInCreationOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var first = await CreateEducationAsync(accessToken, resume.Id, 65001);
+        var second = await CreateEducationAsync(accessToken, resume.Id, 65002);
+        var third = await CreateEducationAsync(accessToken, resume.Id, 65003);
+
+        new[] { first.Order, second.Order, third.Order }.ShouldBe(new[] { 0, 1, 2 });
+
+        var (_, all) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetAllEducationsEndpoint, GetAllEducationsRequest, GetAllEducationsResponse>(
+                new GetAllEducationsRequest(resume.Id));
+
+        all.Items.Select(i => i.Id).ShouldBe([first.Id, second.Id, third.Id]);
+        all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task CreateEducation_AfterDeletingTheMiddleItem_ShouldAppendAfterTheLast()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var first = await CreateEducationAsync(accessToken, resume.Id, 65001);
+        var middle = await CreateEducationAsync(accessToken, resume.Id, 65002);
+        var last = await CreateEducationAsync(accessToken, resume.Id, 65003);
+
+        var deleteResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteEducationEndpoint, DeleteEducationRequest>(new DeleteEducationRequest(resume.Id, middle.Id));
+
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var appended = await CreateEducationAsync(accessToken, resume.Id, 65004);
+
+        appended.Order.ShouldBe(3);
+
+        var (_, all) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetAllEducationsEndpoint, GetAllEducationsRequest, GetAllEducationsResponse>(
+                new GetAllEducationsRequest(resume.Id));
+
+        all.Items.Select(i => i.Id).ShouldBe([first.Id, last.Id, appended.Id]);
+        all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 2, 3 });
+    }
+
+    private async Task<CreateEducationResponse> CreateEducationAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.EducationSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateEducationEndpoint, CreateEducationRequest, CreateEducationResponse>(
+                new CreateEducationRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

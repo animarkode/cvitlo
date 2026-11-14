@@ -123,6 +123,28 @@ public class DeleteEducationTests(WebApp app) : TestBase
         getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
+    [Fact]
+    [Priority(5)]
+    public async Task DeleteEducation_AlreadyDeleted_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateEducationAsync(accessToken, resume.Id);
+
+        var first = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteEducationEndpoint, DeleteEducationRequest>(new DeleteEducationRequest(resume.Id, item.Id));
+
+        first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var second = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteEducationEndpoint, DeleteEducationRequest>(new DeleteEducationRequest(resume.Id, item.Id));
+
+        second.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     private async Task<CreateEducationResponse> CreateEducationAsync(
         string accessToken,
         Guid resumeId,

@@ -9,6 +9,7 @@ using Cvitlo.Common.Testing.Http;
 using FastEndpoints;
 using FastEndpoints.Testing;
 using Shouldly;
+using System.Text;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Experiences.ReorderExperiences;
 
@@ -156,6 +157,63 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
                 new GetResumeRequest(resumeB.Id));
 
         resumeResponse.Experience.Select(i => i.Id).ShouldBe(ownIds);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task ReorderExperiences_FewerIdsThanItems_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var ids = await CreateExperiencesAsync(accessToken, resume.Id, 3);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<ReorderExperiencesEndpoint, ReorderExperiencesRequest>(
+                new ReorderExperiencesRequest(resume.Id, new List<Guid> { ids[0], ids[1] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task ReorderExperiences_SameOrder_ShouldReturnNoContentAndKeepOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var ids = await CreateExperiencesAsync(accessToken, resume.Id, 3);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<ReorderExperiencesEndpoint, ReorderExperiencesRequest>(new ReorderExperiencesRequest(resume.Id, ids));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (_, resumeResponse) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(
+                new GetResumeRequest(resume.Id));
+
+        resumeResponse.Experience.Select(i => i.Id).ShouldBe(ids);
+        resumeResponse.Experience.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
+    }
+
+    [Fact(Skip = "test-audit 05-B2: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; answers 500")]
+    [Priority(9)]
+    public async Task ReorderExperiences_BodyWithoutOrderedIds_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        using var body = new StringContent("{}", Encoding.UTF8, "application/json");
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PutAsync($"api/v1/resumes/{resume.Id}/experiences/reorder", body, ct);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     private async Task<List<Guid>> CreateExperiencesAsync(string accessToken, Guid resumeId, int count)

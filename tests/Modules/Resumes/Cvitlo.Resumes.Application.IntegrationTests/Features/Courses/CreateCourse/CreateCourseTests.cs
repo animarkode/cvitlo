@@ -8,6 +8,8 @@ using FastEndpoints;
 using FastEndpoints.Testing;
 using Shouldly;
 using Cvitlo.Resumes.Application.Features.Courses.GetCourse;
+using Cvitlo.Resumes.Application.Features.Courses.DeleteCourse;
+using Cvitlo.Resumes.Application.Features.Courses.GetAllCourses;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Courses.CreateCourse;
 
@@ -164,5 +166,72 @@ public class CreateCourseTests(WebApp app) : TestBase
             .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, ErrorResponse>(request);
 
         httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task CreateCourse_SeveralItems_ShouldNumberThemInCreationOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var first = await CreateCourseAsync(accessToken, resume.Id, 65001);
+        var second = await CreateCourseAsync(accessToken, resume.Id, 65002);
+        var third = await CreateCourseAsync(accessToken, resume.Id, 65003);
+
+        new[] { first.Order, second.Order, third.Order }.ShouldBe(new[] { 0, 1, 2 });
+
+        var (_, all) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetAllCoursesEndpoint, GetAllCoursesRequest, GetAllCoursesResponse>(
+                new GetAllCoursesRequest(resume.Id));
+
+        all.Items.Select(i => i.Id).ShouldBe([first.Id, second.Id, third.Id]);
+        all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task CreateCourse_AfterDeletingTheMiddleItem_ShouldAppendAfterTheLast()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var first = await CreateCourseAsync(accessToken, resume.Id, 65001);
+        var middle = await CreateCourseAsync(accessToken, resume.Id, 65002);
+        var last = await CreateCourseAsync(accessToken, resume.Id, 65003);
+
+        var deleteResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteCourseEndpoint, DeleteCourseRequest>(new DeleteCourseRequest(resume.Id, middle.Id));
+
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var appended = await CreateCourseAsync(accessToken, resume.Id, 65004);
+
+        appended.Order.ShouldBe(3);
+
+        var (_, all) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetAllCoursesEndpoint, GetAllCoursesRequest, GetAllCoursesResponse>(
+                new GetAllCoursesRequest(resume.Id));
+
+        all.Items.Select(i => i.Id).ShouldBe([first.Id, last.Id, appended.Id]);
+        all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 2, 3 });
+    }
+
+    private async Task<CreateCourseResponse> CreateCourseAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(
+                new CreateCourseRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }

@@ -7,6 +7,8 @@ using Cvitlo.Common.Testing.Http;
 using FastEndpoints;
 using FastEndpoints.Testing;
 using Shouldly;
+using Cvitlo.Resumes.Application.Features.Languages.DeleteLanguage;
+using Cvitlo.Resumes.Application.Features.Languages.GetAllLanguages;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Languages.CreateLanguage;
 
@@ -150,5 +152,72 @@ public class CreateLanguageTests(WebApp app) : TestBase
             .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, ErrorResponse>(request);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task CreateLanguage_SeveralItems_ShouldNumberThemInCreationOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var first = await CreateLanguageAsync(accessToken, resume.Id, 65001);
+        var second = await CreateLanguageAsync(accessToken, resume.Id, 65002);
+        var third = await CreateLanguageAsync(accessToken, resume.Id, 65003);
+
+        new[] { first.Order, second.Order, third.Order }.ShouldBe(new[] { 0, 1, 2 });
+
+        var (_, all) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetAllLanguagesEndpoint, GetAllLanguagesRequest, GetAllLanguagesResponse>(
+                new GetAllLanguagesRequest(resume.Id));
+
+        all.Items.Select(i => i.Id).ShouldBe([first.Id, second.Id, third.Id]);
+        all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task CreateLanguage_AfterDeletingTheMiddleItem_ShouldAppendAfterTheLast()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var first = await CreateLanguageAsync(accessToken, resume.Id, 65001);
+        var middle = await CreateLanguageAsync(accessToken, resume.Id, 65002);
+        var last = await CreateLanguageAsync(accessToken, resume.Id, 65003);
+
+        var deleteResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteLanguageEndpoint, DeleteLanguageRequest>(new DeleteLanguageRequest(resume.Id, middle.Id));
+
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var appended = await CreateLanguageAsync(accessToken, resume.Id, 65004);
+
+        appended.Order.ShouldBe(3);
+
+        var (_, all) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetAllLanguagesEndpoint, GetAllLanguagesRequest, GetAllLanguagesResponse>(
+                new GetAllLanguagesRequest(resume.Id));
+
+        all.Items.Select(i => i.Id).ShouldBe([first.Id, last.Id, appended.Id]);
+        all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 2, 3 });
+    }
+
+    private async Task<CreateLanguageResponse> CreateLanguageAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LanguageSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, CreateLanguageResponse>(
+                new CreateLanguageRequestFaker(resumeId, seed).Generate());
+
+        return response;
     }
 }
