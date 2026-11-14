@@ -19,8 +19,6 @@ public class GetExperienceTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetExperience_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetExperienceEndpoint, GetExperienceRequest, GetExperienceResponse>(
                 new GetExperienceRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -213,6 +211,17 @@ public class GetExperienceTests(WebApp app) : TestBase
                 new GetExperienceRequest(resumeA2.Id, item.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllExperiences_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllExperiencesEndpoint, GetAllExperiencesRequest, GetAllExperiencesResponse>(
+                new GetAllExperiencesRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     private async Task<CreateExperienceResponse> CreateExperienceAsync(

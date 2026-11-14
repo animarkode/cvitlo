@@ -20,8 +20,6 @@ public class UpdateLanguageTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateLanguage_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest>(
                 new UpdateLanguageRequest(Guid.NewGuid(), Guid.NewGuid(), "Name", "B2"));

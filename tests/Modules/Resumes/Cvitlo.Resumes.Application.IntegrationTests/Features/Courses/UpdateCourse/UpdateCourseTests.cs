@@ -20,8 +20,6 @@ public class UpdateCourseTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateCourse_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(
                 new UpdateCourseRequest(Guid.NewGuid(), Guid.NewGuid(), "School", "Course", null, null, null));

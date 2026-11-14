@@ -19,8 +19,6 @@ public class DeleteEducationTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteEducation_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteEducationEndpoint, DeleteEducationRequest>(
                 new DeleteEducationRequest(Guid.NewGuid(), Guid.NewGuid()));

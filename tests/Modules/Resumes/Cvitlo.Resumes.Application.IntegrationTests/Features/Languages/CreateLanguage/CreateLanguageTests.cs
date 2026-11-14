@@ -208,6 +208,17 @@ public class CreateLanguageTests(WebApp app) : TestBase
         all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 2, 3 });
     }
 
+    [Fact]
+    [Priority(9)]
+    public async Task CreateLanguage_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, CreateLanguageResponse>(
+                new CreateLanguageRequestFaker(Guid.NewGuid()).Generate());
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
     private async Task<CreateLanguageResponse> CreateLanguageAsync(
         string accessToken,
         Guid resumeId,

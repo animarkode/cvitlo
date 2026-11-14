@@ -19,8 +19,6 @@ public class GetEducationTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetEducation_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetEducationEndpoint, GetEducationRequest, GetEducationResponse>(
                 new GetEducationRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -205,6 +203,17 @@ public class GetEducationTests(WebApp app) : TestBase
                 new GetEducationRequest(resumeA2.Id, item.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllEducations_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllEducationsEndpoint, GetAllEducationsRequest, GetAllEducationsResponse>(
+                new GetAllEducationsRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     private async Task<CreateEducationResponse> CreateEducationAsync(

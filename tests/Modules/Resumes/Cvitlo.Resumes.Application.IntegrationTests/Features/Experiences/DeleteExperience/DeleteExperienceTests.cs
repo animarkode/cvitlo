@@ -19,8 +19,6 @@ public class DeleteExperienceTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteExperience_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteExperienceEndpoint, DeleteExperienceRequest>(
                 new DeleteExperienceRequest(Guid.NewGuid(), Guid.NewGuid()));

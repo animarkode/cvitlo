@@ -21,8 +21,6 @@ public class ReorderEducationsTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task ReorderEducations_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<ReorderEducationsEndpoint, ReorderEducationsRequest>(
                 new ReorderEducationsRequest(Guid.NewGuid(), new List<Guid> { Guid.NewGuid() }));

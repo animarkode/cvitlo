@@ -20,8 +20,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateExperience_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateExperienceEndpoint, UpdateExperienceRequest>(
                 new UpdateExperienceRequest(Guid.NewGuid(), Guid.NewGuid(), "Title", "Employer", null, null, null, null));

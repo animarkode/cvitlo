@@ -19,8 +19,6 @@ public class GetLanguageTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetLanguage_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetLanguageEndpoint, GetLanguageRequest, GetLanguageResponse>(
                 new GetLanguageRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -205,6 +203,17 @@ public class GetLanguageTests(WebApp app) : TestBase
                 new GetLanguageRequest(resumeA2.Id, item.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllLanguages_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllLanguagesEndpoint, GetAllLanguagesRequest, GetAllLanguagesResponse>(
+                new GetAllLanguagesRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     private async Task<CreateLanguageResponse> CreateLanguageAsync(

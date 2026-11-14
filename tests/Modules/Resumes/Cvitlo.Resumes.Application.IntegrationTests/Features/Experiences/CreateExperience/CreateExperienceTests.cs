@@ -226,6 +226,17 @@ public class CreateExperienceTests(WebApp app) : TestBase
         all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 2, 3 });
     }
 
+    [Fact]
+    [Priority(9)]
+    public async Task CreateExperience_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, CreateExperienceResponse>(
+                new CreateExperienceRequestFaker(Guid.NewGuid()).Generate());
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
     private async Task<CreateExperienceResponse> CreateExperienceAsync(
         string accessToken,
         Guid resumeId,

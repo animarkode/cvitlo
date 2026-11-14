@@ -222,6 +222,17 @@ public class CreateCourseTests(WebApp app) : TestBase
         all.Items.Select(i => i.Order).ShouldBe(new[] { 0, 2, 3 });
     }
 
+    [Fact]
+    [Priority(9)]
+    public async Task CreateCourse_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(
+                new CreateCourseRequestFaker(Guid.NewGuid()).Generate());
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
     private async Task<CreateCourseResponse> CreateCourseAsync(
         string accessToken,
         Guid resumeId,

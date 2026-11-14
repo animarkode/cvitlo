@@ -19,8 +19,6 @@ public class DeleteLanguageTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteLanguage_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteLanguageEndpoint, DeleteLanguageRequest>(
                 new DeleteLanguageRequest(Guid.NewGuid(), Guid.NewGuid()));
