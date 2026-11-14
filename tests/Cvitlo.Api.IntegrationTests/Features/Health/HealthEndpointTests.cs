@@ -8,7 +8,7 @@ namespace Cvitlo.Api.IntegrationTests.Features.Health;
 public sealed class HealthEndpointTests(ProductionHealthWebApp app) : TestBase
 {
     [Fact]
-    public async Task ProductionProbes_WhenDatabaseStops_ShouldReturn503ForReadinessAndKeepLivenessHealthy()
+    public async Task ProductionProbes_DatabaseStops_ShouldFailReadinessAndKeepLiveness()
     {
         using var internalClient = CreateClientForLocalPort(7107);
         using var publicClient = CreateClientForLocalPort(7106);
