@@ -24,81 +24,102 @@ public class SessionResilienceTests(WebApp app)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task RequestAbortedDuringRefresh_ShouldStillKeepTheRotatedTokens()
+    public async Task Refresh_RequestAbortedDuringRefresh_ShouldStillKeepTheRotatedTokens()
     {
         var client = await SignInFreshUserAsync(501);
-        app.Clock.Advance(TimeSpan.FromMinutes(6));
-        using var leaving = new CancellationTokenSource();
-
-        // Keycloak has answered (and spent the old refresh token) when the browser goes away.
-        app.KeycloakBackChannel.Hook = response =>
-        {
-            leaving.Cancel();
-            return response;
-        };
         try
         {
-            await Should.ThrowAsync<OperationCanceledException>(() => client.GetAsync("api/v1/auth/user", leaving.Token));
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+            using var leaving = new CancellationTokenSource();
+
+            // Keycloak has answered (and spent the old refresh token) when the browser goes away.
+            app.KeycloakBackChannel.Hook = response =>
+            {
+                leaving.Cancel();
+                return response;
+            };
+            try
+            {
+                await Should.ThrowAsync<OperationCanceledException>(() => client.GetAsync("api/v1/auth/user", leaving.Token));
+            }
+            finally
+            {
+                app.KeycloakBackChannel.Hook = null;
+            }
+
+            using var next = await client.GetAsync("api/v1/auth/user", Ct);
+            next.StatusCode.ShouldBe(HttpStatusCode.OK, "the rotated tokens must be saved even though the first request was abandoned");
         }
         finally
         {
-            app.KeycloakBackChannel.Hook = null;
+            app.Clock.Realign();
         }
-
-        using var next = await client.GetAsync("api/v1/auth/user", Ct);
-        next.StatusCode.ShouldBe(HttpStatusCode.OK, "the rotated tokens must be saved even though the first request was abandoned");
     }
 
     [Fact]
-    public async Task KeycloakTimingOutDuringRefresh_ShouldKeepTheSession()
+    public async Task Refresh_KeycloakTimingOut_ShouldKeepTheSession()
     {
         var client = await SignInFreshUserAsync(502);
-        app.Clock.Advance(TimeSpan.FromMinutes(6));
-
-        app.KeycloakBackChannel.Replace = _ => throw new TaskCanceledException("timeout", new TimeoutException());
-        HttpResponseMessage during;
         try
         {
-            during = await client.GetAsync("api/v1/auth/user", Ct);
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+
+            app.KeycloakBackChannel.Replace = _ => throw new TaskCanceledException("timeout", new TimeoutException());
+            HttpResponseMessage during;
+            try
+            {
+                during = await client.GetAsync("api/v1/auth/user", Ct);
+            }
+            finally
+            {
+                app.KeycloakBackChannel.Replace = null;
+            }
+
+            during.StatusCode.ShouldBe(HttpStatusCode.OK, "an unreachable Keycloak must not sign anyone out or fail the request");
+            using var after = await client.GetAsync("api/v1/auth/user", Ct);
+            after.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
         finally
         {
-            app.KeycloakBackChannel.Replace = null;
+            app.Clock.Realign();
         }
-
-        during.StatusCode.ShouldBe(HttpStatusCode.OK, "an unreachable Keycloak must not sign anyone out or fail the request");
-        using var after = await client.GetAsync("api/v1/auth/user", Ct);
-        after.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
-    public async Task KeycloakRefusingTheClientDuringRefresh_ShouldKeepTheSession()
+    public async Task Refresh_KeycloakRefusingTheClient_ShouldKeepTheSession()
     {
         var client = await SignInFreshUserAsync(503);
-        app.Clock.Advance(TimeSpan.FromMinutes(6));
-
-        // What Keycloak answers while the API still holds an old client secret (e.g. right after the client secret was rotated).
-        app.KeycloakBackChannel.Replace = _ => new HttpResponseMessage(HttpStatusCode.Unauthorized)
-        {
-            Content = new StringContent("{\"error\":\"invalid_client\"}", Encoding.UTF8, "application/json")
-        };
-        HttpResponseMessage during;
         try
         {
-            during = await client.GetAsync("api/v1/auth/user", Ct);
+            app.Clock.Advance(TimeSpan.FromMinutes(6));
+
+            // What Keycloak answers while the API still holds an old client secret (e.g. right after the client secret was rotated).
+            app.KeycloakBackChannel.Replace = _ => new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Content = new StringContent("{\"error\":\"invalid_client\"}", Encoding.UTF8, "application/json")
+            };
+            HttpResponseMessage during;
+            try
+            {
+                during = await client.GetAsync("api/v1/auth/user", Ct);
+            }
+            finally
+            {
+                app.KeycloakBackChannel.Replace = null;
+            }
+
+            during.StatusCode.ShouldBe(HttpStatusCode.OK, "a server-side misconfiguration is not the user's session ending");
+            using var after = await client.GetAsync("api/v1/auth/user", Ct);
+            after.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
         finally
         {
-            app.KeycloakBackChannel.Replace = null;
+            app.Clock.Realign();
         }
-
-        during.StatusCode.ShouldBe(HttpStatusCode.OK, "a server-side misconfiguration is not the user's session ending");
-        using var after = await client.GetAsync("api/v1/auth/user", Ct);
-        after.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
-    public async Task SessionRow_ShouldNotHoldTheKeyTheCookieCarries()
+    public async Task SessionRow_AfterSignIn_ShouldNotHoldTheKeyTheCookieCarries()
     {
         var (client, callback) = await app.SignInAsync(await CreateUserAsync(504), ct: Ct);
         using var _ = client;
@@ -119,7 +140,7 @@ public class SessionResilienceTests(WebApp app)
     }
 
     [Fact]
-    public async Task ExpiredSessions_ShouldBeSweptAway()
+    public async Task ExpiredSessionSweeper_ExpiredAndLiveSessions_ShouldRemoveOnlyTheExpired()
     {
         await using var scope = app.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();

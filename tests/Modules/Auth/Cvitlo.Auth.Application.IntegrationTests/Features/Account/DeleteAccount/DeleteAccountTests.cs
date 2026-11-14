@@ -23,7 +23,7 @@ public class DeleteAccountTests(WebApp app)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task DeleteAccount_AfterARecentSignIn_ShouldEraseTheUserEverywhereAndLeaveOthersAlone()
+    public async Task DeleteAccount_RecentSignIn_ShouldEraseTheUserEverywhereAndLeaveOthersAlone()
     {
         app.Clock.Realign();
         var (userA, subjectA) = await CreateUserAsync(9301);
@@ -57,7 +57,7 @@ public class DeleteAccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteAccount_AfterAnOldSignIn_ShouldRequireReauthenticationAndKeepEverything()
+    public async Task DeleteAccount_OldSignIn_ShouldRequireReauthenticationAndKeepEverything()
     {
         app.Clock.Realign();
         var (user, subject) = await CreateUserAsync(9303);
@@ -121,7 +121,7 @@ public class DeleteAccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteAccount_WithoutCsrfHeader_ShouldBeRefusedAndKeepTheUser()
+    public async Task DeleteAccount_NoCsrfHeader_ShouldBeRefusedAndKeepTheUser()
     {
         app.Clock.Realign();
         var (user, _) = await CreateUserAsync(9306);
@@ -136,7 +136,7 @@ public class DeleteAccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteAccount_WithoutSession_ShouldReturnUnauthorized()
+    public async Task DeleteAccount_NoSession_ShouldReturnUnauthorized()
     {
         using var client = app.CreateBrowserClient();
 
@@ -146,7 +146,7 @@ public class DeleteAccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteAccount_WithABearerToken_ShouldBeRefusedAndKeepTheUser()
+    public async Task DeleteAccount_BearerToken_ShouldBeRefusedAndKeepTheUser()
     {
         app.Clock.Realign();
         var (user, _) = await CreateUserAsync(9307);
@@ -161,7 +161,7 @@ public class DeleteAccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteAccount_WhenKeycloakCannotDeleteTheUser_ShouldReturnBadGatewayAndKeepTheData()
+    public async Task DeleteAccount_KeycloakCannotDeleteTheUser_ShouldReturnBadGatewayAndKeepTheData()
     {
         app.Clock.Realign();
         var (user, subject) = await CreateUserAsync(9308);
@@ -191,7 +191,7 @@ public class DeleteAccountTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteAccount_WhenTheErasureFails_ShouldStillSucceedAndKeepThePendingRecord()
+    public async Task DeleteAccount_ErasureFails_ShouldStillSucceedAndKeepThePendingRecord()
     {
         app.Clock.Realign();
         var (user, subject) = await CreateUserAsync(9309);

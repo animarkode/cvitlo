@@ -14,7 +14,7 @@ public sealed class TokenEndpointInterceptor
     public Func<HttpResponseMessage, HttpResponseMessage>? Hook { get; set; }
 
     /// <summary>When set, answers instead of Keycloak.</summary>
-    public Func<HttpRequestMessage, HttpResponseMessage>? Replace { get; set; }
+    public Func<HttpRequestMessage, HttpResponseMessage?>? Replace { get; set; }
 
     public DelegatingHandler CreateHandler() => new Handler(this);
 
@@ -22,9 +22,10 @@ public sealed class TokenEndpointInterceptor
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
-            if (interceptor.Replace is { } replace)
+            // A null answer lets the request through, so a test can fail one kind of call only.
+            if (interceptor.Replace?.Invoke(request) is { } replaced)
             {
-                return replace(request);
+                return replaced;
             }
 
             var response = await base.SendAsync(request, ct);
