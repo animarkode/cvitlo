@@ -424,6 +424,8 @@ public class UpdatePersonTests(WebApp app) : TestBase
                     changed.DrivingLicense));
 
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        // Control: the request itself was logged, so an empty match below means no leak, not no logs.
+        app.Logs.Entries.ShouldContain(e => e.Contains(person.Id.ToString(), StringComparison.Ordinal));
         app.Logs.Entries.Where(e => e.Contains(marker, StringComparison.Ordinal)).ShouldBeEmpty();
     }
 

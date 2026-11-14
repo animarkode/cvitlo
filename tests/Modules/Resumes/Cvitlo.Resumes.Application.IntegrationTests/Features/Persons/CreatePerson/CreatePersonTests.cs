@@ -246,6 +246,8 @@ public class CreatePersonTests(WebApp app) : TestBase
             .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(request);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        // Control: the request itself was logged, so an empty match below means no leak, not no logs.
+        app.Logs.Entries.ShouldContain(e => e.Contains(resume.Id.ToString(), StringComparison.Ordinal));
         app.Logs.Entries.Where(e => e.Contains(marker, StringComparison.Ordinal)).ShouldBeEmpty();
     }
 }
