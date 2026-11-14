@@ -22,7 +22,17 @@ public static class RateLimitRejectionHandler
     /// <param name="context">The rejection context supplied by the ASP.NET Core rate limiter.</param>
     /// <param name="ct">The cancellation token supplied by the framework delegate signature; unused.</param>
     /// <returns>A task that completes once the rejection response has been written.</returns>
-    public static async ValueTask HandleAsync(OnRejectedContext context, CancellationToken ct)
+    public static ValueTask HandleAsync(OnRejectedContext context, CancellationToken ct)
+    {
+        return HandleAsync(context, policyName: null, ct);
+    }
+
+    /// <summary>Handles a rejection from a limiter that runs outside endpoint routing, where no endpoint names the policy.</summary>
+    /// <param name="context">The rejection context supplied by the ASP.NET Core rate limiter.</param>
+    /// <param name="policyName">The policy to record, or <see langword="null"/> to read it from the endpoint.</param>
+    /// <param name="ct">The cancellation token supplied by the framework delegate signature; unused.</param>
+    /// <returns>A task that completes once the rejection response has been written.</returns>
+    public static async ValueTask HandleAsync(OnRejectedContext context, string? policyName, CancellationToken ct)
     {
         var httpContext = context.HttpContext;
         var options = httpContext.RequestServices.GetRequiredService<IOptions<RateLimitingOptions>>().Value;
@@ -33,7 +43,8 @@ public static class RateLimitRejectionHandler
 
         var retryAfterSeconds = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds));
 
-        var policy = httpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName
+        var policy = policyName
+                     ?? httpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName
                      ?? GlobalPolicyName;
 
         RateLimitingMetrics.RecordRejection(policy);

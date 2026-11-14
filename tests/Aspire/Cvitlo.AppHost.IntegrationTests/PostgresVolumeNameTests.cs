@@ -1,12 +1,11 @@
-using Cvitlo.AppHost;
 using Shouldly;
 
-namespace Cvitlo.Migrations.IntegrationTests;
+namespace Cvitlo.AppHost.IntegrationTests;
 
 public class PostgresVolumeNameTests
 {
     [Fact]
-    public void SameCanonicalPath_ShouldProduceStableName()
+    public void FromCheckoutPath_TrailingSeparator_ShouldProduceTheSameName()
     {
         var checkoutPath = Path.Combine(Path.GetTempPath(), "cvitlo", "checkout");
 
@@ -17,7 +16,7 @@ public class PostgresVolumeNameTests
     }
 
     [Fact]
-    public void DistinctCheckoutPaths_ShouldProduceDistinctNames()
+    public void FromCheckoutPath_DifferentCheckouts_ShouldProduceDifferentNames()
     {
         var first = PostgresVolumeName.FromCheckoutPath(Path.Combine(Path.GetTempPath(), "cvitlo", "checkout-a"));
         var second = PostgresVolumeName.FromCheckoutPath(Path.Combine(Path.GetTempPath(), "cvitlo", "checkout-b"));
@@ -26,7 +25,7 @@ public class PostgresVolumeNameTests
     }
 
     [Fact]
-    public void CheckoutPath_ShouldProduceDockerSafeName()
+    public void FromCheckoutPath_SpacesAndSlashes_ShouldProduceADockerSafeName()
     {
         var checkoutPath = Path.Combine(Path.GetTempPath(), "Cvitlo checkout with spaces", "issue/555");
 

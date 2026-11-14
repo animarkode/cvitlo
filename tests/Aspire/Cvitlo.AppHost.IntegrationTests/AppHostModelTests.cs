@@ -175,6 +175,100 @@ public class AppHostModelTests
     }
 
     [Fact]
+    public async Task CvitloAdminClientSecret_ShouldReachKeycloakConfigAndTheApi()
+    {
+        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Cvitlo_AppHost>(
+            TestConfiguration,
+            TestContext.Current.CancellationToken);
+        var keycloakConfig = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-config", StringComparison.Ordinal));
+        var api = builder.Resources.Single(resource => string.Equals(resource.Name, "cvitloapi", StringComparison.Ordinal));
+        var secret = Parameter(builder, "cvitlo-admin-client-secret");
+
+        var configEnvironment = await GetDeclaredEnvironmentAsync(keycloakConfig);
+        var apiEnvironment = await GetDeclaredEnvironmentAsync(api);
+
+        configEnvironment["CVITLO_ADMIN_CLIENT_SECRET"].ShouldBeSameAs(secret);
+        apiEnvironment["Keycloak__AdminClientSecret"].ShouldBeSameAs(secret);
+    }
+
+    [Theory]
+    [InlineData("postgres-password")]
+    [InlineData("keycloak-password")]
+    [InlineData("cvitlo-api-client-secret")]
+    [InlineData("cvitlo-admin-client-secret")]
+    public async Task SecretParameter_ShouldBeMarkedSecret(string name)
+    {
+        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Cvitlo_AppHost>(
+            TestConfiguration,
+            TestContext.Current.CancellationToken);
+
+        Parameter(builder, name).Secret.ShouldBeTrue();
+    }
+
+    // A literal in the environment would show the password in the dashboard and in the manifest;
+    // a parameter reference is resolved only when the container starts.
+    [Fact]
+    public async Task Passwords_ShouldReachContainersAsParameterReferences()
+    {
+        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Cvitlo_AppHost>(
+            TestConfiguration,
+            TestContext.Current.CancellationToken);
+        var keycloak = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak", StringComparison.Ordinal));
+        var keycloakConfig = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-config", StringComparison.Ordinal));
+        var keycloakPasskeys = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-passkeys", StringComparison.Ordinal));
+        var postgresPassword = Parameter(builder, "postgres-password");
+        var keycloakPassword = Parameter(builder, "keycloak-password");
+
+        var keycloakEnvironment = await GetDeclaredEnvironmentAsync(keycloak);
+        keycloakEnvironment["KC_DB_PASSWORD"].ShouldBeSameAs(postgresPassword);
+        keycloakEnvironment["KC_BOOTSTRAP_ADMIN_PASSWORD"].ShouldBeSameAs(keycloakPassword);
+        (await GetDeclaredEnvironmentAsync(keycloakConfig))["KEYCLOAK_PASSWORD"].ShouldBeSameAs(keycloakPassword);
+        (await GetDeclaredEnvironmentAsync(keycloakPasskeys))["KEYCLOAK_PASSWORD"].ShouldBeSameAs(keycloakPassword);
+
+        builder.Resources.OfType<PostgresServerResource>().Single().PasswordParameter.ShouldBeSameAs(postgresPassword);
+    }
+
+    [Fact]
+    public async Task SocialProvider_WithCredentials_ShouldPassTheClientSecretAsASecretParameter()
+    {
+        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Cvitlo_AppHost>(
+            [
+                .. TestConfiguration,
+                "--Parameters:google-client-id=test-google-id",
+                "--Parameters:google-client-secret=test-google-secret"
+            ],
+            TestContext.Current.CancellationToken);
+        var keycloakConfig = builder.Resources.Single(resource => string.Equals(resource.Name, "keycloak-config", StringComparison.Ordinal));
+        var secret = Parameter(builder, "google-client-secret");
+
+        var environment = await GetDeclaredEnvironmentAsync(keycloakConfig);
+
+        secret.Secret.ShouldBeTrue();
+        environment["GOOGLE_CLIENT_SECRET"].ShouldBeSameAs(secret);
+    }
+
+    // Aspire picks the data directory from the image tag when the volume is added, and Postgres 18
+    // moved that directory. Pinning the tag after the volume would mount the wrong path, and an
+    // unpinned tag would start a newer Postgres on a volume it cannot read.
+    [Fact]
+    public async Task Postgres_ShouldPinItsImageTagAndMountThePerCheckoutDataVolume()
+    {
+        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Cvitlo_AppHost>(
+            TestConfiguration,
+            TestContext.Current.CancellationToken);
+        var postgres = builder.Resources.OfType<PostgresServerResource>().Single();
+        var checkoutPath = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "..", "..", "..", ".."));
+
+        postgres.Annotations.OfType<ContainerImageAnnotation>().Single().Tag.ShouldBe("17.6");
+
+        var mount = postgres.Annotations.OfType<ContainerMountAnnotation>().Single();
+        mount.Type.ShouldBe(ContainerMountType.Volume);
+        mount.Source.ShouldBe(PostgresVolumeName.FromCheckoutPath(checkoutPath));
+        mount.Target.ShouldBe("/var/lib/postgresql/data");
+        mount.IsReadOnly.ShouldBeFalse();
+    }
+
+    [Fact]
     public async Task SocialProviders_WithoutCredentials_ShouldBeDisabled()
     {
         var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Cvitlo_AppHost>(
@@ -253,6 +347,12 @@ public class AppHostModelTests
         var keycloakEnvironment = await GetDeclaredEnvironmentAsync(keycloak);
 
         migrationsEnvironment["Migrations__ExternalSchemas__0"].ShouldBe(keycloakEnvironment["KC_DB_SCHEMA"]);
+    }
+
+    private static ParameterResource Parameter(IDistributedApplicationTestingBuilder builder, string name)
+    {
+        return builder.Resources.OfType<ParameterResource>()
+            .Single(resource => string.Equals(resource.Name, name, StringComparison.Ordinal));
     }
 
     // Raises keycloak-config's start event without starting anything, and returns what the

@@ -14,12 +14,7 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 [Priority(12)]
 public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
 {
-    // IP octets 160-169 reserved for this class (RateLimitingTests uses 10-32,
-    // SignInRateLimitingTests 50-55, ForgotPasswordRateLimitingTests 60-74,
-    // ResetPasswordRateLimitingTests 80-81, SignUpRateLimitingTests 90-99,
-    // VerifyEmailRateLimitingTests 100-109, RefreshRateLimitingTests 110-119,
-    // SignOutRateLimitingTests 120-129, UserLookupRateLimitingTests 130-139,
-    // UpdateUserFullNameRateLimitingTests 140-149, VerifyActionTokenRateLimitingTests 150-154).
+    // IP octets 160-169 reserved for this class.
     //
     // Accounts come from RateLimitingUsersData indices 5-8, which no other suite touches: an
     // exhausted authenticated-default budget stays exhausted for the whole 60-second window, so
@@ -36,11 +31,8 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
         return client;
     }
 
-    // A Keycloak access token for one of the reserved accounts. The client IP is no longer spent on a
-    // sign-in request (Keycloak issues the token), but each caller keeps its reserved octet.
-    private async Task<string> SignInAsync(int userIndex, string clientIp)
+    private async Task<string> SignInAsync(int userIndex)
     {
-        _ = clientIp;
         var user = RateLimitingUsersData.Generate()[userIndex];
         var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
 
@@ -67,9 +59,9 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task ExceedingAuthenticatedDefaultLimit_ShouldReturn429WithRetryAfterAndGenericBody()
+    public async Task ListResumes_BeyondAuthenticatedDefaultLimit_ShouldReturn429WithRetryAfterAndGenericBody()
     {
-        var token = await SignInAsync(5, "203.0.113.160");
+        var token = await SignInAsync(5);
 
         const string clientIp = "203.0.113.161";
         using var client = CreateClientWithIp(clientIp).WithAuthToken(token);
@@ -98,10 +90,10 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task DifferentUsersOnSameIp_ShouldHaveIsolatedResumePartitions()
+    public async Task ListResumes_DifferentUserOnSameIp_ShouldUseItsOwnPartition()
     {
-        var firstToken = await SignInAsync(6, "203.0.113.162");
-        var secondToken = await SignInAsync(7, "203.0.113.163");
+        var firstToken = await SignInAsync(6);
+        var secondToken = await SignInAsync(7);
 
         const string sharedIp = "203.0.113.164";
         using var firstClient = CreateClientWithIp(sharedIp).WithAuthToken(firstToken);
@@ -118,9 +110,9 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NestedCollectionEndpoint_ShouldShareTheResumeListBudget()
+    public async Task GetEducations_ResumeListBudgetSpent_ShouldReturn429()
     {
-        var token = await SignInAsync(8, "203.0.113.165");
+        var token = await SignInAsync(8);
 
         using var client = CreateClientWithIp("203.0.113.166").WithAuthToken(token);
 
