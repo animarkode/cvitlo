@@ -169,4 +169,54 @@ public class GetSkillTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetSkill_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateSkillAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetSkillEndpoint, GetSkillRequest, GetSkillResponse>(
+                new GetSkillRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetSkill_ItemOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateSkillAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetSkillEndpoint, GetSkillRequest, GetSkillResponse>(
+                new GetSkillRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateSkillResponse> CreateSkillAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.SkillSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateSkillEndpoint, CreateSkillRequest, CreateSkillResponse>(
+                new CreateSkillRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

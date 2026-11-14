@@ -132,4 +132,44 @@ public class UpdateLinkTests(WebApp app) : TestBase
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         error.Errors.Keys.ShouldBe([expectedKey]);
     }
+
+    [Fact]
+    [Priority(5)]
+    public async Task UpdateLink_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateLinkAsync(userAToken, resumeA.Id);
+        var changed = new CreateLinkRequestFaker(resumeB.Id, 72901).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateLinkEndpoint, UpdateLinkRequest>(
+                new UpdateLinkRequest(item.Id, resumeB.Id, changed.Label, changed.Uri));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetLinkEndpoint, GetLinkRequest, GetLinkResponse>(
+                new GetLinkRequest(resumeA.Id, item.Id));
+
+        getResponse.Label.ShouldBe(item.Label);
+    }
+
+    private async Task<CreateLinkResponse> CreateLinkAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LinkSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLinkEndpoint, CreateLinkRequest, CreateLinkResponse>(
+                new CreateLinkRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

@@ -154,4 +154,33 @@ public class GetPersonTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    [Priority(7)]
+    public async Task GetPerson_OwnResumeWithAnotherUsersPerson_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var person = await CreatePersonAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetPersonEndpoint, GetPersonRequest, GetPersonResponse>(
+                new GetPersonRequest(resumeB.Id, person.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreatePersonResponse> CreatePersonAsync(string accessToken, Guid resumeId, int seed = ResumesTestConstants.PersonSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

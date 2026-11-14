@@ -195,4 +195,44 @@ public class UpdateProjectTests(WebApp app) : TestBase
         getResponse.Description.ShouldNotContain("onerror");
         getResponse.Description.ShouldContain("<strong>Module</strong>");
     }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateProject_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateProjectAsync(userAToken, resumeA.Id);
+        var changed = new CreateProjectRequestFaker(resumeB.Id, 72901).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(
+                new UpdateProjectRequest(item.Id, resumeB.Id, changed.Tagline, changed.Name, changed.Url, changed.StartDate, changed.EndDate, changed.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetProjectEndpoint, GetProjectRequest, GetProjectResponse>(
+                new GetProjectRequest(resumeA.Id, item.Id));
+
+        getResponse.Name.ShouldBe(item.Name);
+    }
+
+    private async Task<CreateProjectResponse> CreateProjectAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, CreateProjectResponse>(
+                new CreateProjectRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

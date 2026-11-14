@@ -169,4 +169,54 @@ public class GetProjectTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetProject_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateProjectAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetProjectEndpoint, GetProjectRequest, GetProjectResponse>(
+                new GetProjectRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetProject_ItemOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateProjectAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetProjectEndpoint, GetProjectRequest, GetProjectResponse>(
+                new GetProjectRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateProjectResponse> CreateProjectAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, CreateProjectResponse>(
+                new CreateProjectRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

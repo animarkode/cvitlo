@@ -343,4 +343,44 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
         getResumeResponse.Title.ShouldBeNull();
     }
+
+    [Fact]
+    [Priority(9)]
+    public async Task UpdatePerson_OwnResumeWithAnotherUsersPerson_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var person = await CreatePersonAsync(userAToken, resumeA.Id);
+        var changed = new CreatePersonRequestFaker(resumeB.Id, 12901).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
+                new UpdatePersonRequest(
+                    person.Id, resumeB.Id, changed.JobTitle, changed.Firstname, changed.Lastname,
+                    changed.Email, changed.Phone, changed.Country, changed.City, changed.Street,
+                    changed.PostCode, changed.Nationality, changed.DateOfBirth, changed.DrivingLicense));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetPersonEndpoint, GetPersonRequest, GetPersonResponse>(
+                new GetPersonRequest(resumeA.Id, person.Id));
+
+        getResponse.Email.ShouldBe(person.Email);
+    }
+
+    private async Task<CreatePersonResponse> CreatePersonAsync(string accessToken, Guid resumeId, int seed = ResumesTestConstants.PersonSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

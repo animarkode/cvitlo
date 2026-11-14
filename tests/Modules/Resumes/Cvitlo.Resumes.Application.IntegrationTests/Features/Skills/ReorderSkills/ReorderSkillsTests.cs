@@ -131,6 +131,33 @@ public class ReorderSkillsTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
+    [Fact]
+    [Priority(6)]
+    public async Task ReorderSkills_IdsFromAnotherResume_ShouldReturnNotFoundAndKeepOrder()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var foreignIds = await CreateSkillsAsync(userAToken, resumeA.Id, 1);
+        var ownIds = await CreateSkillsAsync(userBToken, resumeB.Id, 2);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<ReorderSkillsEndpoint, ReorderSkillsRequest>(
+                new ReorderSkillsRequest(resumeB.Id, new List<Guid> { foreignIds[0], ownIds[0] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, resumeResponse) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(
+                new GetResumeRequest(resumeB.Id));
+
+        resumeResponse.Skills.Select(i => i.Id).ShouldBe(ownIds);
+    }
+
     private async Task<List<Guid>> CreateSkillsAsync(string accessToken, Guid resumeId, int count)
     {
         var ids = new List<Guid>();

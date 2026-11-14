@@ -169,4 +169,54 @@ public class GetLinkTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetLink_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateLinkAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetLinkEndpoint, GetLinkRequest, GetLinkResponse>(
+                new GetLinkRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetLink_ItemOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateLinkAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetLinkEndpoint, GetLinkRequest, GetLinkResponse>(
+                new GetLinkRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateLinkResponse> CreateLinkAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.LinkSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLinkEndpoint, CreateLinkRequest, CreateLinkResponse>(
+                new CreateLinkRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

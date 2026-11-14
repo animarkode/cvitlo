@@ -96,4 +96,43 @@ public class DeleteProjectTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    [Priority(4)]
+    public async Task DeleteProject_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndKeepIt()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateProjectAsync(userAToken, resumeA.Id);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .DELETEAsync<DeleteProjectEndpoint, DeleteProjectRequest>(
+                new DeleteProjectRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (getResponse, _) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetProjectEndpoint, GetProjectRequest, GetProjectResponse>(
+                new GetProjectRequest(resumeA.Id, item.Id));
+
+        getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    private async Task<CreateProjectResponse> CreateProjectAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, CreateProjectResponse>(
+                new CreateProjectRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }
