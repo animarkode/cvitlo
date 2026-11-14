@@ -12,16 +12,11 @@ public class BackchannelLogoutCommandHandler(
     ILogger<BackchannelLogoutCommandHandler> logger)
     : ICommandHandler<BackchannelLogoutCommand, ErrorOr<Success>>
 {
-    private const string HandlerName = nameof(BackchannelLogoutCommandHandler);
-
     public async Task<ErrorOr<Success>> ExecuteAsync(BackchannelLogoutCommand command, CancellationToken ct)
     {
-        logger.LogInformation("[START] {HandlerName}", HandlerName);
-
         var target = await validator.ValidateAsync(command.LogoutToken, ct);
         if (target.IsError)
         {
-            logger.LogWarning("[FAIL] {HandlerName} | {Error}", HandlerName, target.FirstError.Description);
             return target.Errors;
         }
 
@@ -30,7 +25,7 @@ public class BackchannelLogoutCommandHandler(
             : db.Sessions.Where(session => session.KeycloakSessionId == target.Value.KeycloakSessionId);
         var ended = await sessions.ExecuteDeleteAsync(ct);
 
-        logger.LogInformation("[SUCCESS] {HandlerName} | Ended {Count} web session(s)", HandlerName, ended);
+        logger.LogInformation("Back-channel logout ended {Count} web session(s)", ended);
         return Result.Success;
     }
 }

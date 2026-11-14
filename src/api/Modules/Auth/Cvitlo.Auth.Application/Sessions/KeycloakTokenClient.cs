@@ -115,6 +115,11 @@ public sealed class KeycloakTokenClient(
             });
             using var response = await http.PostAsync(_options.LogoutEndpoint, form, ct);
 
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("Keycloak refused to end a session with {StatusCode}", (int)response.StatusCode);
+            }
+
             return response.IsSuccessStatusCode;
         }
         catch (HttpRequestException exception)
