@@ -17,7 +17,7 @@ public class AccountLinkingTests(WebApp app)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task NewEmail_ShouldCreateTheAccountAndSignIn()
+    public async Task ProviderSignIn_NewEmail_ShouldCreateTheAccountAndSignIn()
     {
         var provider = WebApp.StandIn;
         using var client = app.CreateBrowserClient();
@@ -35,7 +35,7 @@ public class AccountLinkingTests(WebApp app)
     }
 
     [Fact]
-    public async Task ExistingEmail_ShouldNotLinkBeforeTheOwnerReauthenticates()
+    public async Task ProviderSignIn_ExistingEmailBeforeReauthentication_ShouldNotLink()
     {
         var owner = await CreateOwnerWithProviderAccountAsync("victim");
         using var client = app.CreateBrowserClient();
@@ -110,7 +110,7 @@ public class AccountLinkingTests(WebApp app)
     }
 
     [Fact]
-    public async Task ExistingEmail_WithAWrongPassword_ShouldNotLink()
+    public async Task ExistingEmail_WrongPassword_ShouldNotLink()
     {
         var owner = await CreateOwnerWithProviderAccountAsync("attacked");
         using var client = app.CreateBrowserClient();
@@ -133,7 +133,7 @@ public class AccountLinkingTests(WebApp app)
     }
 
     [Fact]
-    public async Task ProviderEmailNotVerified_ShouldBeRefusedWithoutCreatingAnAccount()
+    public async Task ProviderSignIn_EmailNotVerified_ShouldBeRefusedWithoutCreatingAnAccount()
     {
         const string email = "unverified@standin.test";
         await app.Keycloak.Container.AddStandInUserAsync(CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword,

@@ -10,7 +10,7 @@ namespace Cvitlo.Auth.Application.IntegrationTests.Features.Session;
 public class SessionTests(WebApp app)
 {
     [Fact]
-    public async Task User_WithSession_ShouldReturnTheProfileFromKeycloak()
+    public async Task User_SignedIn_ShouldReturnTheProfileFromKeycloak()
     {
         var user = app.Users[0];
         var (client, _) = await app.SignInAsync(user, ct: TestContext.Current.CancellationToken);
@@ -26,7 +26,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task User_WithoutSession_ShouldReturnUnauthorized()
+    public async Task User_NoSession_ShouldReturnUnauthorized()
     {
         using var client = app.CreateBrowserClient();
 
@@ -36,7 +36,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task CookieRequest_WithoutCsrfHeader_ShouldBeForbidden()
+    public async Task CookieRequest_NoCsrfHeader_ShouldBeForbidden()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;
@@ -48,7 +48,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task CookieRequest_WithANonBearerAuthorizationHeader_StillNeedsTheCsrfHeader()
+    public async Task CookieRequest_NonBearerAuthorizationHeader_StillNeedsTheCsrfHeader()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;
@@ -62,7 +62,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task ExpiredAccessToken_ShouldBeRefreshedOnTheServer()
+    public async Task Refresh_ExpiredAccessToken_ShouldBeRefreshedOnTheServer()
     {
         var (client, _) = await app.SignInAsync(app.Users[1], ct: TestContext.Current.CancellationToken);
         using var _client = client;
@@ -81,7 +81,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task ParallelRequestsNearExpiry_ShouldRefreshOnceAndKeepTheSession()
+    public async Task Refresh_ParallelRequestsNearExpiry_ShouldRefreshOnceAndKeepTheSession()
     {
         var (client, _) = await app.SignInAsync(app.Users[2], ct: TestContext.Current.CancellationToken);
         using var _client = client;
@@ -104,7 +104,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task SessionEndedInKeycloak_ShouldEndTheWebSessionAtTheNextRefresh()
+    public async Task Refresh_SessionEndedInKeycloak_ShouldEndTheWebSession()
     {
         var user = app.Users[3];
         var (client, _) = await app.SignInAsync(user, ct: TestContext.Current.CancellationToken);
@@ -126,7 +126,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task CookieRequest_WithAGarbageBearerHeader_ShouldNotBeServedFromTheSession()
+    public async Task CookieRequest_GarbageBearerHeader_ShouldNotBeServedFromTheSession()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;

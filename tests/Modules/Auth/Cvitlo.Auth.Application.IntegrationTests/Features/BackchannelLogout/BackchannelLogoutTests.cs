@@ -8,7 +8,7 @@ namespace Cvitlo.Auth.Application.IntegrationTests.Features.BackchannelLogout;
 public class BackchannelLogoutTests(WebApp app)
 {
     [Fact]
-    public async Task SessionEndedInKeycloak_ShouldEndTheWebSessionImmediately()
+    public async Task BackchannelLogout_SessionEndedInKeycloak_ShouldEndTheWebSessionImmediately()
     {
         // A user of its own, so the one Keycloak session deleted below is this browser's.
         var user = new TestUserFaker(4242).Generate();
@@ -34,7 +34,7 @@ public class BackchannelLogoutTests(WebApp app)
     }
 
     [Fact]
-    public async Task ForgedLogoutToken_ShouldBeRejected()
+    public async Task BackchannelLogout_ForgedLogoutToken_ShouldReturnBadRequest()
     {
         using var client = app.CreateClient(new FastEndpoints.Testing.ClientOptions { BaseAddress = WebApp.AppOrigin });
         const string forged = "eyJhbGciOiJub25lIn0.eyJzaWQiOiJ4In0.";

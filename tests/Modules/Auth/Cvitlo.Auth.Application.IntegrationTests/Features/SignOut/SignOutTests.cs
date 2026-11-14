@@ -10,7 +10,7 @@ public class SignOutTests(WebApp app)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task Logout_ShouldEndTheWebSessionAndTheKeycloakSession()
+    public async Task Logout_SignedIn_ShouldEndTheWebSessionAndTheKeycloakSession()
     {
         var user = app.Users[4];
         var (client, _) = await app.SignInAsync(user, ct: TestContext.Current.CancellationToken);
@@ -27,7 +27,7 @@ public class SignOutTests(WebApp app)
     }
 
     [Fact]
-    public async Task Logout_WithACopiedCookie_ShouldNotRevive()
+    public async Task Logout_CopiedCookie_ShouldNotRevive()
     {
         var (client, callback) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;
@@ -44,7 +44,7 @@ public class SignOutTests(WebApp app)
     }
 
     [Fact]
-    public async Task Logout_WithoutCsrfHeader_ShouldBeForbidden()
+    public async Task Logout_NoCsrfHeader_ShouldBeForbidden()
     {
         var (client, _) = await app.SignInAsync(app.Users[1], ct: TestContext.Current.CancellationToken);
         using var _client = client;

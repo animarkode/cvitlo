@@ -24,7 +24,7 @@ public class SessionResilienceTests(WebApp app)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task RequestAbortedDuringRefresh_ShouldStillKeepTheRotatedTokens()
+    public async Task Refresh_RequestAbortedDuringRefresh_ShouldStillKeepTheRotatedTokens()
     {
         var client = await SignInFreshUserAsync(501);
         try
@@ -57,7 +57,7 @@ public class SessionResilienceTests(WebApp app)
     }
 
     [Fact]
-    public async Task KeycloakTimingOutDuringRefresh_ShouldKeepTheSession()
+    public async Task Refresh_KeycloakTimingOut_ShouldKeepTheSession()
     {
         var client = await SignInFreshUserAsync(502);
         try
@@ -86,7 +86,7 @@ public class SessionResilienceTests(WebApp app)
     }
 
     [Fact]
-    public async Task KeycloakRefusingTheClientDuringRefresh_ShouldKeepTheSession()
+    public async Task Refresh_KeycloakRefusingTheClient_ShouldKeepTheSession()
     {
         var client = await SignInFreshUserAsync(503);
         try
@@ -119,7 +119,7 @@ public class SessionResilienceTests(WebApp app)
     }
 
     [Fact]
-    public async Task SessionRow_ShouldNotHoldTheKeyTheCookieCarries()
+    public async Task SessionRow_AfterSignIn_ShouldNotHoldTheKeyTheCookieCarries()
     {
         var (client, callback) = await app.SignInAsync(await CreateUserAsync(504), ct: Ct);
         using var _ = client;
@@ -140,7 +140,7 @@ public class SessionResilienceTests(WebApp app)
     }
 
     [Fact]
-    public async Task ExpiredSessions_ShouldBeSweptAway()
+    public async Task ExpiredSessionSweeper_ExpiredAndLiveSessions_ShouldRemoveOnlyTheExpired()
     {
         await using var scope = app.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();

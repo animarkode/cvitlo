@@ -15,7 +15,7 @@ public class AccountActionTests(WebApp app)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task AccountAction_WithoutSession_ShouldReturnUnauthorized()
+    public async Task AccountAction_NoSession_ShouldReturnUnauthorized()
     {
         using var client = app.CreateBrowserClient();
 
@@ -29,7 +29,7 @@ public class AccountActionTests(WebApp app)
     [InlineData("delete")]
     [InlineData("UPDATE_PASSWORD")]
     [InlineData("idp_link:google")]
-    public async Task AccountAction_WithUnknownAction_ShouldReturnNotFound(string action)
+    public async Task AccountAction_UnknownAction_ShouldReturnNotFound(string action)
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;
@@ -46,7 +46,7 @@ public class AccountActionTests(WebApp app)
     [InlineData("email", "UPDATE_EMAIL")]
     [InlineData("link-google", "idp_link:google")]
     [InlineData("link-github", "idp_link:github")]
-    public async Task AccountAction_ShouldRedirectToKeycloakWithTheMappedAction(string action, string kcAction)
+    public async Task AccountAction_AllowListedAction_ShouldRedirectToKeycloakWithTheMappedAction(string action, string kcAction)
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;
@@ -60,7 +60,7 @@ public class AccountActionTests(WebApp app)
     }
 
     [Fact]
-    public async Task AccountAction_ShouldSendTheStoredIdTokenAsHint()
+    public async Task AccountAction_SignedIn_ShouldSendTheStoredIdTokenAsHint()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;
@@ -73,7 +73,7 @@ public class AccountActionTests(WebApp app)
     }
 
     [Fact]
-    public async Task AccountAction_WithAnExtraKcActionInTheQuery_ShouldNotForwardIt()
+    public async Task AccountAction_ExtraKcActionInTheQuery_ShouldNotForwardIt()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;
@@ -86,7 +86,7 @@ public class AccountActionTests(WebApp app)
     }
 
     [Fact]
-    public async Task AccountAction_WithoutCsrfHeader_ShouldStillBeAllowedAsANavigation()
+    public async Task AccountAction_NoCsrfHeader_ShouldStillBeAllowedAsANavigation()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;
@@ -98,7 +98,7 @@ public class AccountActionTests(WebApp app)
     }
 
     [Fact]
-    public async Task AccountAction_WithNestedPath_ShouldStillNeedTheCsrfHeader()
+    public async Task AccountAction_NestedPath_ShouldStillNeedTheCsrfHeader()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;

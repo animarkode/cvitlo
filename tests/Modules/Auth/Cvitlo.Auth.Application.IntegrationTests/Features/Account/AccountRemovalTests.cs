@@ -17,7 +17,7 @@ public class AccountRemovalTests(WebApp app)
     [InlineData("account/linked-accounts/google")]
     [InlineData("account/sessions/some-id")]
     [InlineData("account/sessions/others")]
-    public async Task Remove_WithoutSession_ShouldReturnUnauthorized(string route)
+    public async Task Remove_NoSession_ShouldReturnUnauthorized(string route)
     {
         using var client = app.CreateBrowserClient();
 
@@ -27,7 +27,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task Remove_WithoutCsrfHeader_ShouldReturnForbidden()
+    public async Task Remove_NoCsrfHeader_ShouldReturnForbidden()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
         using var _client = client;
@@ -81,7 +81,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task Remove_WhenTwoRemovalsOfTheTwoSignInMethodsRunAtOnce_ShouldLetAtMostOneSucceed()
+    public async Task Remove_TwoRemovalsAtOnce_ShouldLetAtMostOneSucceed()
     {
         var user = await CreateUserAsync(5107);
         var userId = (await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct))!;
@@ -113,7 +113,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task DeleteCredential_WithUnknownId_ShouldReturnNotFound()
+    public async Task DeleteCredential_UnknownId_ShouldReturnNotFound()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5102), ct: Ct);
         using var _client = client;
@@ -124,7 +124,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task UnlinkAccount_WhenNotConnected_ShouldReturnNotFound()
+    public async Task UnlinkAccount_NotConnected_ShouldReturnNotFound()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5103), ct: Ct);
         using var _client = client;
@@ -135,7 +135,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task EndSession_WhenItIsTheCurrentSession_ShouldReturnConflict()
+    public async Task EndSession_CurrentSession_ShouldReturnConflict()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5104), ct: Ct);
         using var _client = client;
@@ -165,7 +165,7 @@ public class AccountRemovalTests(WebApp app)
     }
 
     [Fact]
-    public async Task EndOtherSessions_ShouldEndAllButTheCurrentOne()
+    public async Task EndOtherSessions_TwoSessions_ShouldEndAllButTheCurrentOne()
     {
         var user = await CreateUserAsync(5106);
         var (first, _) = await app.SignInAsync(user, ct: Ct);
