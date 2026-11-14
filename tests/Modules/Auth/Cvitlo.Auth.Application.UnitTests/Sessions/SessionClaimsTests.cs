@@ -76,7 +76,7 @@ public class SessionClaimsTests
         SessionClaims.Roles(Principal("""{"roles":["a","b"]}""")).ShouldBe(["a", "b"]);
     }
 
-    [Fact(Skip = "test-audit 02-B2: SessionClaims.Roles throws InvalidOperationException when realm_access.roles is not an array")]
+    [Fact(Skip = "#156: SessionClaims.Roles throws InvalidOperationException when realm_access.roles is not an array")]
     public void Roles_RolesNotAnArray_ShouldReturnEmpty()
     {
         SessionClaims.Roles(Principal("""{"roles":"admin"}""")).ShouldBeEmpty();

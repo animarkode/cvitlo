@@ -66,7 +66,7 @@ public class ResumeLimitTests(ResumeLimitsWebApp app) : TestBase
         (await PostResumeAsync(token)).StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    [Fact(Skip = "test-audit 04-B4: the limit check and the insert are not atomic, parallel POST /resumes can exceed the limit (red in 1 of 2 runs)")]
+    [Fact(Skip = "#159: the limit check and the insert are not atomic, parallel POST /resumes can exceed the limit (red in 1 of 2 runs)")]
     public async Task CreateResume_ParallelRequestsAtLimit_ShouldCreateOnlyOne()
     {
         var ct = TestContext.Current.CancellationToken;

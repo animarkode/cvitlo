@@ -40,7 +40,7 @@ public class HtmlSanitizerTests
         markup.Sanitize().ShouldBe(markup);
     }
 
-    [Fact(Skip = "test-audit 03-B2: control-character regex is Java syntax; strips '^]' sequences")]
+    [Fact(Skip = "#152: control-character regex is Java syntax; strips '^]' sequences")]
     public void Sanitize_BracketsAndAmpersands_ShouldBeKept()
     {
         const string text = "a[]b &] c^] x";
@@ -48,13 +48,13 @@ public class HtmlSanitizerTests
         text.Sanitize().ShouldBe(text);
     }
 
-    [Fact(Skip = "test-audit 03-B2: control-character regex is Java syntax; control chars survive")]
+    [Fact(Skip = "#152: control-character regex is Java syntax; control chars survive")]
     public void Sanitize_ControlCharacters_ShouldBeRemovedExceptTabAndNewlines()
     {
         "a\u0001b\u0007c\td\ne".Sanitize().ShouldBe("abc\td\ne");
     }
 
-    [Fact(Skip = "test-audit 03-B1: HtmlDecode re-activates encoded markup into live tags")]
+    [Fact(Skip = "#144: HtmlDecode re-activates encoded markup into live tags")]
     public void Sanitize_EncodedMarkup_ShouldNotBecomeLiveMarkup()
     {
         var result = "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>".Sanitize();

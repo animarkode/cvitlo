@@ -58,7 +58,7 @@ public class CreateResumeTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
-    [Fact(Skip = "test-audit 04-B2: POST /resumes has no validator, a localization over 100 characters reaches varchar(100) and answers 500")]
+    [Fact(Skip = "#150: POST /resumes has no validator, a localization over 100 characters reaches varchar(100) and answers 500")]
     public async Task CreateResume_LocalizationLongerThan100_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;

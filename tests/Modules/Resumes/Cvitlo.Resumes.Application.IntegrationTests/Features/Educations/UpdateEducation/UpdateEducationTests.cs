@@ -196,7 +196,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
         after.School.ShouldBe(item.School);
     }
 
-    [Fact(Skip = "test-audit 05-B1: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
+    [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
     [Priority(7)]
     public async Task UpdateEducation_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
     {
@@ -214,7 +214,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
     }
 
-    [Fact(Skip = "test-audit 05-B3: the update validator has no future StartDate rule (create has); answers 204")]
+    [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
     [Priority(8)]
     public async Task UpdateEducation_FutureStartDate_ShouldReturnBadRequest()
     {

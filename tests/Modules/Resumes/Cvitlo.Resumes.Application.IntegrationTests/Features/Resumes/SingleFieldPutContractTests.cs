@@ -18,9 +18,9 @@ public class SingleFieldPutContractTests(WebApp app) : TestBase
     private const string KnownLocalization = "uk-ua";
 
     [Theory]
-    [InlineData("title", Skip = "test-audit 04-B1: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("summary", Skip = "test-audit 04-B1: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("hobbies", Skip = "test-audit 04-B1: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("title", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("summary", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("hobbies", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
     [InlineData("localization")]
     public async Task Put_BodyWithValueProperty_ShouldNotEraseTheField(string field)
     {
@@ -31,9 +31,9 @@ public class SingleFieldPutContractTests(WebApp app) : TestBase
     }
 
     [Theory]
-    [InlineData("title", Skip = "test-audit 04-B1: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("summary", Skip = "test-audit 04-B1: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("hobbies", Skip = "test-audit 04-B1: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("title", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("summary", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("hobbies", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
     [InlineData("localization")]
     public async Task Put_EmptyObjectBody_ShouldNotEraseTheField(string field)
     {

@@ -247,7 +247,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(Skip = "test-audit 06-B1: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
+    [Fact(Skip = "#147: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
     [Priority(8)]
     public async Task UpdateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
     {
@@ -266,7 +266,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
     }
 
-    [Fact(Skip = "test-audit 06-B3: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]
+    [Fact(Skip = "#149: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]
     [Priority(9)]
     public async Task UpdateProject_FutureStartDate_ShouldReturnBadRequest()
     {

@@ -153,7 +153,7 @@ public class CreateEducationTests(WebApp app) : TestBase
         getResponse.Description.ShouldContain("<strong>Module</strong>");
     }
 
-    [Fact(Skip = "test-audit 05-B1: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
+    [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
     [Priority(6)]
     public async Task CreateEducation_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
     {

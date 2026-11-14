@@ -101,7 +101,7 @@ public class DownloadDocumentTests(WebApp app) : TestBase
         FileNameOf(httpResponse).ShouldBe("resume.pdf");
     }
 
-    [Fact(Skip = "test-audit 04-B5: an empty job title is not null, so the file name becomes .pdf")]
+    [Fact(Skip = "#160: an empty job title is not null, so the file name becomes .pdf")]
     public async Task DownloadDocument_EmptyJobTitle_ShouldNameTheFileResume()
     {
         var ct = TestContext.Current.CancellationToken;

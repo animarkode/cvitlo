@@ -84,7 +84,7 @@ public class FirstTemplateTests
         html.ShouldContain("&lt;script&gt;");
     }
 
-    [Fact(Skip = "test-audit 03-B1: render-time Sanitize decodes encoded markup into a live <img> tag")]
+    [Fact(Skip = "#144: render-time Sanitize decodes encoded markup into a live <img> tag")]
     public async Task Render_SummaryWithEncodedMarkup_ShouldNotEmitLiveTags()
     {
         var resume = new Resume
@@ -120,7 +120,7 @@ public class FirstTemplateTests
         html.ShouldNotContain($"href=\"{url}\"");
     }
 
-    [Fact(Skip = "test-audit 03-B5: link Uri is emitted as href without a scheme check")]
+    [Fact(Skip = "#154: link Uri is emitted as href without a scheme check")]
     public async Task Render_LinkWithJavascriptUri_ShouldNotEmitItAsHref()
     {
         var resume = new Resume
@@ -161,7 +161,7 @@ public class FirstTemplateTests
         CountOccurrences(html, Separator).ShouldBe(separators);
     }
 
-    [Fact(Skip = "test-audit 03-B6: IsComma compares values, so City equal to Country loses its separator")]
+    [Fact(Skip = "#157: IsComma compares values, so City equal to Country loses its separator")]
     public async Task Render_CityEqualToCountry_ShouldStillSeparateThem()
     {
         var person = new Person { City = "Monaco", Country = "Monaco" };
@@ -234,7 +234,7 @@ public class FirstTemplateTests
         System.Net.WebUtility.HtmlDecode(html).ShouldContain(heading);
     }
 
-    [Fact(Skip = "test-audit 03-B3: unknown localization makes CultureInfo.GetCultureInfo throw CultureNotFoundException")]
+    [Fact(Skip = "#153: unknown localization makes CultureInfo.GetCultureInfo throw CultureNotFoundException")]
     public async Task Render_UnknownLocalization_ShouldFallBackToEnglish()
     {
         var resume = new Resume

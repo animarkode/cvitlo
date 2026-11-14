@@ -198,7 +198,7 @@ public class ReorderLanguagesTests(WebApp app) : TestBase
         resumeResponse.Languages.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
     }
 
-    [Fact(Skip = "test-audit 05-B2: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; answers 500")]
+    [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; answers 500")]
     [Priority(9)]
     public async Task ReorderLanguages_BodyWithoutOrderedIds_ShouldReturnBadRequest()
     {

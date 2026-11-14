@@ -71,7 +71,7 @@ public class SignOutTests(WebApp app)
         logout.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
-    [Fact(Skip = "test-audit 02-NEW1: KeycloakTokenClient.LogoutAsync catches only HttpRequestException, so a failing Keycloak (retries then the 5 s timeout) ends in an unhandled TaskCanceledException, answer 499, and the web session is not ended")]
+    [Fact(Skip = "#151: KeycloakTokenClient.LogoutAsync catches only HttpRequestException, so a failing Keycloak (retries then the 5 s timeout) ends in an unhandled TaskCanceledException, answer 499, and the web session is not ended")]
     public async Task Logout_KeycloakFailing_ShouldStillEndTheWebSession()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5202), ct: Ct);
@@ -94,7 +94,7 @@ public class SignOutTests(WebApp app)
         after.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
-    [Fact(Skip = "test-audit 02-B1: a Bearer-prefixed Authorization header switches off the CSRF check, so logout with the session cookie and no X-CSRF answers 204 and ends the session")]
+    [Fact(Skip = "#155: a Bearer-prefixed Authorization header switches off the CSRF check, so logout with the session cookie and no X-CSRF answers 204 and ends the session")]
     public async Task Logout_SessionCookieWithABearerHeaderAndNoCsrfHeader_ShouldNotEndTheSession()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5201), ct: Ct);

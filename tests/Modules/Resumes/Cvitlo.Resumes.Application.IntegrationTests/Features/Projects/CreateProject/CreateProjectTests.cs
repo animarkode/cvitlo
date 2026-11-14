@@ -140,7 +140,7 @@ public class CreateProjectTests(WebApp app) : TestBase
         getResponse.Description.ShouldContain("<strong>Module</strong>");
     }
 
-    [Fact(Skip = "test-audit 06-B1: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
+    [Fact(Skip = "#147: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
     [Priority(6)]
     public async Task CreateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
     {

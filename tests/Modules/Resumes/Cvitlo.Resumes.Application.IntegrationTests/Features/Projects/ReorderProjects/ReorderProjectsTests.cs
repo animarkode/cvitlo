@@ -174,7 +174,7 @@ public class ReorderProjectsTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(Skip = "test-audit 06-B2: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; body {} answers 500 (NullReferenceException) instead of 400")]
+    [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; body {} answers 500 (NullReferenceException) instead of 400")]
     [Priority(8)]
     public async Task ReorderProjects_BodyWithoutOrderedIds_ShouldReturnBadRequest()
     {

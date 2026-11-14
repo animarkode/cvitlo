@@ -24,7 +24,7 @@ public class TemplateStringsTests
         translated.Values.ShouldAllBe(value => !string.IsNullOrWhiteSpace(value));
     }
 
-    [Theory(Skip = "test-audit 03-NEW1: uk-ua and pl-pl wording differs from uk and pl (e.g. uk-ua Hobbies 'Захоплення' vs uk 'Хобі'); decide which is intended")]
+    [Theory(Skip = "#158: uk-ua and pl-pl wording differs from uk and pl (e.g. uk-ua Hobbies 'Захоплення' vs uk 'Хобі'); decide which is intended")]
     [InlineData("uk-ua", "uk")]
     [InlineData("pl-pl", "pl")]
     public void RegionalCulture_ShouldMatchItsNeutralCulture(string regional, string neutral)
