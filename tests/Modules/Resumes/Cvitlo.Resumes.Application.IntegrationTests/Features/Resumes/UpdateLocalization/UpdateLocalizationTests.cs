@@ -28,7 +28,7 @@ public class UpdateLocalizationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateLocalization_ShouldModifyLocalization()
+    public async Task UpdateLocalization_ValidRequest_ShouldModifyLocalization()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -58,7 +58,7 @@ public class UpdateLocalizationTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task UpdateLocalization_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

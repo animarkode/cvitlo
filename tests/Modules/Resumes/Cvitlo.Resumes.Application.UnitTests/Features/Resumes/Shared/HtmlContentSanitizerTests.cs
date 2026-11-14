@@ -6,7 +6,7 @@ namespace Cvitlo.Resumes.Application.UnitTests.Features.Resumes.Shared;
 public class HtmlContentSanitizerTests
 {
     [Fact]
-    public void Null_ShouldReturnNull()
+    public void SanitizeBasicFormatting_Null_ShouldReturnNull()
     {
         HtmlContentSanitizer.SanitizeBasicFormatting(null).ShouldBeNull();
     }
@@ -20,7 +20,7 @@ public class HtmlContentSanitizerTests
     [InlineData("<h3>Heading three</h3>", "Heading three")]
     [InlineData("<ul><li><p>bullet</p></li></ul>", "bullet")]
     [InlineData("<ol><li><p>ordered</p></li></ol>", "ordered")]
-    public void TiptapFormatting_ShouldKeepTagAndContent(string input, string expectedText)
+    public void SanitizeBasicFormatting_TiptapFormatting_ShouldKeepTagAndContent(string input, string expectedText)
     {
         var result = HtmlContentSanitizer.SanitizeBasicFormatting(input);
 
@@ -34,7 +34,7 @@ public class HtmlContentSanitizerTests
     [InlineData("<p><s>strike</s></p>", "<s>")]
     [InlineData("<h2>Heading</h2>", "<h2")]
     [InlineData("<ol><li><p>ordered</p></li></ol>", "<ol")]
-    public void TiptapFormatting_ShouldPreserveAllowedTag(string input, string expectedTag)
+    public void SanitizeBasicFormatting_TiptapFormatting_ShouldPreserveAllowedTag(string input, string expectedTag)
     {
         HtmlContentSanitizer.SanitizeBasicFormatting(input)
             .ShouldNotBeNull()
@@ -42,7 +42,7 @@ public class HtmlContentSanitizerTests
     }
 
     [Fact]
-    public void Alignment_ShouldKeepTextAlignStyle()
+    public void SanitizeBasicFormatting_Alignment_ShouldKeepTextAlignStyle()
     {
         const string input = "<p style=\"text-align: center\">centered</p>";
 
@@ -54,7 +54,7 @@ public class HtmlContentSanitizerTests
     }
 
     [Fact]
-    public void Link_ShouldKeepHttpsHref()
+    public void SanitizeBasicFormatting_HttpsLink_ShouldKeepHref()
     {
         const string input = "<p><a href=\"https://example.com\">site</a></p>";
 
@@ -66,7 +66,7 @@ public class HtmlContentSanitizerTests
     }
 
     [Fact]
-    public void ScriptTag_ShouldBeStripped()
+    public void SanitizeBasicFormatting_ScriptTag_ShouldBeStripped()
     {
         // KeepChildNodes preserves user text, but the executable <script> element
         // itself must be removed — leftover text is inert when rendered as markup.
@@ -80,7 +80,7 @@ public class HtmlContentSanitizerTests
     }
 
     [Fact]
-    public void JavascriptScheme_ShouldBeStripped()
+    public void SanitizeBasicFormatting_JavascriptScheme_ShouldBeStripped()
     {
         const string input = "<p><a href=\"javascript:alert(1)\">x</a></p>";
 
@@ -91,7 +91,7 @@ public class HtmlContentSanitizerTests
     }
 
     [Fact]
-    public void DisallowedTag_ShouldKeepTextContent()
+    public void SanitizeBasicFormatting_DisallowedTag_ShouldKeepTextContent()
     {
         const string input = "<div><span>kept text</span></div>";
 

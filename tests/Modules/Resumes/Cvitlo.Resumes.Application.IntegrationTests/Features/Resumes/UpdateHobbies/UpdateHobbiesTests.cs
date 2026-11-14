@@ -28,7 +28,7 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateHobbies_ShouldModifyHobbies()
+    public async Task UpdateHobbies_ValidRequest_ShouldModifyHobbies()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -58,7 +58,7 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task UpdateHobbies_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -73,7 +73,7 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task HobbiesWithExactly200VisibleCharacters_ShouldReturnNoContent()
+    public async Task UpdateHobbies_Exactly200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -96,7 +96,7 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task HobbiesWithDisallowedAttributeContainingAngleBracketAnd200VisibleCharacters_ShouldReturnNoContent()
+    public async Task UpdateHobbies_DisallowedAttributeWithAngleBracketAnd200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -115,7 +115,7 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task HobbiesWith201VisibleCharacters_ShouldReturnBadRequest()
+    public async Task UpdateHobbies_201VisibleCharacters_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

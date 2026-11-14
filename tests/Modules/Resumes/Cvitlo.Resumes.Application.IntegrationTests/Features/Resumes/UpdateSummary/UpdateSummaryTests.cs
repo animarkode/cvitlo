@@ -28,7 +28,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateSummary_ShouldModifySummary()
+    public async Task UpdateSummary_ValidRequest_ShouldModifySummary()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -58,7 +58,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task UpdateSummary_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -73,7 +73,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task SummaryWithExactly200VisibleCharacters_ShouldReturnNoContent()
+    public async Task UpdateSummary_Exactly200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -96,7 +96,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task SummaryWithTwoParagraphsContaining200VisibleCharacters_ShouldReturnNoContent()
+    public async Task UpdateSummary_TwoParagraphsWith200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -115,7 +115,7 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task SummaryWith201VisibleCharacters_ShouldReturnBadRequest()
+    public async Task UpdateSummary_201VisibleCharacters_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

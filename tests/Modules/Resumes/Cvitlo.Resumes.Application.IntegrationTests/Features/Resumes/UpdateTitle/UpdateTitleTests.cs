@@ -28,7 +28,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateTitle_ShouldModifyTitle()
+    public async Task UpdateTitle_ValidRequest_ShouldModifyTitle()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -51,7 +51,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentResume_ShouldReturnForbidden()
+    public async Task UpdateTitle_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -66,7 +66,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task TitleLongerThan100Characters_ShouldReturnBadRequest()
+    public async Task UpdateTitle_101Characters_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -84,7 +84,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task WhitespaceTitle_ShouldPersistAsEmptyFallbackValue()
+    public async Task UpdateTitle_WhitespaceTitle_ShouldPersistAsEmptyString()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

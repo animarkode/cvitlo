@@ -31,7 +31,7 @@ public class SummaryFormattingRenderTests
     }
 
     [Fact]
-    public async Task Summary_FormattingTags_SurviveRenderIntoPdfHtml()
+    public async Task RenderSummary_FormattingTags_ShouldSurviveIntoPdfHtml()
     {
         var resume = new Resume
         {
