@@ -46,6 +46,9 @@ public class WebApp : AppFixture<Program>
     /// <summary>Lets a test make Keycloak's token endpoint misbehave for the API's back-channel calls.</summary>
     public TokenEndpointInterceptor KeycloakBackChannel { get; } = new();
 
+    /// <summary>The same for the Account REST client, which reads and edits the signed-in user's own account.</summary>
+    public TokenEndpointInterceptor KeycloakAccountBackChannel { get; } = new();
+
     /// <summary>The same for the Admin API client, which deletes accounts.</summary>
     public TokenEndpointInterceptor KeycloakAdminBackChannel { get; } = new();
 
@@ -154,6 +157,7 @@ public class WebApp : AppFixture<Program>
         services.AddSingleton<TimeProvider>(Clock);
         services.RegisterTestEventHandler<UserDeleted, FailingUserDeletedHandler>();
         services.AddHttpClient<KeycloakTokenClient>().AddHttpMessageHandler(KeycloakBackChannel.CreateHandler);
+        services.AddHttpClient<KeycloakAccountClient>().AddHttpMessageHandler(KeycloakAccountBackChannel.CreateHandler);
         services.AddHttpClient<KeycloakAdminClient>().AddHttpMessageHandler(KeycloakAdminBackChannel.CreateHandler);
     }
 
