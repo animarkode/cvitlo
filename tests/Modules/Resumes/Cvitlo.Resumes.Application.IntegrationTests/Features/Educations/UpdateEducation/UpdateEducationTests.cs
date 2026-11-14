@@ -173,4 +173,44 @@ public class UpdateEducationTests(WebApp app) : TestBase
         getResponse.Description.ShouldNotContain("onerror");
         getResponse.Description.ShouldContain("<strong>Thesis</strong>");
     }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateEducation_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateEducationAsync(userAToken, resumeA.Id);
+
+        var source = new CreateEducationRequestFaker(resumeB.Id, 62003).Generate() with { School = "intruder" };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(new UpdateEducationRequest(item.Id, resumeB.Id, source.School, source.Degree, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, after) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetEducationEndpoint, GetEducationRequest, GetEducationResponse>(
+                new GetEducationRequest(resumeA.Id, item.Id));
+
+        after.School.ShouldBe(item.School);
+    }
+
+    private async Task<CreateEducationResponse> CreateEducationAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.EducationSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateEducationEndpoint, CreateEducationRequest, CreateEducationResponse>(
+                new CreateEducationRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

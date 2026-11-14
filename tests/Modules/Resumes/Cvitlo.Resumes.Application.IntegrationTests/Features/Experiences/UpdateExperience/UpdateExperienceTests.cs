@@ -177,4 +177,44 @@ public class UpdateExperienceTests(WebApp app) : TestBase
         getResponse.Description.ShouldNotContain("onerror");
         getResponse.Description.ShouldContain("<strong>Lead</strong>");
     }
+
+    [Fact]
+    [Priority(6)]
+    public async Task UpdateExperience_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateExperienceAsync(userAToken, resumeA.Id);
+
+        var source = new CreateExperienceRequestFaker(resumeB.Id, 62003).Generate() with { JobTitle = "intruder" };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .PUTAsync<UpdateExperienceEndpoint, UpdateExperienceRequest>(new UpdateExperienceRequest(item.Id, resumeB.Id, source.JobTitle, source.Employer, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (_, after) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetExperienceEndpoint, GetExperienceRequest, GetExperienceResponse>(
+                new GetExperienceRequest(resumeA.Id, item.Id));
+
+        after.JobTitle.ShouldBe(item.JobTitle);
+    }
+
+    private async Task<CreateExperienceResponse> CreateExperienceAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.ExperienceSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, CreateExperienceResponse>(
+                new CreateExperienceRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

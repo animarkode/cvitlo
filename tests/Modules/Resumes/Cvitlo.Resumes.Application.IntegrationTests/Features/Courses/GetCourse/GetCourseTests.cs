@@ -169,4 +169,54 @@ public class GetCourseTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    [Priority(8)]
+    public async Task GetCourse_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateCourseAsync(userAToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(userBToken)
+            .GETAsync<GetCourseEndpoint, GetCourseRequest, GetCourseResponse>(
+                new GetCourseRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetCourse_CourseOfTheCallersOtherResume_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var resumeA2 = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateCourseAsync(accessToken, resumeA.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetCourseEndpoint, GetCourseRequest, GetCourseResponse>(
+                new GetCourseRequest(resumeA2.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private async Task<CreateCourseResponse> CreateCourseAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.CourseSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(
+                new CreateCourseRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }

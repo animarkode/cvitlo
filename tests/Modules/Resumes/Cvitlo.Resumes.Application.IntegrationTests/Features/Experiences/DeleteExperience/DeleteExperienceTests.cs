@@ -98,4 +98,43 @@ public class DeleteExperienceTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    [Priority(4)]
+    public async Task DeleteExperience_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndKeepIt()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var userBToken = await ResumesTestHelper.SignInAsUserAsync(app, 1, ct);
+        var resumeA = await ResumesTestHelper.CreateResumeAsync(app.Client, userAToken, ct: ct);
+        var resumeB = await ResumesTestHelper.CreateResumeAsync(app.Client, userBToken, ct: ct);
+        var item = await CreateExperienceAsync(userAToken, resumeA.Id);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(userBToken)
+            .DELETEAsync<DeleteExperienceEndpoint, DeleteExperienceRequest>(
+                new DeleteExperienceRequest(resumeB.Id, item.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        var (getResponse, _) = await app.Client
+            .WithAuthToken(userAToken)
+            .GETAsync<GetExperienceEndpoint, GetExperienceRequest, GetExperienceResponse>(
+                new GetExperienceRequest(resumeA.Id, item.Id));
+
+        getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    private async Task<CreateExperienceResponse> CreateExperienceAsync(
+        string accessToken,
+        Guid resumeId,
+        int seed = ResumesTestConstants.ExperienceSeed)
+    {
+        var (_, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, CreateExperienceResponse>(
+                new CreateExperienceRequestFaker(resumeId, seed).Generate());
+
+        return response;
+    }
 }
