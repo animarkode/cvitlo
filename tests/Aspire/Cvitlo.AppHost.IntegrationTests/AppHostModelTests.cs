@@ -17,7 +17,13 @@ public class AppHostModelTests
         "--Parameters:keycloak-admin=test-keycloak-admin",
         "--Parameters:keycloak-password=test-keycloak-password",
         "--Parameters:cvitlo-api-client-secret=test-cvitlo-api-client-secret",
-        "--Parameters:cvitlo-admin-client-secret=test-cvitlo-admin-client-secret"
+        "--Parameters:cvitlo-admin-client-secret=test-cvitlo-admin-client-secret",
+        // The builder also reads the AppHost's user-secrets; blank the social providers so a
+        // developer's real Google/GitHub credentials cannot enable them. Tests that need one set it after.
+        "--Parameters:google-client-id=",
+        "--Parameters:google-client-secret=",
+        "--Parameters:github-client-id=",
+        "--Parameters:github-client-secret="
     ];
 
     [Fact]
