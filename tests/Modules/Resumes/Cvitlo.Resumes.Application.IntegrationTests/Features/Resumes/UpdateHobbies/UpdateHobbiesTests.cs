@@ -160,4 +160,20 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
         stored.Hobbies.ShouldBe("owner");
     }
+
+    [Fact(Skip = "test-audit 04-B3: the hobbies is validated on visible length but stored as markup, so a long href overflows the column and answers 500")]
+    public async Task UpdateHobbies_MarkupLongerThanTheColumn_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var markup = $"<a href=\"https://e.example/{new string('a', 1000)}\">x</a>";
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateHobbiesEndpoint, UpdateHobbiesRequest>(new UpdateHobbiesRequest(resume.Id, markup));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
 }

@@ -94,4 +94,53 @@ public class UpdateLocalizationTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
         stored.Localization.ShouldBe("uk-ua");
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task UpdateLocalization_EmptyValue_ShouldReturnBadRequest(string value)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateLocalizationEndpoint, UpdateLocalizationRequest, ErrorResponse>(
+                new UpdateLocalizationRequest(resume.Id, value));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        response.Errors.ShouldContainKey("localization");
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_101Characters_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateLocalizationEndpoint, UpdateLocalizationRequest, ErrorResponse>(
+                new UpdateLocalizationRequest(resume.Id, new string('a', 101)));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        response.Errors.ShouldContainKey("localization");
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_100Characters_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateLocalizationEndpoint, UpdateLocalizationRequest>(
+                new UpdateLocalizationRequest(resume.Id, new string('a', 100)));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
 }

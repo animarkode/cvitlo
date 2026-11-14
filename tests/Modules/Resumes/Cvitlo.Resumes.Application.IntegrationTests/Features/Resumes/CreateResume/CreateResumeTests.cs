@@ -57,4 +57,32 @@ public class CreateResumeTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
+
+    [Fact(Skip = "test-audit 04-B2: POST /resumes has no validator, a localization over 100 characters reaches varchar(100) and answers 500")]
+    public async Task CreateResume_LocalizationLongerThan100_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsUserAsync(app, 4, ct);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest>(new CreateResumeRequest(new string('a', 101)));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateResume_NullLocalization_ShouldApplyTheColumnDefault()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateResumeEndpoint, CreateResumeRequest, CreateResumeResponse>(new CreateResumeRequest(null));
+
+        // EF omits a null on a property that has a database default, so the column default applies.
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Localization.ShouldBe("en-us");
+    }
 }

@@ -126,4 +126,38 @@ public class UpdateTitleTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
         stored.Title.ShouldBe("owner");
     }
+
+    [Fact]
+    public async Task UpdateTitle_Exactly100Characters_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(
+                new UpdateTitleRequest(resume.Id, new string('a', 100)));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task UpdateTitle_PaddedTitle_ShouldStoreItTrimmed()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var updateResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(new UpdateTitleRequest(resume.Id, "  My CV  "));
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
+
+        getResponse.Title.ShouldBe("My CV");
+    }
 }
