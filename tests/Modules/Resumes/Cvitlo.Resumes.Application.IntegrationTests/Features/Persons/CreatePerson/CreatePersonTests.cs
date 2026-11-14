@@ -58,8 +58,9 @@ public class CreatePersonTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidPersonData))]
     [Priority(2)]
-    public async Task CreatePerson_WithInvalidData_ShouldReturnBadRequest(
-        CreatePersonRequest invalidRequest)
+    public async Task CreatePerson_InvalidField_ShouldReturnBadRequest(
+        CreatePersonRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -67,11 +68,12 @@ public class CreatePersonTests(WebApp app) : TestBase
 
         var createRequest = invalidRequest with { ResumeId = resume.Id };
 
-        var (httpResponse, _) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(createRequest);
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, ErrorResponse>(createRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]

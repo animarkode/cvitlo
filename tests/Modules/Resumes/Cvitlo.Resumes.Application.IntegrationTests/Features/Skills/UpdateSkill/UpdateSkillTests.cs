@@ -108,7 +108,9 @@ public class UpdateSkillTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateSkillData))]
     [Priority(4)]
-    public async Task UpdateSkill_WithInvalidData_ShouldReturnBadRequest(UpdateSkillRequest invalidRequest)
+    public async Task UpdateSkill_InvalidField_ShouldReturnBadRequest(
+        UpdateSkillRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -122,10 +124,11 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
         var updateRequest = invalidRequest with { Id = skillResponse.Id, ResumeId = resume.Id };
 
-        var httpResponse = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdateSkillEndpoint, UpdateSkillRequest>(updateRequest);
+            .PUTAsync<UpdateSkillEndpoint, UpdateSkillRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 }

@@ -55,8 +55,9 @@ public class CreateLinkTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidLinkData))]
     [Priority(2)]
-    public async Task CreateLink_WithInvalidData_ShouldReturnBadRequest(
-        CreateLinkRequest invalidRequest)
+    public async Task CreateLink_InvalidField_ShouldReturnBadRequest(
+        CreateLinkRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -64,10 +65,11 @@ public class CreateLinkTests(WebApp app) : TestBase
         
         var createRequest = invalidRequest with { ResumeId = resume.Id };
         
-        var (httpResponse, _) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateLinkEndpoint, CreateLinkRequest, CreateLinkResponse>(createRequest);
+            .POSTAsync<CreateLinkEndpoint, CreateLinkRequest, ErrorResponse>(createRequest);
         
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 }

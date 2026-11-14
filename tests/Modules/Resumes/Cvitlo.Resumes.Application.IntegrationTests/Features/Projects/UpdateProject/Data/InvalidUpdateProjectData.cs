@@ -4,59 +4,40 @@ using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.Data;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Projects.UpdateProject.Data;
 
-public class InvalidUpdateProjectData : IEnumerable<TheoryDataRow<UpdateProjectRequest>>
+public class InvalidUpdateProjectData : IEnumerable<TheoryDataRow<UpdateProjectRequest, string>>
 {
-    private const int DescriptionMaxLength = 1000;
-    private const int NameMaxLength = 100;
-    private const int RoleMaxLength = 100;
-
-    public IEnumerator<TheoryDataRow<UpdateProjectRequest>> GetEnumerator()
+    public IEnumerator<TheoryDataRow<UpdateProjectRequest, string>> GetEnumerator()
     {
-        var baseRequest = new CreateProjectRequestFaker(Guid.Empty).Generate();
+        var source = new CreateProjectRequestFaker(Guid.Empty).Generate();
+        var baseRequest = new UpdateProjectRequest(
+            Guid.NewGuid(),
+            Guid.Empty,
+            source.Tagline,
+            source.Name,
+            source.Url,
+            source.StartDate,
+            source.EndDate,
+            source.Description);
 
-        yield return new TheoryDataRow<UpdateProjectRequest>(
-            new UpdateProjectRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                baseRequest.Tagline,
-                baseRequest.Name,
-                baseRequest.Url,
-                new DateOnly(2023, 6, 1),
-                new DateOnly(2023, 1, 1),
-                baseRequest.Description));
+        yield return new TheoryDataRow<UpdateProjectRequest, string>(
+            baseRequest with { Name = new string('a', 101) },
+            "name");
 
-        yield return new TheoryDataRow<UpdateProjectRequest>(
-            new UpdateProjectRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                baseRequest.Tagline,
-                baseRequest.Name,
-                baseRequest.Url,
-                baseRequest.StartDate,
-                baseRequest.EndDate,
-                new string('x', DescriptionMaxLength + 1)));
+        yield return new TheoryDataRow<UpdateProjectRequest, string>(
+            baseRequest with { Tagline = new string('b', 101) },
+            "tagline");
 
-        yield return new TheoryDataRow<UpdateProjectRequest>(
-            new UpdateProjectRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                baseRequest.Tagline,
-                new string('a', NameMaxLength + 1),
-                baseRequest.Url,
-                baseRequest.StartDate,
-                baseRequest.EndDate,
-                baseRequest.Description));
+        yield return new TheoryDataRow<UpdateProjectRequest, string>(
+            baseRequest with { Url = "javascript:alert(1)" },
+            "url");
 
-        yield return new TheoryDataRow<UpdateProjectRequest>(
-            new UpdateProjectRequest(
-                Guid.NewGuid(),
-                Guid.Empty,
-                new string('b', RoleMaxLength + 1),
-                baseRequest.Name,
-                baseRequest.Url,
-                baseRequest.StartDate,
-                baseRequest.EndDate,
-                baseRequest.Description));
+        yield return new TheoryDataRow<UpdateProjectRequest, string>(
+            baseRequest with { StartDate = new DateOnly(2023, 6, 1), EndDate = new DateOnly(2023, 1, 1) },
+            "endDate");
+
+        yield return new TheoryDataRow<UpdateProjectRequest, string>(
+            baseRequest with { Description = "<p>" + new string('a', 1001) + "</p>" },
+            "description");
     }
 
     IEnumerator IEnumerable.GetEnumerator()

@@ -109,7 +109,9 @@ public class UpdateLinkTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateLinkData))]
     [Priority(4)]
-    public async Task UpdateLink_WithInvalidData_ShouldReturnBadRequest(UpdateLinkRequest invalidRequest)
+    public async Task UpdateLink_InvalidField_ShouldReturnBadRequest(
+        UpdateLinkRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -123,10 +125,11 @@ public class UpdateLinkTests(WebApp app) : TestBase
 
         var updateRequest = invalidRequest with { Id = linkResponse.Id, ResumeId = resume.Id };
 
-        var updateResponse = await app.Client
+        var (updateResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdateLinkEndpoint, UpdateLinkRequest>(updateRequest);
+            .PUTAsync<UpdateLinkEndpoint, UpdateLinkRequest, ErrorResponse>(updateRequest);
 
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 }

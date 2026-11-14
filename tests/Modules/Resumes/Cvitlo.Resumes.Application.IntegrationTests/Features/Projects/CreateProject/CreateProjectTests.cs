@@ -55,8 +55,9 @@ public class CreateProjectTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidProjectData))]
     [Priority(2)]
-    public async Task CreateProject_WithInvalidData_ShouldReturnBadRequest(
-        CreateProjectRequest invalidRequest)
+    public async Task CreateProject_InvalidField_ShouldReturnBadRequest(
+        CreateProjectRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -64,10 +65,11 @@ public class CreateProjectTests(WebApp app) : TestBase
 
         var createRequest = invalidRequest with { ResumeId = resume.Id };
 
-        var (httpResponse, _) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, CreateProjectResponse>(createRequest);
+            .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, ErrorResponse>(createRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 }

@@ -132,7 +132,9 @@ public class UpdateProjectTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateProjectData))]
     [Priority(4)]
-    public async Task UpdateProject_WithInvalidData_ShouldReturnBadRequest(UpdateProjectRequest invalidRequest)
+    public async Task UpdateProject_InvalidField_ShouldReturnBadRequest(
+        UpdateProjectRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -146,11 +148,12 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
         var updateRequest = invalidRequest with { Id = projectResponse.Id, ResumeId = resume.Id };
 
-        var httpResponse = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(updateRequest);
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]

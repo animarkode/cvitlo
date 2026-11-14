@@ -131,7 +131,9 @@ public class UpdatePersonTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdatePersonData))]
     [Priority(4)]
-    public async Task UpdatePerson_WithInvalidData_ShouldReturnBadRequest(UpdatePersonRequest invalidRequest)
+    public async Task UpdatePerson_InvalidField_ShouldReturnBadRequest(
+        UpdatePersonRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -144,11 +146,12 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
         var updateRequest = invalidRequest with { Id = createResponse.Id, ResumeId = resume.Id };
 
-        var httpResponse = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(updateRequest);
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]

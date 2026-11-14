@@ -55,8 +55,9 @@ public class CreateSkillTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidSkillData))]
     [Priority(2)]
-    public async Task CreateSkill_WithInvalidData_ShouldReturnBadRequest(
-        CreateSkillRequest invalidRequest)
+    public async Task CreateSkill_InvalidField_ShouldReturnBadRequest(
+        CreateSkillRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -64,10 +65,11 @@ public class CreateSkillTests(WebApp app) : TestBase
         
         var createRequest = invalidRequest with { ResumeId = resume.Id };
         
-        var (httpResponse, _) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateSkillEndpoint, CreateSkillRequest, CreateSkillResponse>(createRequest);
+            .POSTAsync<CreateSkillEndpoint, CreateSkillRequest, ErrorResponse>(createRequest);
         
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 }
