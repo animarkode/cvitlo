@@ -4,9 +4,12 @@ using Cvitlo.Resumes.Application.Features.Resumes.DeleteResume;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
 using Cvitlo.Resumes.Application.Features.Resumes.Shared;
 using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared;
+using Cvitlo.Resumes.Infrastructure.Database;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints;
 using FastEndpoints.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.DeleteResume;
@@ -87,5 +90,51 @@ public class DeleteResumeTests(WebApp app) : TestBase
                 new DeleteResumeRequest(resume.Id));
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task DeleteResume_ResumeWithEverySection_ShouldRemoveEveryChildRow()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var token = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var seeded = await ResumeWithEverySectionSeeder.SeedAsync(app, token, ct);
+
+        var deleted = await app.Client
+            .WithAuthToken(token)
+            .DELETEAsync<DeleteResumeEndpoint, DeleteResumeRequest>(new DeleteResumeRequest(seeded.ResumeId));
+        deleted.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        await using var scope = app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<ResumesDbContext>();
+        var id = seeded.ResumeId;
+        (await db.Resumes.CountAsync(x => x.Id == id, ct)).ShouldBe(0);
+        (await db.Persons.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+        (await db.Experiences.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+        (await db.Educations.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+        (await db.Skills.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+        (await db.Languages.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+        (await db.Courses.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+        (await db.Projects.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+        (await db.Links.CountAsync(x => x.ResumeId == id, ct)).ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task DeleteResume_AlreadyDeleted_ShouldReturnForbidden()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var token = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, token, ct: ct);
+        var request = new DeleteResumeRequest(resume.Id);
+
+        var first = await app.Client
+            .WithAuthToken(token)
+            .DELETEAsync<DeleteResumeEndpoint, DeleteResumeRequest>(request);
+        first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var second = await app.Client
+            .WithAuthToken(token)
+            .DELETEAsync<DeleteResumeEndpoint, DeleteResumeRequest>(request);
+
+        second.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 }
