@@ -50,6 +50,41 @@ public class AccountLinkingTests(WebApp app)
     }
 
     [Fact]
+    public async Task ExistingEmail_ProviderForcedWithAnIdpHint_ShouldNotLinkBeforeTheOwnerReauthenticates()
+    {
+        var owner = await CreateOwnerWithProviderAccountAsync("hinted");
+        using var client = app.CreateBrowserClient();
+        using var driver = new KeycloakLoginDriver(client);
+
+        var providerPage = await StartWithHintAsync(client, driver, WebApp.StandIn.Alias);
+        using var submitted = await driver.SubmitAsync(providerPage, "kc-form-login", new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["username"] = owner.ProviderUsername,
+            ["password"] = owner.ProviderPassword,
+            ["credentialId"] = string.Empty
+        }, Ct);
+        var (page, api) = await driver.FollowAsync(submitted, Ct);
+
+        api.ShouldBeNull("a forced provider must not turn an e-mail match into a sign-in");
+        page.ShouldNotBeNull();
+        page.ShouldContain("kc-register-form", customMessage: "Keycloak asks whether to link the existing account");
+        (await app.Keycloak.Admin.GetFederatedIdentitiesAsync(owner.UserId, Ct)).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ExistingEmail_HintSwappedToAnUnknownProvider_ShouldFallBackToTheLoginForm()
+    {
+        using var client = app.CreateBrowserClient();
+        using var driver = new KeycloakLoginDriver(client);
+
+        var page = await StartWithHintAsync(client, driver, "does-not-exist");
+
+        page.ShouldContain("kc-form-login");
+        using var user = await client.GetAsync("api/v1/auth/user", Ct);
+        user.StatusCode.ShouldBe(HttpStatusCode.Unauthorized, "no session cookie is issued by loading a login page");
+    }
+
+    [Fact]
     public async Task ExistingEmail_AfterTheOwnerReauthenticates_ShouldLinkAndSignIn()
     {
         var owner = await CreateOwnerWithProviderAccountAsync("owner");
@@ -110,6 +145,16 @@ public class AccountLinkingTests(WebApp app)
 
         api.ShouldBeNull();
         (await app.Keycloak.Admin.FindUserIdAsync(email, Ct)).ShouldBeNull();
+    }
+
+    /// <summary>What an attacker could do by hand: take the redirect to Keycloak and add a provider hint to it.</summary>
+    private static async Task<string> StartWithHintAsync(HttpClient client, KeycloakLoginDriver driver, string hint)
+    {
+        using var challenge = await client.GetAsync("api/v1/auth/login", Ct);
+        challenge.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        var hinted = new Uri($"{challenge.Headers.Location}&kc_idp_hint={Uri.EscapeDataString(hint)}");
+
+        return await driver.GetPageAsync(hinted, Ct);
     }
 
     private static async Task<(string? Page, HttpResponseMessage? Api)> SignInAtProviderAsync(

@@ -73,6 +73,21 @@ public class SignInTests(WebApp app)
         afterLink.ShouldContain("<!-- template: login-update-password.ftl -->", customMessage: "the password is set once the link is followed");
     }
 
+    [Theory]
+    [InlineData("login")]
+    [InlineData("register")]
+    public async Task Login_IdpHintInTheQuery_ShouldNotForwardIt(string path)
+    {
+        using var client = app.CreateBrowserClient();
+
+        using var response = await client.GetAsync(
+            $"api/v1/auth/{path}?kc_idp_hint={WebApp.StandIn.Alias}&returnUrl=/", TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
+        var query = HttpUtility.ParseQueryString(response.Headers.Location!.Query);
+        query["kc_idp_hint"].ShouldBeNull("a provider choice from the request must never reach Keycloak");
+    }
+
     [Fact]
     public async Task SignIn_ShouldIssueAnHttpOnlySecureStrictSessionCookie()
     {
