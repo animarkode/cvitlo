@@ -102,4 +102,86 @@ public class HtmlContentSanitizerTests
         result.ShouldNotContain("<span");
         result.ShouldNotContain("<div");
     }
+
+    [Theory]
+    [InlineData(null, 0)]
+    [InlineData("", 0)]
+    [InlineData("<p>abc</p>", 3)]
+    [InlineData("<p>a</p><p>b</p>", 2)]
+    [InlineData("a &amp; b", 5)]
+    [InlineData("<script>xx</script>", 2)]
+    public void GetPlainTextLength_Markup_ShouldCountVisibleCharactersOnly(string? html, int expected)
+    {
+        HtmlContentSanitizer.GetPlainTextLength(html).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void SanitizeBasicFormatting_Heading1_ShouldBeKept()
+    {
+        HtmlContentSanitizer.SanitizeBasicFormatting("<h1>Title</h1>")
+            .ShouldNotBeNull()
+            .ShouldContain("<h1");
+    }
+
+    [Fact]
+    public void SanitizeBasicFormatting_MailtoLink_ShouldBeKept()
+    {
+        HtmlContentSanitizer.SanitizeBasicFormatting("<p><a href=\"mailto:a@b.example\">mail</a></p>")
+            .ShouldNotBeNull()
+            .ShouldContain("mailto:a@b.example");
+    }
+
+    [Fact]
+    public void SanitizeBasicFormatting_ForeignStyleProperties_ShouldKeepOnlyTextAlign()
+    {
+        var result = HtmlContentSanitizer.SanitizeBasicFormatting(
+            "<p style=\"position:fixed;text-align:center\">x</p>");
+
+        result.ShouldNotBeNull();
+        result.ShouldContain("text-align");
+        result.ShouldNotContain("position");
+    }
+
+    [Fact]
+    public void SanitizeBasicFormatting_LinkAttributes_ShouldKeepOnlyHref()
+    {
+        var result = HtmlContentSanitizer.SanitizeBasicFormatting(
+            "<a href=\"https://a.example\" target=\"_blank\" rel=\"noopener\" class=\"c\" onclick=\"x()\">x</a>");
+
+        result.ShouldNotBeNull();
+        result.ShouldContain("href=\"https://a.example\"");
+        result.ShouldNotContain("target");
+        result.ShouldNotContain("rel=");
+        result.ShouldNotContain("class");
+        result.ShouldNotContain("onclick");
+    }
+
+    [Fact]
+    public void SanitizeBasicFormatting_EncodedMarkup_ShouldStayEncoded()
+    {
+        HtmlContentSanitizer.SanitizeBasicFormatting("<p>&lt;script&gt;</p>")
+            .ShouldNotBeNull()
+            .ShouldContain("&lt;script&gt;");
+    }
+
+    // Mirrors the toolbar of src/web/cvitlo-app/src/app/shared/components/cv-rich-text/cv-rich-text.ts
+    // (StarterKit + TextAlign + Link): bold, italic, underline, strike, lists, link, four alignments.
+    [Theory]
+    [InlineData("<p><strong>b</strong></p>", "<strong>")]
+    [InlineData("<p><em>i</em></p>", "<em>")]
+    [InlineData("<p><u>u</u></p>", "<u>")]
+    [InlineData("<p><s>s</s></p>", "<s>")]
+    [InlineData("<ul><li><p>item</p></li></ul>", "<ul>")]
+    [InlineData("<ol><li><p>item</p></li></ol>", "<ol>")]
+    [InlineData("<p><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"x\" href=\"https://e.example\">l</a></p>", "href=\"https://e.example\"")]
+    [InlineData("<p style=\"text-align: left\">t</p>", "text-align: left")]
+    [InlineData("<p style=\"text-align: center\">t</p>", "text-align: center")]
+    [InlineData("<p style=\"text-align: right\">t</p>", "text-align: right")]
+    [InlineData("<p style=\"text-align: justify\">t</p>", "text-align: justify")]
+    public void SanitizeBasicFormatting_TiptapEditorOutput_ShouldKeepEveryToolbarFormat(string input, string expected)
+    {
+        HtmlContentSanitizer.SanitizeBasicFormatting(input)
+            .ShouldNotBeNull()
+            .ShouldContain(expected);
+    }
 }
