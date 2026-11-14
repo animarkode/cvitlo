@@ -97,6 +97,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cvitlo.Auth.Application.Int
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cvitlo.Auth.Infrastructure", "src\api\Modules\Auth\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj", "{74540F38-F711-4B16-8DE8-7008CB119164}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{E4BCEF75-616D-9AB7-4146-B8A1B4373D50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cvitlo.Documents.Application.UnitTests", "tests\Modules\Documents\Cvitlo.Documents.Application.UnitTests\Cvitlo.Documents.Application.UnitTests.csproj", "{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -359,6 +363,18 @@ Global
 		{74540F38-F711-4B16-8DE8-7008CB119164}.Release|x64.Build.0 = Release|Any CPU
 		{74540F38-F711-4B16-8DE8-7008CB119164}.Release|x86.ActiveCfg = Release|Any CPU
 		{74540F38-F711-4B16-8DE8-7008CB119164}.Release|x86.Build.0 = Release|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Debug|x64.Build.0 = Debug|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Debug|x86.Build.0 = Debug|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Release|x64.ActiveCfg = Release|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Release|x64.Build.0 = Release|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Release|x86.ActiveCfg = Release|Any CPU
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -400,5 +416,7 @@ Global
 		{B1D06AEF-9B01-4633-54EE-BF3F0D4EAA83} = {CBDC54F4-8F95-411A-93C0-BAB6E5E3EFD8}
 		{BAA071FE-AB66-4F1D-9D0F-FBD59C08752C} = {B1D06AEF-9B01-4633-54EE-BF3F0D4EAA83}
 		{74540F38-F711-4B16-8DE8-7008CB119164} = {7F784E74-3350-424D-AAE3-5B55CFB6D748}
+		{E4BCEF75-616D-9AB7-4146-B8A1B4373D50} = {CBDC54F4-8F95-411A-93C0-BAB6E5E3EFD8}
+		{53618569-0B4D-4B9D-A418-75C8CEA8FC0F} = {E4BCEF75-616D-9AB7-4146-B8A1B4373D50}
 	EndGlobalSection
 EndGlobal
