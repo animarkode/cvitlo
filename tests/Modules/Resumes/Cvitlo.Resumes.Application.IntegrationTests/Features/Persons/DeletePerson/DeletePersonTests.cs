@@ -19,8 +19,6 @@ public class DeletePersonTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeletePerson_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeletePersonEndpoint, DeletePersonRequest>(
                 new DeletePersonRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class DeletePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeletePerson_ShouldRemovePerson()
+    public async Task DeletePerson_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +57,7 @@ public class DeletePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentPerson_ShouldReturnNotFound()
+    public async Task DeletePerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class DeletePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeletePerson_ShouldReturnForbidden()
+    public async Task DeletePerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

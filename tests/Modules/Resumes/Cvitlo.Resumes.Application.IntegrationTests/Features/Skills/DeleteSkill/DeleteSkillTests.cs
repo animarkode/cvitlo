@@ -19,8 +19,6 @@ public class DeleteSkillTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteSkill_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteSkillEndpoint, DeleteSkillRequest>(
                 new DeleteSkillRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class DeleteSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteSkill_ShouldRemoveSkill()
+    public async Task DeleteSkill_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +57,7 @@ public class DeleteSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentSkill_ShouldReturnNotFound()
+    public async Task DeleteSkill_UnknownSkill_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class DeleteSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteSkill_ShouldReturnForbidden()
+    public async Task DeleteSkill_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

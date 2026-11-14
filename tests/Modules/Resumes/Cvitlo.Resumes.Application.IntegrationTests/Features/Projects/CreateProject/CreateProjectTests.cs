@@ -19,7 +19,7 @@ public class CreateProjectTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(ValidProjectData))]
     [Priority(1)]
-    public async Task CreateProject_ShouldReturnCreated(CreateProjectRequest request)
+    public async Task CreateProject_ValidRequest_ShouldReturnTheCreatedItem(CreateProjectRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -40,7 +40,7 @@ public class CreateProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreateProjectForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreateProject_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

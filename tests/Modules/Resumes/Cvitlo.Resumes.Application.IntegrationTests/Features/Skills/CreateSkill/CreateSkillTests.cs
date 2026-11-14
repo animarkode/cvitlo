@@ -18,7 +18,7 @@ public class CreateSkillTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(ValidSkillData))]
     [Priority(1)]
-    public async Task CreateSkill_ShouldReturnCreated(CreateSkillRequest request)
+    public async Task CreateSkill_ValidRequest_ShouldReturnTheCreatedItem(CreateSkillRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -39,7 +39,7 @@ public class CreateSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreateSkillForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreateSkill_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

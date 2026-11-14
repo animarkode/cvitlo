@@ -24,8 +24,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdatePerson_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
                 new UpdatePersonRequest(Guid.NewGuid(), Guid.NewGuid(), null, null, null, null, null, null, null, null, null, null, null, null));
@@ -35,7 +33,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdatePerson_ShouldModifyFields()
+    public async Task UpdatePerson_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentPerson_ShouldReturnNotFound()
+    public async Task UpdatePerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -102,7 +100,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdatePerson_ShouldReturnForbidden()
+    public async Task UpdatePerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -156,7 +154,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task FirstNameUpdate_ShouldSnapshotFullNameIntoResumeTitle()
+    public async Task UpdatePerson_FirstNameSetWhileTitleIsEmpty_ShouldSnapshotFullNameIntoResumeTitle()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -202,7 +200,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task SecondNameUpdate_ShouldLeaveResumeTitleUnchanged()
+    public async Task UpdatePerson_NameChangedAfterTitleSnapshot_ShouldLeaveResumeTitleUnchanged()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -254,7 +252,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task ManualTitleUpdateThenNameUpdate_ShouldLeaveManualTitleUnchanged()
+    public async Task UpdatePerson_ManualTitleSet_ShouldLeaveManualTitleUnchanged()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -300,7 +298,7 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(8)]
-    public async Task NameUpdateWithBlankNames_ShouldLeaveResumeTitleNull()
+    public async Task UpdatePerson_BlankNames_ShouldLeaveResumeTitleNull()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

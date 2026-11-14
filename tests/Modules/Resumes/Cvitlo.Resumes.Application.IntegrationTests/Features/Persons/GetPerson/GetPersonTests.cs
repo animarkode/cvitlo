@@ -19,8 +19,6 @@ public class GetPersonTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetPerson_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetPersonEndpoint, GetPersonRequest, GetPersonResponse>(
                 new GetPersonRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetPersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetPerson_ShouldReturnCreatedPerson()
+    public async Task GetPerson_ExistingItem_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -54,7 +52,7 @@ public class GetPersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetPersonByResume_ShouldReturnPerson()
+    public async Task GetPersonByResume_ResumeWithPerson_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -78,7 +76,7 @@ public class GetPersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentPerson_ShouldReturnNotFound()
+    public async Task GetPerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -94,7 +92,7 @@ public class GetPersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetPersonByNonExistentResume_ShouldReturnForbidden()
+    public async Task GetPersonByResume_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -109,7 +107,7 @@ public class GetPersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task CrossUserGetPerson_ShouldReturnForbidden()
+    public async Task GetPerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -133,7 +131,7 @@ public class GetPersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetPersonByResume_ShouldReturnForbidden()
+    public async Task GetPersonByResume_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

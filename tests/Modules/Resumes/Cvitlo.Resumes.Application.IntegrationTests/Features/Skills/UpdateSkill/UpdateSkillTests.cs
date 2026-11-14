@@ -20,8 +20,6 @@ public class UpdateSkillTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateSkill_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateSkillEndpoint, UpdateSkillRequest>(
                 new UpdateSkillRequest(Guid.NewGuid(), Guid.NewGuid(), "Name", "B2"));
@@ -31,7 +29,7 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateSkill_ShouldModifyFields()
+    public async Task UpdateSkill_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -65,7 +63,7 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentSkill_ShouldReturnNotFound()
+    public async Task UpdateSkill_UnknownSkill_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateSkill_ShouldReturnForbidden()
+    public async Task UpdateSkill_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

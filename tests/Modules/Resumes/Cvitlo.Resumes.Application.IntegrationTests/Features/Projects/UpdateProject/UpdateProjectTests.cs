@@ -20,8 +20,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateProject_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(
                 new UpdateProjectRequest(Guid.NewGuid(), Guid.NewGuid(), "Tagline", "Project", null, null, null, null));
@@ -31,7 +29,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateProject_ShouldModifyFields()
+    public async Task UpdateProject_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -97,7 +95,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateProject_ShouldReturnForbidden()
+    public async Task UpdateProject_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

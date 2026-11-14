@@ -19,8 +19,6 @@ public class DeleteLinkTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteLink_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteLinkEndpoint, DeleteLinkRequest>(
                 new DeleteLinkRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class DeleteLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteLink_ShouldRemoveLink()
+    public async Task DeleteLink_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +57,7 @@ public class DeleteLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentLink_ShouldReturnNotFound()
+    public async Task DeleteLink_UnknownLink_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class DeleteLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteLink_ShouldReturnForbidden()
+    public async Task DeleteLink_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

@@ -19,8 +19,6 @@ public class DeleteProjectTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task DeleteProject_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .DELETEAsync<DeleteProjectEndpoint, DeleteProjectRequest>(
                 new DeleteProjectRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class DeleteProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DeleteProject_ShouldRemoveProject()
+    public async Task DeleteProject_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -59,7 +57,7 @@ public class DeleteProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentProject_ShouldReturnNotFound()
+    public async Task DeleteProject_UnknownProject_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -75,7 +73,7 @@ public class DeleteProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserDeleteProject_ShouldReturnForbidden()
+    public async Task DeleteProject_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

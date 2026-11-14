@@ -20,8 +20,6 @@ public class UpdateLinkTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task UpdateLink_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var httpResponse = await app.Client
             .PUTAsync<UpdateLinkEndpoint, UpdateLinkRequest>(
                 new UpdateLinkRequest(Guid.NewGuid(), Guid.NewGuid(), "Label", "https://example.com"));
@@ -31,7 +29,7 @@ public class UpdateLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task UpdateLink_ShouldModifyFields()
+    public async Task UpdateLink_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -65,7 +63,7 @@ public class UpdateLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentLink_ShouldReturnNotFound()
+    public async Task UpdateLink_UnknownLink_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class UpdateLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CrossUserUpdateLink_ShouldReturnForbidden()
+    public async Task UpdateLink_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

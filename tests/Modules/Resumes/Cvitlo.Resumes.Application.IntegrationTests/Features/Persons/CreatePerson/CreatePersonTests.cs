@@ -20,7 +20,7 @@ public class CreatePersonTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(ValidPersonData))]
     [Priority(1)]
-    public async Task CreatePerson_ShouldReturnCreated(CreatePersonRequest request)
+    public async Task CreatePerson_ValidRequest_ShouldReturnTheCreatedItem(CreatePersonRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -42,7 +42,7 @@ public class CreatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreatePersonForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreatePerson_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -79,7 +79,7 @@ public class CreatePersonTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task CreatePerson_ShouldReturnConflict_WhenPersonAlreadyExists()
+    public async Task CreatePerson_PersonAlreadyExists_ShouldReturnConflict()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

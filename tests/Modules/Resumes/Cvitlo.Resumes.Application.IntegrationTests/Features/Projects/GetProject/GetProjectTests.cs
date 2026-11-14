@@ -19,8 +19,6 @@ public class GetProjectTests(WebApp app) : TestBase
     [Priority(0)]
     public async Task GetProject_NoToken_ShouldReturnUnauthorized()
     {
-        app.Client.DefaultRequestHeaders.Authorization = null;
-
         var (httpResponse, _) = await app.Client
             .GETAsync<GetProjectEndpoint, GetProjectRequest, GetProjectResponse>(
                 new GetProjectRequest(Guid.NewGuid(), Guid.NewGuid()));
@@ -30,7 +28,7 @@ public class GetProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GetProject_ShouldReturnCreatedProject()
+    public async Task GetProject_ExistingItem_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -55,7 +53,7 @@ public class GetProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task GetAllProjects_ShouldReturnProjectsForResume()
+    public async Task GetAllProjects_ResumeWithItems_ShouldReturnThem()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -82,7 +80,7 @@ public class GetProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(3)]
-    public async Task NonExistentProject_ShouldReturnNotFound()
+    public async Task GetProject_UnknownProject_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -98,7 +96,7 @@ public class GetProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(4)]
-    public async Task GetAllProjectsForNonExistentResume_ShouldReturnForbidden()
+    public async Task GetAllProjects_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -113,7 +111,7 @@ public class GetProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(5)]
-    public async Task GetAllProjectsEmptyResume_ShouldReturnEmptyList()
+    public async Task GetAllProjects_ResumeWithoutItems_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -130,7 +128,7 @@ public class GetProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(6)]
-    public async Task CrossUserGetProject_ShouldReturnForbidden()
+    public async Task GetProject_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -154,7 +152,7 @@ public class GetProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(7)]
-    public async Task CrossUserGetAllProjects_ShouldReturnForbidden()
+    public async Task GetAllProjects_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var userAToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

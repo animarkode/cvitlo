@@ -18,7 +18,7 @@ public class CreateLinkTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(ValidLinkData))]
     [Priority(1)]
-    public async Task CreateLink_ShouldReturnCreated(CreateLinkRequest request)
+    public async Task CreateLink_ValidRequest_ShouldReturnTheCreatedItem(CreateLinkRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -39,7 +39,7 @@ public class CreateLinkTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task CreateLinkForNonExistentResume_ShouldReturnForbidden()
+    public async Task CreateLink_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
