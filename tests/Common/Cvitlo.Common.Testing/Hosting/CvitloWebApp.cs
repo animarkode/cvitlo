@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Cvitlo.Auth.Infrastructure.Database;
 using Cvitlo.Common.Testing.Containers;
 using Cvitlo.Common.Testing.Data;
@@ -44,6 +45,20 @@ public abstract class CvitloWebApp : AppFixture<Program>
         _redis ?? throw new InvalidOperationException("Redis container not initialized");
 
     public Task StopPostgresAsync() => Postgres.StopAsync();
+
+    /// <summary>
+    /// Returns a new client signed in as <paramref name="user"/> with a bearer token. The caller disposes it;
+    /// the shared <c>Client</c> is never changed.
+    /// </summary>
+    public async Task<HttpClient> CreateBearerClientAsync(TestUser user, CancellationToken ct = default)
+    {
+        var tokens = await Keycloak.GetTokensAsync(user.Email, user.Password, ct);
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", tokens["access_token"]!.GetValue<string>());
+
+        return client;
+    }
 
     /// <summary>Runs after Keycloak starts and before the schemas are migrated and users seeded.</summary>
     protected virtual Task OnKeycloakStartedAsync(CancellationToken ct) => Task.CompletedTask;
