@@ -17,6 +17,7 @@ public class BackchannelLogoutCommandHandler(
         var target = await validator.ValidateAsync(command.LogoutToken, ct);
         if (target.IsError)
         {
+            logger.LogWarning("Rejected a back-channel logout token: {Error}", target.FirstError.Description);
             return target.Errors;
         }
 
