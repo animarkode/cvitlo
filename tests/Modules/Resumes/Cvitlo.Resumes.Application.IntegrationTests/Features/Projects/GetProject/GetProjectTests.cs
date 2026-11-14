@@ -219,4 +219,15 @@ public class GetProjectTests(WebApp app) : TestBase
 
         return response;
     }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllProjects_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllProjectsEndpoint, GetAllProjectsRequest, GetAllProjectsResponse>(
+                new GetAllProjectsRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
 }

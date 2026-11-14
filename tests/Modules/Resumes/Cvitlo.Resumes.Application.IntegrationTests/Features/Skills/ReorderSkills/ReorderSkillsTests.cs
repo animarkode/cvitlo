@@ -158,6 +158,23 @@ public class ReorderSkillsTests(WebApp app) : TestBase
         resumeResponse.Skills.Select(i => i.Id).ShouldBe(ownIds);
     }
 
+    [Fact]
+    [Priority(7)]
+    public async Task ReorderSkills_FewerIdsThanItems_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var ids = await CreateSkillsAsync(accessToken, resume.Id, 3);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<ReorderSkillsEndpoint, ReorderSkillsRequest>(
+                new ReorderSkillsRequest(resume.Id, new List<Guid> { ids[0], ids[1] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     private async Task<List<Guid>> CreateSkillsAsync(string accessToken, Guid resumeId, int count)
     {
         var ids = new List<Guid>();

@@ -219,4 +219,15 @@ public class GetLinkTests(WebApp app) : TestBase
 
         return response;
     }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllLinks_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllLinksEndpoint, GetAllLinksRequest, GetAllLinksResponse>(
+                new GetAllLinksRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
 }

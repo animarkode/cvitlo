@@ -158,6 +158,23 @@ public class ReorderProjectsTests(WebApp app) : TestBase
         resumeResponse.Projects.Select(i => i.Id).ShouldBe(ownIds);
     }
 
+    [Fact]
+    [Priority(7)]
+    public async Task ReorderProjects_FewerIdsThanItems_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var ids = await CreateProjectsAsync(accessToken, resume.Id, 3);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<ReorderProjectsEndpoint, ReorderProjectsRequest>(
+                new ReorderProjectsRequest(resume.Id, new List<Guid> { ids[0], ids[1] }));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     private async Task<List<Guid>> CreateProjectsAsync(string accessToken, Guid resumeId, int count)
     {
         var ids = new List<Guid>();

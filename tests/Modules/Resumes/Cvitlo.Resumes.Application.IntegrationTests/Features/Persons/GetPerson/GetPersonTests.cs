@@ -174,6 +174,33 @@ public class GetPersonTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    [Priority(8)]
+    public async Task GetPersonByResume_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetPersonByResumeEndpoint, GetPersonByResumeRequest, GetPersonByResumeResponse>(
+                new GetPersonByResumeRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task GetPersonByResume_ResumeWithoutPerson_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetPersonByResumeEndpoint, GetPersonByResumeRequest, GetPersonByResumeResponse>(
+                new GetPersonByResumeRequest(resume.Id));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     private async Task<CreatePersonResponse> CreatePersonAsync(string accessToken, Guid resumeId, int seed = ResumesTestConstants.PersonSeed)
     {
         var (_, response) = await app.Client

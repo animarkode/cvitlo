@@ -135,4 +135,26 @@ public class DeleteSkillTests(WebApp app) : TestBase
 
         return response;
     }
+
+    [Fact]
+    [Priority(5)]
+    public async Task DeleteSkill_AlreadyDeleted_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateSkillAsync(accessToken, resume.Id);
+
+        var first = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteSkillEndpoint, DeleteSkillRequest>(new DeleteSkillRequest(resume.Id, item.Id));
+
+        first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var second = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteSkillEndpoint, DeleteSkillRequest>(new DeleteSkillRequest(resume.Id, item.Id));
+
+        second.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }

@@ -374,6 +374,37 @@ public class UpdatePersonTests(WebApp app) : TestBase
         getResponse.Email.ShouldBe(person.Email);
     }
 
+    [Fact]
+    [Priority(10)]
+    public async Task UpdatePerson_FieldsAtMaximumLength_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var person = await CreatePersonAsync(accessToken, resume.Id);
+        var text = new string('a', 100);
+        var email = new string('a', 91) + "@test.com";
+
+        var updateResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
+                new UpdatePersonRequest(
+                    person.Id, resume.Id, text, text, text, email, text, text, text, text, text, text,
+                    new DateOnly(1990, 1, 1), text));
+
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetPersonEndpoint, GetPersonRequest, GetPersonResponse>(
+                new GetPersonRequest(resume.Id, person.Id));
+
+        getResponse.Email.ShouldBe(email);
+        getResponse.JobTitle!.Length.ShouldBe(100);
+        getResponse.DrivingLicense!.Length.ShouldBe(100);
+        getResponse.Street!.Length.ShouldBe(100);
+    }
+
     private async Task<CreatePersonResponse> CreatePersonAsync(string accessToken, Guid resumeId, int seed = ResumesTestConstants.PersonSeed)
     {
         var (_, response) = await app.Client

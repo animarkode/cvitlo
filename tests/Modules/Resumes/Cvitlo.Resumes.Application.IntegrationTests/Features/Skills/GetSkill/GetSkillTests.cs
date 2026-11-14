@@ -219,4 +219,15 @@ public class GetSkillTests(WebApp app) : TestBase
 
         return response;
     }
+
+    [Fact]
+    [Priority(10)]
+    public async Task GetAllSkills_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .GETAsync<GetAllSkillsEndpoint, GetAllSkillsRequest, GetAllSkillsResponse>(
+                new GetAllSkillsRequest(Guid.NewGuid()));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
 }

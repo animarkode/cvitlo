@@ -72,7 +72,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(2)]
-    public async Task NonExistentProject_ShouldReturnForbidden()
+    public async Task UpdateProject_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -221,6 +221,32 @@ public class UpdateProjectTests(WebApp app) : TestBase
                 new GetProjectRequest(resumeA.Id, item.Id));
 
         getResponse.Name.ShouldBe(item.Name);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task UpdateProject_UnknownProject_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var project = new CreateProjectRequestFaker(resume.Id).Generate();
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(
+                new UpdateProjectRequest(
+                    Guid.NewGuid(),
+                    resume.Id,
+                    project.Tagline,
+                    project.Name,
+                    project.Url,
+                    project.StartDate,
+                    project.EndDate,
+                    project.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
     private async Task<CreateProjectResponse> CreateProjectAsync(

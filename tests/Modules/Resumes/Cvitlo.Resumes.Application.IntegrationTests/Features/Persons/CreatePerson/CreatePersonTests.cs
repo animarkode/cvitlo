@@ -1,3 +1,4 @@
+using Cvitlo.Resumes.Application.Features.Persons.DeletePerson;
 using System.Net;
 using Cvitlo.Resumes.Application.Features.Persons.CreatePerson;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
@@ -148,5 +149,80 @@ public class CreatePersonTests(WebApp app) : TestBase
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
 
         getResponse.Title.ShouldBe(new string('a', 100));
+    }
+
+    [Fact]
+    [Priority(6)]
+    public async Task CreatePerson_NoToken_ShouldReturnUnauthorized()
+    {
+        var (httpResponse, _) = await app.Client
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(Guid.NewGuid()).Generate());
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    [Priority(7)]
+    public async Task CreatePerson_AfterDeletingThePerson_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var request = new CreatePersonRequestFaker(resume.Id).Generate();
+
+        var (_, first) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(request);
+
+        var deleteResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeletePersonEndpoint, DeletePersonRequest>(new DeletePersonRequest(resume.Id, first.Id));
+
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (secondResponse, second) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(request);
+
+        secondResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        second.Id.ShouldNotBe(first.Id);
+    }
+
+    [Fact]
+    [Priority(8)]
+    public async Task CreatePerson_DateOfBirthToday_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequestFaker(resume.Id).Generate() with { DateOfBirth = today });
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.DateOfBirth.ShouldBe(today);
+    }
+
+    [Fact]
+    [Priority(9)]
+    public async Task CreatePerson_AllFieldsNull_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(
+                new CreatePersonRequest(resume.Id, null, null, null, null, null, null, null, null, null, null, null, null));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Id.ShouldNotBe(Guid.Empty);
+        response.Email.ShouldBeNull();
+        response.Firstname.ShouldBeNull();
     }
 }

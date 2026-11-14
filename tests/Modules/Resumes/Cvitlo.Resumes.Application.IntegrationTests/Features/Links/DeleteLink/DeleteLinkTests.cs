@@ -135,4 +135,26 @@ public class DeleteLinkTests(WebApp app) : TestBase
 
         return response;
     }
+
+    [Fact]
+    [Priority(5)]
+    public async Task DeleteLink_AlreadyDeleted_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateLinkAsync(accessToken, resume.Id);
+
+        var first = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteLinkEndpoint, DeleteLinkRequest>(new DeleteLinkRequest(resume.Id, item.Id));
+
+        first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var second = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteLinkEndpoint, DeleteLinkRequest>(new DeleteLinkRequest(resume.Id, item.Id));
+
+        second.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }

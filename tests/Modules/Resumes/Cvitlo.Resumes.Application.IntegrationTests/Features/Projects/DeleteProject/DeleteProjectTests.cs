@@ -135,4 +135,26 @@ public class DeleteProjectTests(WebApp app) : TestBase
 
         return response;
     }
+
+    [Fact]
+    [Priority(5)]
+    public async Task DeleteProject_AlreadyDeleted_ShouldReturnNotFound()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var item = await CreateProjectAsync(accessToken, resume.Id);
+
+        var first = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteProjectEndpoint, DeleteProjectRequest>(new DeleteProjectRequest(resume.Id, item.Id));
+
+        first.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var second = await app.Client
+            .WithAuthToken(accessToken)
+            .DELETEAsync<DeleteProjectEndpoint, DeleteProjectRequest>(new DeleteProjectRequest(resume.Id, item.Id));
+
+        second.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }
