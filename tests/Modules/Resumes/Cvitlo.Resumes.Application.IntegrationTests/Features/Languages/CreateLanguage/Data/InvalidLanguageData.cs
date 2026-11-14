@@ -1,24 +1,26 @@
 using System.Collections;
 using Cvitlo.Resumes.Application.Features.Languages.CreateLanguage;
 using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.Data;
-using static Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.ResumesTestConstants;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Languages.CreateLanguage.Data;
 
-public class InvalidLanguageData : IEnumerable<TheoryDataRow<CreateLanguageRequest>>
+public class InvalidLanguageData : IEnumerable<TheoryDataRow<CreateLanguageRequest, string>>
 {
-    public IEnumerator<TheoryDataRow<CreateLanguageRequest>> GetEnumerator()
+    public IEnumerator<TheoryDataRow<CreateLanguageRequest, string>> GetEnumerator()
     {
-        var resumeId = Guid.Empty;
+        var baseRequest = new CreateLanguageRequestFaker(Guid.NewGuid()).Generate();
 
-        yield return new TheoryDataRow<CreateLanguageRequest>(
-            new CreateLanguageRequest(resumeId, "Klingon", "InvalidLevel"));
+        yield return new TheoryDataRow<CreateLanguageRequest, string>(
+            baseRequest with { Name = new string('a', 101) },
+            "name");
 
-        yield return new TheoryDataRow<CreateLanguageRequest>(
-            new CreateLanguageRequest(resumeId, "Korean", "X9"));
+        yield return new TheoryDataRow<CreateLanguageRequest, string>(
+            baseRequest with { Level = "X9" },
+            "level");
 
-        yield return new TheoryDataRow<CreateLanguageRequest>(
-            new CreateLanguageRequest(resumeId, new string('a', 101), "B2"));
+        yield return new TheoryDataRow<CreateLanguageRequest, string>(
+            baseRequest with { Level = "b2" },
+            "level");
     }
 
     IEnumerator IEnumerable.GetEnumerator()

@@ -129,25 +129,23 @@ public class UpdateCourseTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateCourseData))]
     [Priority(4)]
-    public async Task UpdateCourse_WithInvalidData_ShouldReturnBadRequest(UpdateCourseRequest invalidRequest)
+    public async Task UpdateCourse_InvalidField_ShouldReturnBadRequest(
+        UpdateCourseRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateCourseAsync(accessToken, resume.Id);
 
-        var createRequest = new CreateCourseRequestFaker(resume.Id).Generate();
+        var updateRequest = invalidRequest with { Id = created.Id, ResumeId = resume.Id };
 
-        var (_, courseResponse) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(createRequest);
-
-        var updateRequest = invalidRequest with { Id = courseResponse.Id, ResumeId = resume.Id };
-
-        var httpResponse = await app.Client
-            .WithAuthToken(accessToken)
-            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest>(updateRequest);
+            .PUTAsync<UpdateCourseEndpoint, UpdateCourseRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]

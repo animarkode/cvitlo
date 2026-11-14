@@ -1,43 +1,38 @@
 using System.Collections;
 using Cvitlo.Resumes.Application.Features.Educations.CreateEducation;
 using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.Data;
-using static Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.ResumesTestConstants;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Educations.CreateEducation.Data;
 
-public class InvalidEducationData : IEnumerable<TheoryDataRow<CreateEducationRequest>>
+public class InvalidEducationData : IEnumerable<TheoryDataRow<CreateEducationRequest, string>>
 {
-    private const int InvalidSeed = 88888;
-    private const int SchoolMaxLength = 100;
-    private const int DegreeMaxLength = 100;
-    private const int CityMaxLength = 100;
-    private const int DescriptionMaxLength = 1000;
-
-    public IEnumerator<TheoryDataRow<CreateEducationRequest>> GetEnumerator()
+    public IEnumerator<TheoryDataRow<CreateEducationRequest, string>> GetEnumerator()
     {
-        var faker = new CreateEducationRequestFaker(Guid.Empty, InvalidSeed);
+        var baseRequest = new CreateEducationRequestFaker(Guid.NewGuid()).Generate();
 
-        var tooLongSchool = faker.Generate() with { School = new string('a', SchoolMaxLength + 1) };
-        yield return new TheoryDataRow<CreateEducationRequest>(tooLongSchool);
+        yield return new TheoryDataRow<CreateEducationRequest, string>(
+            baseRequest with { School = new string('a', 101) },
+            "school");
 
-        var tooLongDegree = faker.Generate() with { Degree = new string('b', DegreeMaxLength + 1) };
-        yield return new TheoryDataRow<CreateEducationRequest>(tooLongDegree);
+        yield return new TheoryDataRow<CreateEducationRequest, string>(
+            baseRequest with { Degree = new string('b', 101) },
+            "degree");
 
-        var tooLongCity = faker.Generate() with { City = new string('c', CityMaxLength + 1) };
-        yield return new TheoryDataRow<CreateEducationRequest>(tooLongCity);
+        yield return new TheoryDataRow<CreateEducationRequest, string>(
+            baseRequest with { City = new string('b', 101) },
+            "city");
 
-        var tooLongDescription = faker.Generate() with { Description = new string('d', DescriptionMaxLength + 1) };
-        yield return new TheoryDataRow<CreateEducationRequest>(tooLongDescription);
+        yield return new TheoryDataRow<CreateEducationRequest, string>(
+            baseRequest with { Description = new string('A', 1001) },
+            "description");
 
-        var invalidDateRange = faker.Generate() with
-        {
-            StartDate = new DateOnly(2023, 6, 1),
-            EndDate = new DateOnly(2023, 1, 1)
-        };
-        yield return new TheoryDataRow<CreateEducationRequest>(invalidDateRange);
+        yield return new TheoryDataRow<CreateEducationRequest, string>(
+            baseRequest with { StartDate = new DateOnly(2024, 12, 31), EndDate = new DateOnly(2024, 1, 1) },
+            "endDate");
 
-        var futureStartDate = faker.Generate() with { StartDate = new DateOnly(2099, 1, 1) };
-        yield return new TheoryDataRow<CreateEducationRequest>(futureStartDate);
+        yield return new TheoryDataRow<CreateEducationRequest, string>(
+            baseRequest with { StartDate = new DateOnly(2099, 1, 1), EndDate = null },
+            "startDate");
     }
 
     IEnumerator IEnumerable.GetEnumerator()

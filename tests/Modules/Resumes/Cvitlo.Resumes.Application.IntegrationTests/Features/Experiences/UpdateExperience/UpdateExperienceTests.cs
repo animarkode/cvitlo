@@ -114,27 +114,23 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateExperienceData))]
     [Priority(4)]
-    public async Task UpdateExperience_WithInvalidData_ShouldReturnBadRequest(
-        UpdateExperienceRequest invalidRequest)
+    public async Task UpdateExperience_InvalidField_ShouldReturnBadRequest(
+        UpdateExperienceRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateExperienceAsync(accessToken, resume.Id);
 
-        var createRequest = new CreateExperienceRequestFaker(resume.Id).Generate();
+        var updateRequest = invalidRequest with { Id = created.Id, ResumeId = resume.Id };
 
-        var (_, ehResponse) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest,
-                CreateExperienceResponse>(createRequest);
-
-        var updateRequest = invalidRequest with { Id = ehResponse.Id, ResumeId = resume.Id };
-
-        var httpResponse = await app.Client
-            .WithAuthToken(accessToken)
-            .PUTAsync<UpdateExperienceEndpoint, UpdateExperienceRequest>(updateRequest);
+            .PUTAsync<UpdateExperienceEndpoint, UpdateExperienceRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]

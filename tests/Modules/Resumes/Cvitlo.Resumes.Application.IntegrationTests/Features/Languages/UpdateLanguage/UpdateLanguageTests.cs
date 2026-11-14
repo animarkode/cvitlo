@@ -108,25 +108,23 @@ public class UpdateLanguageTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidUpdateLanguageData))]
     [Priority(4)]
-    public async Task UpdateLanguage_WithInvalidData_ShouldReturnBadRequest(UpdateLanguageRequest invalidRequest)
+    public async Task UpdateLanguage_InvalidField_ShouldReturnBadRequest(
+        UpdateLanguageRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateLanguageAsync(accessToken, resume.Id);
 
-        var createRequest = new CreateLanguageRequestFaker(resume.Id).Generate();
+        var updateRequest = invalidRequest with { Id = created.Id, ResumeId = resume.Id };
 
-        var (_, languageResponse) = await app.Client
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, CreateLanguageResponse>(createRequest);
-
-        var updateRequest = invalidRequest with { Id = languageResponse.Id, ResumeId = resume.Id };
-
-        var httpResponse = await app.Client
-            .WithAuthToken(accessToken)
-            .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest>(updateRequest);
+            .PUTAsync<UpdateLanguageEndpoint, UpdateLanguageRequest, ErrorResponse>(updateRequest);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
     }
 
     [Fact]

@@ -17,7 +17,7 @@ public class CreateExperienceTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(ValidExperienceData))]
     [Priority(1)]
-    public async Task CreateExperience_ShouldReturnCreated(CreateExperienceRequest request)
+    public async Task CreateExperience_ValidRequest_ShouldReturnTheCreatedItem(CreateExperienceRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -35,6 +35,11 @@ public class CreateExperienceTests(WebApp app) : TestBase
         response.ResumeId.ShouldBe(resume.Id);
         response.JobTitle.ShouldBe(request.JobTitle);
         response.Employer.ShouldBe(request.Employer);
+        response.StartDate.ShouldBe(request.StartDate);
+        response.EndDate.ShouldBe(request.EndDate);
+        response.City.ShouldBe(request.City);
+        response.Description.ShouldBe(request.Description);
+        response.Order.ShouldBe(0);
     }
 
     [Fact]
@@ -57,20 +62,61 @@ public class CreateExperienceTests(WebApp app) : TestBase
     [Theory]
     [ClassData(typeof(InvalidExperienceData))]
     [Priority(2)]
-    public async Task CreateExperience_WithInvalidData_ShouldReturnBadRequest(
-        CreateExperienceRequest invalidRequest)
+    public async Task CreateExperience_InvalidField_ShouldReturnBadRequest(
+        CreateExperienceRequest invalidRequest,
+        string expectedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
-        
+
         var createRequest = invalidRequest with { ResumeId = resume.Id };
-        
-        var (httpResponse, _) = await app.Client
+
+        var (httpResponse, error) = await app.Client
             .WithAuthToken(accessToken)
-            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest,
-                CreateExperienceResponse>(createRequest);
-        
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, ErrorResponse>(createRequest);
+
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe([expectedKey]);
+    }
+
+    [Fact]
+    [Priority(3)]
+    public async Task CreateExperience_FieldsAtMaximumLength_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var request = new CreateExperienceRequestFaker(resume.Id).Generate() with { JobTitle = new string('a', 100), Employer = new string('a', 100), City = new string('a', 100), Description = new string('a', 1000) };
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, CreateExperienceResponse>(request);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.JobTitle!.Length.ShouldBe(100);
+        response.Employer!.Length.ShouldBe(100);
+        response.City!.Length.ShouldBe(100);
+        response.Description!.Length.ShouldBe(1000);
+    }
+
+    [Fact]
+    [Priority(4)]
+    public async Task CreateExperience_StartDateToday_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var request = new CreateExperienceRequestFaker(resume.Id).Generate() with { StartDate = today, EndDate = null };
+
+        var (httpResponse, response) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, CreateExperienceResponse>(request);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.StartDate.ShouldBe(today);
     }
 }

@@ -1,41 +1,38 @@
 using System.Collections;
 using Cvitlo.Resumes.Application.Features.Experiences.CreateExperience;
 using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.Data;
-using static Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.ResumesTestConstants;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Experiences.CreateExperience.Data;
 
-public class InvalidExperienceData : IEnumerable<TheoryDataRow<CreateExperienceRequest>>
+public class InvalidExperienceData : IEnumerable<TheoryDataRow<CreateExperienceRequest, string>>
 {
-    private const int InvalidSeed = 88888;
-    private const int JobTitleMaxLength = 100;
-    private const int EmployerMaxLength = 100;
-
-    public IEnumerator<TheoryDataRow<CreateExperienceRequest>> GetEnumerator()
+    public IEnumerator<TheoryDataRow<CreateExperienceRequest, string>> GetEnumerator()
     {
-        var faker = new CreateExperienceRequestFaker(Guid.Empty, InvalidSeed);
+        var baseRequest = new CreateExperienceRequestFaker(Guid.NewGuid()).Generate();
 
-        var tooLongJobTitle = faker.Generate() with { JobTitle = new string('a', JobTitleMaxLength + 1) };
-        yield return new TheoryDataRow<CreateExperienceRequest>(tooLongJobTitle);
+        yield return new TheoryDataRow<CreateExperienceRequest, string>(
+            baseRequest with { JobTitle = new string('a', 101) },
+            "jobTitle");
 
-        var tooLongEmployer = faker.Generate() with { Employer = new string('b', EmployerMaxLength + 1) };
-        yield return new TheoryDataRow<CreateExperienceRequest>(tooLongEmployer);
+        yield return new TheoryDataRow<CreateExperienceRequest, string>(
+            baseRequest with { Employer = new string('b', 101) },
+            "employer");
 
-        var tooLongCity = faker.Generate() with { City = new string('c', 101) };
-        yield return new TheoryDataRow<CreateExperienceRequest>(tooLongCity);
+        yield return new TheoryDataRow<CreateExperienceRequest, string>(
+            baseRequest with { City = new string('b', 101) },
+            "city");
 
-        var tooLongDescription = faker.Generate() with { Description = new string('d', 1001) };
-        yield return new TheoryDataRow<CreateExperienceRequest>(tooLongDescription);
+        yield return new TheoryDataRow<CreateExperienceRequest, string>(
+            baseRequest with { Description = new string('A', 1001) },
+            "description");
 
-        var invalidDateRange = faker.Generate() with
-        {
-            StartDate = new DateOnly(2023, 6, 1),
-            EndDate = new DateOnly(2023, 1, 1)
-        };
-        yield return new TheoryDataRow<CreateExperienceRequest>(invalidDateRange);
+        yield return new TheoryDataRow<CreateExperienceRequest, string>(
+            baseRequest with { StartDate = new DateOnly(2024, 12, 31), EndDate = new DateOnly(2024, 1, 1) },
+            "endDate");
 
-        var futureStartDate = faker.Generate() with { StartDate = new DateOnly(2099, 1, 1) };
-        yield return new TheoryDataRow<CreateExperienceRequest>(futureStartDate);
+        yield return new TheoryDataRow<CreateExperienceRequest, string>(
+            baseRequest with { StartDate = new DateOnly(2099, 1, 1), EndDate = null },
+            "startDate");
     }
 
     IEnumerator IEnumerable.GetEnumerator()
