@@ -249,6 +249,45 @@ public class UpdateProjectTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
+    [Fact(Skip = "test-audit 06-B1: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
+    [Priority(8)]
+    public async Task UpdateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var project = await CreateProjectAsync(accessToken, resume.Id);
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest, ErrorResponse>(
+                new UpdateProjectRequest(
+                    project.Id, resume.Id, project.Tagline, project.Name, project.Url,
+                    project.StartDate, project.EndDate, "<p>" + new string('a', 1000) + "</p>"));
+
+        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+    }
+
+    [Fact(Skip = "test-audit 06-B3: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]
+    [Priority(9)]
+    public async Task UpdateProject_FutureStartDate_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var project = await CreateProjectAsync(accessToken, resume.Id);
+
+        var (httpResponse, error) = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest, ErrorResponse>(
+                new UpdateProjectRequest(
+                    project.Id, resume.Id, project.Tagline, project.Name, project.Url,
+                    new DateOnly(2099, 1, 1), null, project.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        error.Errors.Keys.ShouldBe(["startDate"]);
+    }
+
     private async Task<CreateProjectResponse> CreateProjectAsync(
         string accessToken,
         Guid resumeId,
