@@ -287,9 +287,9 @@ export class Hero {
 
 For detailed patterns, see [references/component-patterns.md](references/component-patterns.md).
 
-## Canonical Example: fb-accordion-item
+## Canonical Example: cv-accordion-item
 
-`fb-accordion-item` (`shared/components/fb-accordion-item/`) demonstrates the key patterns in combination:
+`cv-accordion-item` (`shared/components/cv-accordion-item/`) demonstrates the key patterns in combination:
 
 ### model() for two-way bindable state
 
@@ -304,7 +304,7 @@ Consumers can use `[(open)]="sig"` for two-way binding, or `[open]="expr" (openC
 Angular automatically provides each component instance in its element injector. A child can inject any ancestor component by class token — no `providers` boilerplate needed on the parent:
 
 ```typescript
-private readonly accordion = inject(FbAccordion, { optional: true });
+private readonly accordion = inject(CvAccordion, { optional: true });
 ```
 
 `optional: true` allows the component to work standalone (no parent accordion in the tree).
@@ -345,13 +345,13 @@ Signal bindings in the template (`[style.max-height]`, `[class.rotate-90]`) are 
 ### Named content projection slots (no button-in-button)
 
 ```typescript
-// fb-accordion-item.html
+// cv-accordion-item.html
 <div class="flex items-center">
-  <ng-content select="[fbAccordionPrefix]" />  <!-- drag handle, sits LEFT of the button -->
+  <ng-content select="[cvAccordionPrefix]" />  <!-- drag handle, sits LEFT of the button -->
   <button type="button" class="flex-1 ...">
     <!-- icon, label, count, chevron -->
   </button>
-  <ng-content select="[fbAccordionSuffix]" />  <!-- action buttons, RIGHT of the button -->
+  <ng-content select="[cvAccordionSuffix]" />  <!-- action buttons, RIGHT of the button -->
 </div>
 <div role="region" ...>
   <ng-content />  <!-- body content -->
@@ -362,17 +362,17 @@ Placing interactive elements (drag handle, delete button) **outside** the trigge
 
 Usage:
 ```html
-<fb-accordion-item [label]="section.label" [icon]="section.icon" [count]="section.count()">
+<cv-accordion-item [label]="section.label" [icon]="section.icon" [count]="section.count()">
   <!-- body content projected into role="region" -->
   <app-person />
-</fb-accordion-item>
+</cv-accordion-item>
 
 <!-- with prefix/suffix (orderable-list pattern) -->
-<fb-accordion-item cdkDrag [label]="titleFn()(item)">
-  <span fbAccordionPrefix cdkDragHandle class="cursor-grab">⠿</span>
-  <button fbAccordionSuffix type="button" (click)="onDelete(item, $event)">✕</button>
+<cv-accordion-item cdkDrag [label]="titleFn()(item)">
+  <span cvAccordionPrefix cdkDragHandle class="cursor-grab">⠿</span>
+  <button cvAccordionSuffix type="button" (click)="onDelete(item, $event)">✕</button>
   <ng-container [ngTemplateOutlet]="itemTemplate()" ... />
-</fb-accordion-item>
+</cv-accordion-item>
 ```
 
 ### ngOnInit / ngOnDestroy for registration lifecycle

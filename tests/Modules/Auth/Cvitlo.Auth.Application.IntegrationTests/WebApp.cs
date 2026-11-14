@@ -31,10 +31,10 @@ public class WebApp : AppFixture<Program>
 
     private INetwork? _network;
     private PostgreSqlContainer? _postgres;
-    private FaberKeycloak? _keycloak;
+    private CvitloKeycloak? _keycloak;
     private BackchannelLogoutRelay? _relay;
 
-    public FaberKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not started");
+    public CvitloKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not started");
 
     public BackchannelLogoutRelay Relay => _relay ?? throw new InvalidOperationException("Relay not started");
 
@@ -53,7 +53,7 @@ public class WebApp : AppFixture<Program>
     public static readonly StandInIdentityProvider StandIn = new(
         Alias: "standin",
         Realm: "standin",
-        ClientId: "faber-broker",
+        ClientId: "cvitlo-broker",
         ClientSecret: "broker-secret",
         Username: "provider.user",
         Password: "provider-password-1",
@@ -91,16 +91,16 @@ public class WebApp : AppFixture<Program>
 
     protected override async ValueTask PreSetupAsync()
     {
-        _network = new NetworkBuilder().WithName($"faber-auth-tests-{Guid.NewGuid()}").Build();
+        _network = new NetworkBuilder().WithName($"cvitlo-auth-tests-{Guid.NewGuid()}").Build();
         await _network.CreateAsync();
 
         _postgres = new PostgreSqlBuilder("postgres:17.6").WithNetwork(_network).Build();
         _relay = new BackchannelLogoutRelay();
 
         await _postgres.StartAsync();
-        _keycloak = await FaberKeycloak.StartAsync(_network, AppOrigin.ToString().TrimEnd('/'), _relay.ContainerUrl);
+        _keycloak = await CvitloKeycloak.StartAsync(_network, AppOrigin.ToString().TrimEnd('/'), _relay.ContainerUrl);
         await _keycloak.Container.AddStandInIdentityProviderAsync(
-            FaberKeycloak.AdminUsername, FaberKeycloak.AdminPassword, FaberKeycloak.Realm, StandIn);
+            CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword, CvitloKeycloak.Realm, StandIn);
 
         // Before the API starts: Data Protection reads its key table on first use.
         await using (var db = new AuthDbContext(new DbContextOptionsBuilder<AuthDbContext>()
@@ -136,14 +136,14 @@ public class WebApp : AppFixture<Program>
 
     protected override void ConfigureApp(IWebHostBuilder builder)
     {
-        builder.UseSetting("ConnectionStrings:faberdb", _postgres!.GetConnectionString());
+        builder.UseSetting("ConnectionStrings:cvitlodb", _postgres!.GetConnectionString());
         builder.UseSetting("Keycloak:BaseUrl", Keycloak.BaseAddress);
-        builder.UseSetting("Keycloak:Realm", FaberKeycloak.Realm);
+        builder.UseSetting("Keycloak:Realm", CvitloKeycloak.Realm);
         builder.UseSetting("Keycloak:Issuer", Keycloak.Issuer);
-        builder.UseSetting("Keycloak:Audience", FaberKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientId", FaberKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientSecret", FaberKeycloak.ClientSecret);
-        builder.UseSetting("Keycloak:AdminClientSecret", FaberKeycloak.AdminClientSecret);
+        builder.UseSetting("Keycloak:Audience", CvitloKeycloak.ClientId);
+        builder.UseSetting("Keycloak:ClientId", CvitloKeycloak.ClientId);
+        builder.UseSetting("Keycloak:ClientSecret", CvitloKeycloak.ClientSecret);
+        builder.UseSetting("Keycloak:AdminClientSecret", CvitloKeycloak.AdminClientSecret);
         builder.UseSetting("Keycloak:RequireHttpsMetadata", "false");
         builder.UseSetting("RateLimiting:Enabled", "false");
     }

@@ -35,8 +35,8 @@ Evaluate against the injected labels and body only. No code reading, no extra `g
 | Tier | Pipeline |
 |---|---|
 | **1 — Direct** | session edits → verify → commit → `code-review` on the diff. No plan file, no subagents. |
-| **2 — Light** | compact plan → approval → one `faber-implementer` per task, foreground → **session** reviews each diff → one `code-review` on the branch |
-| **3 — Full** | Tier 2 + per-task `faber-reviewer` and fix loop — read `references/tier-3.md` |
+| **2 — Light** | compact plan → approval → one `cvitlo-implementer` per task, foreground → **session** reviews each diff → one `code-review` on the branch |
+| **3 — Full** | Tier 2 + per-task `cvitlo-reviewer` and fix loop — read `references/tier-3.md` |
 
 ## Branch
 

@@ -6,18 +6,18 @@
 #
 # 1. The Keycloak version is the same in development (AppHost), the auth tests
 #    (Testcontainers fixture), the production image (infra/keycloak/Dockerfile) and its
-#    operations doc. The faber login theme forks two keycloak.v2 templates, so production must
+#    operations doc. The cvitlo login theme forks two keycloak.v2 templates, so production must
 #    run the exact version the tests ran.
 # 2. The keycloak-config-cli tag is the same in the AppHost, the test fixture and the
 #    operations doc, so the realm import the tests prove is the one that runs everywhere.
 # 3. The keycloak-config-cli tag is a full pin, <cli-semver>-<major>.<minor>.<patch>. Its
 #    typed realm model knows only the fields of the Keycloak build it was compiled against,
-#    and an unknown field in faber.json fails the whole import. Upstream assigns major-only
+#    and an unknown field in cvitlo.json fails the whole import. Upstream assigns major-only
 #    aliases such as 6.5.1-26 and latest-26 by a CI race (adorsys/keycloak-config-cli#1741),
 #    so they can point at an older build than their name suggests: 6.5.1-26 is the 26.1.0
 #    build.
 # 4. The Keycloak suffix of the keycloak-config-cli tag is not newer than the Keycloak server.
-#    An older suffix is allowed: the server may be ahead of the CLI as long as faber.json uses
+#    An older suffix is allowed: the server may be ahead of the CLI as long as cvitlo.json uses
 #    no newer fields, and the integration tests' realm import catches it when it does.
 
 set -euo pipefail
@@ -27,7 +27,7 @@ repo_root="$(cd "$script_dir/.." && pwd)"
 cd "$repo_root"
 
 apphost="src/api/Aspire/Cvitlo.AppHost/Program.cs"
-fixture="tests/Common/Cvitlo.Common.Testing/Containers/FaberKeycloak.cs"
+fixture="tests/Common/Cvitlo.Common.Testing/Containers/CvitloKeycloak.cs"
 dockerfile="infra/keycloak/Dockerfile"
 operations_doc="docs/operations/keycloak.md"
 

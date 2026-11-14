@@ -20,7 +20,7 @@ public static class ForwardedHeadersExtensions
     /// <param name="configuration">The application configuration containing the trust lists.</param>
     /// <returns>The same service collection so calls can be chained.</returns>
     /// <exception cref="OptionsValidationException">A configured trust entry is invalid when the options are initialized.</exception>
-    public static IServiceCollection AddFaberForwardedHeaders(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCvitloForwardedHeaders(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<ForwardedHeadersOptions>().Configure(options =>
         {

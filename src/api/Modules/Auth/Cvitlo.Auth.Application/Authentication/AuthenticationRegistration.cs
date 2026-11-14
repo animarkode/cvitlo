@@ -23,7 +23,7 @@ namespace Cvitlo.Auth.Application.Authentication;
 /// </summary>
 internal static class AuthenticationRegistration
 {
-    public static IServiceCollection AddFaberAuthentication(this IServiceCollection services)
+    public static IServiceCollection AddCvitloAuthentication(this IServiceCollection services)
     {
         services
             .AddAuthentication(AuthSchemes.Default)

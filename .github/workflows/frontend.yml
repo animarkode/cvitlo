@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/web/faber-app
+        working-directory: src/web/cvitlo-app
 
     steps:
       - name: Checkout
@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 24.21.0
           cache: npm
-          cache-dependency-path: src/web/faber-app/package-lock.json
+          cache-dependency-path: src/web/cvitlo-app/package-lock.json
 
       - name: Set up npm
         run: npm install --global npm@12.0.2

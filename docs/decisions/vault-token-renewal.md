@@ -1,6 +1,6 @@
 # Vault API Token Renewal
 
-Status: superseded by #83. Vault was removed from Faber, so the API no longer has a Vault token to
+Status: superseded by #83. Vault was removed from Cvitlo, so the API no longer has a Vault token to
 renew. Secrets are AppHost parameters in user-secrets in development and environment variables in
 production. The text below is kept as history.
 
@@ -39,11 +39,11 @@ policies and create orphan periodic tokens (root or the required sudo permission
 Set `VAULT_ADDR` to the intended Vault and run from the repository root:
 
 ```bash
-vault policy write faber-api infra/vault/policies/faber-api.hcl
+vault policy write cvitlo-api infra/vault/policies/cvitlo-api.hcl
 vault token create \
   -type=service \
   -orphan \
-  -policy=faber-api \
+  -policy=cvitlo-api \
   -no-default-policy \
   -renewable=true \
   -period=24h \
@@ -55,14 +55,14 @@ The creation response contains the secret API token. Deliver it through the depl
 protected secret injection mechanism as the API's `VAULT_TOKEN`; keep it out of source
 control, application logs, and shared terminal captures. Keep the administrative credential
 in the provisioning environment. The API receives only the new token. These flags specify
-an orphan service token with unlimited uses, exactly the `faber-api` policy, and no explicit
+an orphan service token with unlimited uses, exactly the `cvitlo-api` policy, and no explicit
 maximum lifetime. See the official [token creation flags](https://developer.hashicorp.com/vault/docs/commands/token/create)
 and [policy upload command](https://developer.hashicorp.com/vault/docs/commands/policy/write).
 
 The policy permits reads of the three exact KV v2 paths `secrets/data/keycloak`,
 `secrets/data/mail`, and `secrets/data/database`, plus self lookup and renewal. It grants
 no secret writes, other secret reads, token creation, or mount administration. Provision
-those secrets using a separate administrative or bootstrap credential. `Faber.Bootstrap`
+those secrets using a separate administrative or bootstrap credential. `Cvitlo.Bootstrap`
 needs write and mount permissions; this API policy cannot serve as its credential.
 The existing local Aspire shared `vault-token` parameter and bootstrap procedure remain
 as described in [Local Stack Provisioning](local-stack-provisioning.md#the-vault-token).

@@ -40,7 +40,7 @@ public static class CachingServiceCollectionExtensions
     /// <param name="services">The service collection to add caching to.</param>
     /// <param name="configuration">Read for the <c>ConnectionStrings:redis</c> value injected by the Aspire AppHost.</param>
     /// <returns>The same service collection so calls can be chained.</returns>
-    public static IServiceCollection AddFaberCaching(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCvitloCaching(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHybridCache(o =>
         {
@@ -76,7 +76,7 @@ public static class CachingServiceCollectionExtensions
 
         services.AddStackExchangeRedisCache(o =>
         {
-            o.InstanceName = "faber:";
+            o.InstanceName = "cvitlo:";
 
             // The factory wins over this, but it keeps the fail-fast settings inspectable.
             o.ConfigurationOptions = configurationOptions;

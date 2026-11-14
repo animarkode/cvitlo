@@ -11,7 +11,9 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "faber"
+      "bump-minor-pre-major": true,
+      "package-name": "cvitlo",
+      "last-release-sha": "0ce03e2fdcd167b5d8f19ee03be15b417ce5bc53"
     }
   }
 }

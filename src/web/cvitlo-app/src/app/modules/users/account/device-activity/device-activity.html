@@ -1,0 +1,51 @@
+<section class="bg-card border-[0.5px] border-line rounded-[1.875rem] p-7 flex flex-col" aria-labelledby="device-activity-heading">
+  <div class="flex flex-wrap items-start justify-between gap-3 pb-3.5">
+    <div class="flex flex-col gap-0.5">
+      <h1 #heading id="device-activity-heading" tabindex="-1" class="font-serif text-[1.375rem] font-bold text-foreground">Device activity</h1>
+      <p class="max-w-prose text-base text-muted-foreground">Devices signed in to your account.</p>
+    </div>
+    @if (hasOthers()) {
+      <button type="button" cv-button variant="outline" size="sm" data-test="sign-out-others" (click)="signOutOthers()">
+        Sign out all other devices
+      </button>
+    }
+  </div>
+
+  @if (error(); as message) {
+    <p role="alert" class="pb-3 text-base text-destructive-text" data-test="error">{{ message }}</p>
+  }
+
+  @if (devices.error() && !devices.hasValue()) {
+    <p role="alert" class="border-t-[0.5px] border-line py-4 text-base text-destructive-text" data-test="load-error">Your devices could not be loaded.</p>
+  } @else if (devices.isLoading() && !devices.hasValue()) {
+    <p class="border-t-[0.5px] border-line py-4 text-base text-muted-foreground">Loading your devices…</p>
+  }
+
+  @if (devices.hasValue()) {
+    <ul class="flex flex-col divide-y divide-line border-t-[0.5px] border-line">
+      @for (device of devices.value(); track device.id) {
+        <li class="flex flex-wrap items-center justify-between gap-2 py-4 last:pb-0" data-test="device">
+          <div class="flex flex-col">
+            <span class="flex items-center gap-2 text-foreground">
+              {{ title(device) }}
+              @if (device.current) {
+                <span class="rounded-full bg-info-soft px-2.5 py-0.5 text-xs font-bold text-info-text" data-test="current">This device</span>
+              }
+            </span>
+            <span class="text-sm leading-normal text-muted-foreground">
+              @if (device.ipAddress) { IP {{ device.ipAddress }} · }
+              @if (device.started) { Started {{ device.started | date: 'medium' }} · }
+              @if (device.lastAccess) { Last active {{ device.lastAccess | date: 'medium' }} }
+            </span>
+          </div>
+          @if (!device.current) {
+            <button type="button" cv-button variant="soft-destructive" size="sm" data-test="sign-out"
+                    [attr.aria-label]="'Sign out ' + title(device)" (click)="signOut(device)">
+              Sign out
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

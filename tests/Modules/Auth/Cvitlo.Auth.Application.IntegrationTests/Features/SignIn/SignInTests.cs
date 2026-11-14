@@ -21,7 +21,7 @@ public class SignInTests(WebApp app)
         var location = response.Headers.Location!;
         location.GetLeftPart(UriPartial.Path).ShouldBe($"{app.Keycloak.Issuer}/protocol/openid-connect/auth");
         var query = HttpUtility.ParseQueryString(location.Query);
-        query["client_id"].ShouldBe(FaberKeycloak.ClientId);
+        query["client_id"].ShouldBe(CvitloKeycloak.ClientId);
         query["response_type"].ShouldBe("code");
         query["code_challenge_method"].ShouldBe("S256");
         query["code_challenge"].ShouldNotBeNullOrWhiteSpace();
@@ -80,7 +80,7 @@ public class SignInTests(WebApp app)
         using var _ = client;
 
         callback.StatusCode.ShouldBe(HttpStatusCode.Redirect);
-        var cookie = callback.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("__Host-faber=", StringComparison.Ordinal));
+        var cookie = callback.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("__Host-cvitlo=", StringComparison.Ordinal));
         var attributes = cookie.Split(';', StringSplitOptions.TrimEntries).Select(a => a.ToLowerInvariant()).ToList();
         attributes.ShouldContain("httponly", StringComparer.Ordinal);
         attributes.ShouldContain("secure", StringComparer.Ordinal);
@@ -97,7 +97,7 @@ public class SignInTests(WebApp app)
         var (client, callback) = await app.SignInAsync(app.Users[1], rememberMe: true, ct: TestContext.Current.CancellationToken);
         using var _ = client;
 
-        var cookie = callback.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("__Host-faber=", StringComparison.Ordinal));
+        var cookie = callback.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("__Host-cvitlo=", StringComparison.Ordinal));
         cookie.ToLowerInvariant().ShouldContain("expires=");
     }
 

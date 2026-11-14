@@ -17,11 +17,11 @@ namespace Cvitlo.Api.IntegrationTests;
 
 public class WebApp : AppFixture<Program>
 {
-    private FaberKeycloak? _keycloak;
+    private CvitloKeycloak? _keycloak;
     private INetwork? _network;
     private PostgreSqlContainer? _postgresContainer;
 
-    public FaberKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not initialized");
+    public CvitloKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not initialized");
 
     public Task StopPostgresAsync() => Postgres.StopAsync();
 
@@ -30,12 +30,12 @@ public class WebApp : AppFixture<Program>
 
     protected override async ValueTask PreSetupAsync()
     {
-        _network = new NetworkBuilder().WithName($"faber-test-network-{Guid.NewGuid()}").Build();
+        _network = new NetworkBuilder().WithName($"cvitlo-test-network-{Guid.NewGuid()}").Build();
         await _network.CreateAsync();
 
         _postgresContainer = new PostgreSqlBuilder("postgres:17.6").WithNetwork(_network).Build();
         await _postgresContainer.StartAsync();
-        _keycloak = await FaberKeycloak.StartAsync(_network, "https://localhost", "http://localhost/backchannel-logout");
+        _keycloak = await CvitloKeycloak.StartAsync(_network, "https://localhost", "http://localhost/backchannel-logout");
 
         // Before the API starts: Data Protection reads its key table on first use.
         await using (var auth = new AuthDbContext(new DbContextOptionsBuilder<AuthDbContext>()
@@ -68,15 +68,15 @@ public class WebApp : AppFixture<Program>
             services.AddScoped<IDocumentsModuleApi>(sp => sp.GetRequiredService<GatedDocumentsModuleApi>());
         });
 
-        builder.UseSetting("ConnectionStrings:faberdb", Postgres.GetConnectionString());
+        builder.UseSetting("ConnectionStrings:cvitlodb", Postgres.GetConnectionString());
 
         builder.UseSetting("Keycloak:BaseUrl", Keycloak.BaseAddress);
-        builder.UseSetting("Keycloak:Realm", FaberKeycloak.Realm);
+        builder.UseSetting("Keycloak:Realm", CvitloKeycloak.Realm);
         builder.UseSetting("Keycloak:Issuer", Keycloak.Issuer);
-        builder.UseSetting("Keycloak:Audience", FaberKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientId", FaberKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientSecret", FaberKeycloak.ClientSecret);
-        builder.UseSetting("Keycloak:AdminClientSecret", FaberKeycloak.AdminClientSecret);
+        builder.UseSetting("Keycloak:Audience", CvitloKeycloak.ClientId);
+        builder.UseSetting("Keycloak:ClientId", CvitloKeycloak.ClientId);
+        builder.UseSetting("Keycloak:ClientSecret", CvitloKeycloak.ClientSecret);
+        builder.UseSetting("Keycloak:AdminClientSecret", CvitloKeycloak.AdminClientSecret);
         builder.UseSetting("Keycloak:RequireHttpsMetadata", "false");
 
         builder.UseSetting("RateLimiting:Enabled", "true");

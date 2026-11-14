@@ -1,11 +1,11 @@
 ---
 name: error-or
-description: ErrorOr result pattern for Faber — error creation, error code conventions, HTTP mapping in endpoints, and anti-patterns. Use when working with ErrorOr<T>, handling results, or mapping errors to HTTP responses.
+description: ErrorOr result pattern for Cvitlo — error creation, error code conventions, HTTP mapping in endpoints, and anti-patterns. Use when working with ErrorOr<T>, handling results, or mapping errors to HTTP responses.
 ---
 
-# ErrorOr Patterns — Faber
+# ErrorOr Patterns — Cvitlo
 
-Faber uses the [ErrorOr](https://github.com/amantinband/error-or) library (v2) for command-handler results and business failures. Never throw exceptions for business logic.
+Cvitlo uses the [ErrorOr](https://github.com/amantinband/error-or) library (v2) for command-handler results and business failures. Never throw exceptions for business logic.
 
 Canonical sources to mirror before changing behavior:
 - `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/Logout/`
@@ -51,7 +51,7 @@ return Error.Failure("Auth.Logout", "Keycloak did not end its session.");
 // Validation of an input the framework cannot check (e.g. a signed token)
 return Error.Validation("Auth.BackchannelLogout", "The logout token is not a valid token from Keycloak.");
 
-// Unexpected (rare in current Faber code)
+// Unexpected (rare in current Cvitlo code)
 return Error.Unexpected("Resume.SaveFailed", "Unexpected error saving resume");
 ```
 
@@ -59,7 +59,7 @@ return Error.Unexpected("Resume.SaveFailed", "Unexpected error saving resume");
 
 Format is usually **`"Entity.NotFound"`**, **`"Entity.Conflict"`**, or **`"Module.Action"`**.
 
-| Common in Faber | Avoid |
+| Common in Cvitlo | Avoid |
 |---|---|
 | `"Education.NotFound"` | `"NotFound"` |
 | `"Auth.Logout"` | `"LogoutFailed"` |
@@ -100,7 +100,7 @@ return userId;                      // ✅ ErrorOr<Guid>
 return Result.Success;              // ✅ for ErrorOr<Success>
 ```
 
-Real Faber examples:
+Real Cvitlo examples:
 
 ```csharp
 // Delete handler returns primitive success
@@ -117,7 +117,7 @@ return person.MapToResponse();      // CreatePersonCommandHandler
 
 ## 4. Mapping to HTTP Responses in Endpoints
 
-Map `result.IsError` to the appropriate TypedResult. In Faber this is **feature-specific**, not globally standardized.
+Map `result.IsError` to the appropriate TypedResult. In Cvitlo this is **feature-specific**, not globally standardized.
 
 ```csharp
 // NotFound
@@ -139,7 +139,7 @@ return TypedResults.NoContent();
 return TypedResults.Ok(result.Value);
 ```
 
-### Current Faber mapping patterns
+### Current Cvitlo mapping patterns
 
 | Feature pattern | Handler error examples | Endpoint mapping |
 |---|---|---|
@@ -149,18 +149,18 @@ return TypedResults.Ok(result.Value);
 | Resumes create with conflicts | `Error.NotFound(...)`, `Error.Conflict(...)` | branch on `result.FirstError.Type`, e.g. `Conflict()` or `NotFound()` |
 
 Important:
-- do **not** assume `Error.Failure` means HTTP 500 in current Faber code
+- do **not** assume `Error.Failure` means HTTP 500 in current Cvitlo code
 - do **not** assume an error type fixes the status code; each endpoint chooses its mapping (see the table above)
 - preserve the established mapping in the feature you are editing unless you are intentionally standardizing behavior repo-wide
 
 ### Validation note
 
-Most request-shape/input validation in Faber is handled by FastEndpoints `Validator<TRequest>`, not `Error.Validation`.
+Most request-shape/input validation in Cvitlo is handled by FastEndpoints `Validator<TRequest>`, not `Error.Validation`.
 
 - validator failures usually return FastEndpoints `ErrorResponse` with HTTP 400 before endpoint logic runs
 - `Error.Validation(...)` is used more for business/process validation inside handlers, e.g. invalid action token or missing refresh token after command creation
 
-### Typical endpoint pattern in Faber
+### Typical endpoint pattern in Cvitlo
 
 ```csharp
 var result = await request.MapToCommand().ExecuteAsync(ct);
@@ -173,7 +173,7 @@ if (result.IsError)
 return TypedResults.Ok(result.Value);
 ```
 
-`result.Match(...)`, `ThenAsync(...)`, and `Else(...)` are available in ErrorOr, but they are **not the dominant style in current Faber code**. Prefer explicit `if (result.IsError)` checks to match the existing repository style.
+`result.Match(...)`, `ThenAsync(...)`, and `Else(...)` are available in ErrorOr, but they are **not the dominant style in current Cvitlo code**. Prefer explicit `if (result.IsError)` checks to match the existing repository style.
 
 ---
 

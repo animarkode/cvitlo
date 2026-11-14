@@ -55,7 +55,7 @@ public class RedisUnavailableTests(RedisUnavailableWebApp app) : TestBase
         configurationOptions.ConnectTimeout.ShouldBeLessThanOrEqualTo(1000);
         configurationOptions.SyncTimeout.ShouldBeLessThanOrEqualTo(1000);
         configurationOptions.AsyncTimeout.ShouldBeLessThanOrEqualTo(1000);
-        redisCacheOptions.InstanceName.ShouldBe("faber:");
+        redisCacheOptions.InstanceName.ShouldBe("cvitlo:");
     }
 
     [Fact]

@@ -22,7 +22,7 @@ var postgres = builder.AddPostgres("postgres", postgresUser, postgresPass, 5432)
     .WithImageTag("17.6")
     .WithDataVolume(PostgresVolumeName.FromCheckoutPath(solutionRoot));
 
-var faberDb = postgres.AddDatabase("faberdb");
+var cvitloDb = postgres.AddDatabase("cvitlodb");
 
 // Keycloak keeps its tables in its own schema, which its Liquibase migrations expect to exist.
 // The migration service creates it before Keycloak starts, and only because it is declared here.
@@ -32,14 +32,14 @@ const string keycloakImage = "keycloak/keycloak";
 const string keycloakTag = "26.8.1";
 
 var migrations = builder.AddProject<Cvitlo_Migrations>("migrations")
-    .WithReference(faberDb)
+    .WithReference(cvitloDb)
     .WithEnvironment("Migrations__ExternalSchemas__0", keycloakSchema)
-    .WaitFor(faberDb);
+    .WaitFor(cvitloDb);
 
-// Generated on first run and kept in user-secrets: keycloak-config sets it on the faber-api client and
+// Generated on first run and kept in user-secrets: keycloak-config sets it on the cvitlo-api client and
 // the API presents it back, so both read the same value and nothing has to read it out of Keycloak.
-var faberApiClientSecret = builder.AddParameter(
-        "faber-api-client-secret",
+var cvitloApiClientSecret = builder.AddParameter(
+        "cvitlo-api-client-secret",
         new GenerateParameterDefault
         {
             MinLength = 48,
@@ -47,12 +47,12 @@ var faberApiClientSecret = builder.AddParameter(
         },
         secret: true,
         persist: true)
-    .WithDescription("Client secret of the faber-api Keycloak client. Generated once and kept in user-secrets.");
+    .WithDescription("Client secret of the cvitlo-api Keycloak client. Generated once and kept in user-secrets.");
 
-// Same arrangement for faber-admin, the client whose service account may only manage users: the API
+// Same arrangement for cvitlo-admin, the client whose service account may only manage users: the API
 // uses it to delete a user's own account.
-var faberAdminClientSecret = builder.AddParameter(
-        "faber-admin-client-secret",
+var cvitloAdminClientSecret = builder.AddParameter(
+        "cvitlo-admin-client-secret",
         new GenerateParameterDefault
         {
             MinLength = 48,
@@ -60,7 +60,7 @@ var faberAdminClientSecret = builder.AddParameter(
         },
         secret: true,
         persist: true)
-    .WithDescription("Client secret of the faber-admin Keycloak client. Generated once and kept in user-secrets.");
+    .WithDescription("Client secret of the cvitlo-admin Keycloak client. Generated once and kept in user-secrets.");
 
 var keycloakUser = builder.AddParameter("keycloak-admin")
     .WithDescription("Username of Keycloak's bootstrap admin in the master realm.");
@@ -68,7 +68,7 @@ var keycloakPass = builder.AddParameter("keycloak-password", secret: true)
     .WithDescription("Password for that Keycloak admin.");
 
 // The stock image: flows and the account console are Keycloak's own; only the sign-in pages' look is ours,
-// the faber login theme mounted below. The realm is not imported here; keycloak-config applies
+// the cvitlo login theme mounted below. The realm is not imported here; keycloak-config applies
 // infra/keycloak/config on every start instead.
 var keycloak = builder.AddContainer("keycloak", keycloakImage, keycloakTag)
     .WithImageRegistry(keycloakRegistry)
@@ -76,19 +76,19 @@ var keycloak = builder.AddContainer("keycloak", keycloakImage, keycloakTag)
     .WithHttpEndpoint(port: 9000, targetPort: 9000, name: "keycloak-management")
     .WithHttpHealthCheck(path: "/health/ready", endpointName: "keycloak-management")
     // start-dev turns the theme cache off, so CSS and template edits show on a browser refresh.
-    .WithBindMount(Path.Combine(keycloakDir, "themes/faber"), "/opt/keycloak/themes/faber", isReadOnly: true)
+    .WithBindMount(Path.Combine(keycloakDir, "themes/cvitlo"), "/opt/keycloak/themes/cvitlo", isReadOnly: true)
     .WithEnvironment("KC_BOOTSTRAP_ADMIN_USERNAME", keycloakUser)
     .WithEnvironment("KC_BOOTSTRAP_ADMIN_PASSWORD", keycloakPass)
     .WithEnvironment("KC_HTTP_ENABLED", "true")
     .WithEnvironment("KC_HEALTH_ENABLED", "true")
     .WithEnvironment("KC_DB", "postgres")
-    .WithEnvironment("KC_DB_URL", "jdbc:postgresql://postgres:5432/faberdb")
+    .WithEnvironment("KC_DB_URL", "jdbc:postgresql://postgres:5432/cvitlodb")
     .WithEnvironment("KC_DB_SCHEMA", keycloakSchema)
     .WithEnvironment("KC_DB_USERNAME", postgresUser)
     .WithEnvironment("KC_DB_PASSWORD", postgresPass)
-    // The login theme's "Back to microcivi" where Keycloak has no client to take the address from.
-    // Keep it equal to keycloak-config's FABER_APP_URL below.
-    .WithEnvironment("FABER_APP_URL", "http://localhost:4200")
+    // The login theme's "Back to Cvitlo" where Keycloak has no client to take the address from.
+    // Keep it equal to keycloak-config's CVITLO_APP_URL below.
+    .WithEnvironment("CVITLO_APP_URL", "http://localhost:4200")
     .WaitForCompletion(migrations)
     .WithArgs("start-dev");
 
@@ -107,13 +107,13 @@ var keycloakConfig = builder.AddContainer("keycloak-config", "adorsys/keycloak-c
     .WithEnvironment("IMPORT_VARSUBSTITUTION_ENABLED", "true")
     // Off: the import cache can skip a run whose only change is a variable, such as a rotated secret.
     .WithEnvironment("IMPORT_CACHE_ENABLED", "false")
-    .WithEnvironment("FABER_API_CLIENT_SECRET", faberApiClientSecret)
-    .WithEnvironment("FABER_ADMIN_CLIENT_SECRET", faberAdminClientSecret)
-    .WithEnvironment("FABER_APP_URL", "http://localhost:4200")
-    .WithEnvironment("FABER_BACKCHANNEL_LOGOUT_URL", "http://host.docker.internal:5020/api/v1/auth/backchannel-logout")
+    .WithEnvironment("CVITLO_API_CLIENT_SECRET", cvitloApiClientSecret)
+    .WithEnvironment("CVITLO_ADMIN_CLIENT_SECRET", cvitloAdminClientSecret)
+    .WithEnvironment("CVITLO_APP_URL", "http://localhost:4200")
+    .WithEnvironment("CVITLO_BACKCHANNEL_LOGOUT_URL", "http://host.docker.internal:5020/api/v1/auth/backchannel-logout")
     .WithEnvironment("KC_SMTP_HOST", "mailpit")
     .WithEnvironment("KC_SMTP_PORT", "1025")
-    .WithEnvironment("KC_SMTP_FROM", "no-reply@faber.local")
+    .WithEnvironment("KC_SMTP_FROM", "no-reply@cvitlo.local")
     .WithSocialProvider(builder, "google")
     .WithSocialProvider(builder, "github")
     .WaitFor(keycloak)
@@ -130,22 +130,22 @@ var keycloakPasskeys = builder.AddContainer("keycloak-passkeys", keycloakImage, 
     .WithEnvironment("KEYCLOAK_URL", "http://keycloak:8080")
     .WithEnvironment("KEYCLOAK_USER", keycloakUser)
     .WithEnvironment("KEYCLOAK_PASSWORD", keycloakPass)
-    .WithEnvironment("KEYCLOAK_REALM", "faber")
+    .WithEnvironment("KEYCLOAK_REALM", "cvitlo")
     .WaitForCompletion(keycloakConfig);
 
-var faberApi = builder.AddProject<Cvitlo_Api>("faberapi")
+var cvitloApi = builder.AddProject<Cvitlo_Api>("cvitloapi")
     .WaitFor(redis)
-    .WaitFor(faberDb)
+    .WaitFor(cvitloDb)
     .WaitForCompletion(migrations)
     .WaitForCompletion(keycloakPasskeys)
     .WaitFor(keycloak)
     .WaitFor(mailpit)
-    .WithEnvironment("Keycloak__ClientSecret", faberApiClientSecret)
-    .WithEnvironment("Keycloak__AdminClientSecret", faberAdminClientSecret)
+    .WithEnvironment("Keycloak__ClientSecret", cvitloApiClientSecret)
+    .WithEnvironment("Keycloak__AdminClientSecret", cvitloAdminClientSecret)
     .WithReference(redis)
-    .WithReference(faberDb);
+    .WithReference(cvitloDb);
 
-faberApi.WithUrls(context =>
+cvitloApi.WithUrls(context =>
     {
         var baseUrl = context.Urls[0].Url;
         context.Urls[0].DisplayText = "API (http)";

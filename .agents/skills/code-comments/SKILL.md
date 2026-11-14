@@ -1,9 +1,9 @@
 ---
 name: code-comments
-description: The Faber commenting rule with bad/good examples from this repo. Use when writing or reviewing comments in C# or TypeScript, XML docs or TSDoc, and for comment sweeps.
+description: The Cvitlo commenting rule with bad/good examples from this repo. Use when writing or reviewing comments in C# or TypeScript, XML docs or TSDoc, and for comment sweeps.
 ---
 
-# Code comments — Faber
+# Code comments — Cvitlo
 
 The rule lives in `AGENTS.md` (`## Comments`), `.agents/rules/backend-patterns.md` and
 `.agents/rules/frontend-patterns.md`. Read it there; this skill only adds the examples and the build traps.
@@ -36,20 +36,20 @@ non-obvious order or invariant). Anything else is deleted.
 3. Record with a `<param>` per property, outside `PublicApi`. `src/api/Modules/Auth/Cvitlo.Auth.Application/Features/Account/GetProfile/GetProfileResponse.cs:3-9`
    - Bad: `/// <summary>Describes the user's profile.</summary>` followed by `/// <param name="FirstName">The user's first name.</param>` and five more like it.
    - Good: delete the whole block (lines 3-9), `<summary>` included; it is an `Application` type. If one property is truly non-obvious, say it in a `//` on that line.
-4. Comment restates the code. `src/web/faber-app/src/app/core/services/theme.ts:74`
+4. Comment restates the code. `src/web/cvitlo-app/src/app/core/services/theme.ts:74`
    - Bad: `// cookies unavailable` inside `catch { }`
    - Good: delete, or say what happens and why: `// Private mode can block cookies; the theme then just is not remembered.`
-5. Pointer to code that is already clear. `src/web/faber-app/src/app/shared/components/fb-accordion-item/fb-accordion-item.ts:65`
+5. Pointer to code that is already clear. `src/web/cvitlo-app/src/app/shared/components/cv-accordion-item/cv-accordion-item.ts:65`
    - Bad: `// Single-open enforcement happens reactively in the constructor effect().`
    - Good: delete; the `effect()` has its own why-comment.
-6. Change history. `src/web/faber-app/src/app/modules/resumes/builder/builder-actions/builder-actions.spec.ts:75`
+6. Change history. `src/web/cvitlo-app/src/app/modules/resumes/builder/builder-actions/builder-actions.spec.ts:75`
    - Bad: `// #425 — the button used to be disabled until a preview blob existed, ...`
    - Good: keep only the present-tense fact: `// The store renders a preview on demand, so the button is enabled without a cached one.`
 7. Commented-out code: none is left in the repo today. Any `// var x = ...` or `// if (...)` line is deleted; git keeps it.
 
 ## Keep these (good comments)
 
-- Workaround with the issue: `src/web/faber-app/src/app/shared/components/fb-rich-text/fb-rich-text.ts:228-230` explains why `emitUpdate:false` is needed (Tiptap fires `onUpdate`, which dirties the control, #423).
+- Workaround with the issue: `src/web/cvitlo-app/src/app/shared/components/cv-rich-text/cv-rich-text.ts:228-230` explains why `emitUpdate:false` is needed (Tiptap fires `onUpdate`, which dirties the control, #423).
 - Order / consequence: `src/api/Modules/Auth/Cvitlo.Auth.Application/Sessions/SessionRefresher.cs:121` says why the refused token is not handled here (`ValidateAsync` ends the session).
 - Public contract with an invariant: `src/api/Modules/Auth/Cvitlo.Auth.PublicApi/Events/UserDeleted.cs:8-10` (the event may arrive more than once, so handlers must be idempotent).
 

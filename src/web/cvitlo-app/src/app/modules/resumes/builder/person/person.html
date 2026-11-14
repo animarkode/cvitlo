@@ -1,0 +1,24 @@
+<form [formGroup]="form" class="grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
+
+  <cv-field label="First name" placeholder="John" autocomplete="given-name" formControlName="firstname" />
+  <cv-field label="Last name" placeholder="Doe" autocomplete="family-name" formControlName="lastname" />
+
+  <cv-field label="Job title" placeholder="Software Engineer" formControlName="jobTitle" />
+  <cv-field label="Email" placeholder="john.doe@example.com" type="email" autocomplete="email" formControlName="email" />
+
+  <cv-field label="Phone" placeholder="+1 234 567 8900" type="tel" autocomplete="tel" formControlName="phone" />
+  <cv-field label="Country" placeholder="United States" autocomplete="country-name" formControlName="country" />
+
+  <cv-field label="City" placeholder="New York" autocomplete="address-level2" formControlName="city" />
+  <cv-field label="Street address" placeholder="123 Main St" autocomplete="street-address" formControlName="street" />
+
+  <cv-field label="Post code" placeholder="10001" autocomplete="postal-code" formControlName="postCode" />
+  <cv-field label="Nationality" placeholder="American" formControlName="nationality" />
+
+  <cv-date-picker
+    label="Date of birth"
+    formControlName="dateOfBirth"
+    [locale]="store.localization()" />
+  <cv-field label="Driving license" placeholder="B" formControlName="drivingLicense" />
+
+</form>

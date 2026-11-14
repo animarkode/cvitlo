@@ -6,7 +6,7 @@ namespace Cvitlo.Auth.Application.Options;
 /// </summary>
 public class KeycloakOptions
 {
-    /// <summary>The public issuer, e.g. <c>https://keycloak.example.com/realms/faber</c>.</summary>
+    /// <summary>The public issuer, e.g. <c>https://keycloak.example.com/realms/cvitlo</c>.</summary>
     public string Issuer { get; set; } = string.Empty;
 
     /// <summary>The audience every access token must carry.</summary>
@@ -20,7 +20,7 @@ public class KeycloakOptions
     /// The confidential client whose service account may only manage users (the Admin API). Used solely to
     /// delete a user's own account; it has no sign-in flow.
     /// </summary>
-    public string AdminClientId { get; set; } = "faber-admin";
+    public string AdminClientId { get; set; } = "cvitlo-admin";
 
     /// <summary>The secret of <see cref="AdminClientId"/>.</summary>
     public string AdminClientSecret { get; set; } = string.Empty;

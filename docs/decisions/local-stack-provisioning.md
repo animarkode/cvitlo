@@ -1,6 +1,6 @@
 # Local Stack Provisioning
 
-The Aspire AppHost owns local startup ordering for the complete Faber stack. The decisions below
+The Aspire AppHost owns local startup ordering for the complete Cvitlo stack. The decisions below
 come from issue #555, the first attempt to bring the repository up from a clean clone; the
 contributor-facing bootstrap that describes them is [Getting set up](../../CONTRIBUTING.md#getting-set-up)
 in `CONTRIBUTING.md`, written in #556.
@@ -11,12 +11,12 @@ The four Postgres and Keycloak admin parameters, and the Google and GitHub crede
 providers are used. Everything else below happens as the stack comes up.
 
 Update (#83): this section first listed Vault's `operator init` and unseal as the manual step.
-Vault is gone, so a clean clone now needs no initialization and no restart. The `faber-api` client
+Vault is gone, so a clean clone now needs no initialization and no restart. The `cvitlo-api` client
 secret is an AppHost parameter that Aspire generates on the first run.
 
 ## Automatic migrations
 
-Local development runs `Cvitlo.Migrations` automatically once the `faberdb` database exists.
+Local development runs `Cvitlo.Migrations` automatically once the `cvitlodb` database exists.
 Keycloak waits for migration completion before it starts, and the API waits for both
 migrations and the realm steps to complete. This keeps schema creation in the same migration path
 used by deployed environments instead of maintaining a second local bootstrap mechanism, and removes
@@ -33,7 +33,7 @@ declare no external schemas unless they configure the section, so their behavior
 ## Keycloak realm and client secret
 
 Keycloak runs the stock image and imports nothing. The `keycloak-config` resource (keycloak-config-cli)
-applies `infra/keycloak/config/faber.json` once Keycloak is healthy, on every start: it creates the
+applies `infra/keycloak/config/cvitlo.json` once Keycloak is healthy, on every start: it creates the
 realm on a clean stack and updates an existing one in place, without touching users. Values that differ
 per environment (the app URL, the back-channel logout URL, SMTP, Google and GitHub credentials) are
 variables the AppHost passes in; the file itself holds no secret. Configuring the realm as code, rather
@@ -42,13 +42,13 @@ away from the repository.
 
 `keycloak-passkeys` runs once `keycloak-config` has completed: a one-shot container of the Keycloak image
 that runs `infra/keycloak/passkeys.sh` (kcadm.sh). It only turns passkeys on, because keycloak-config-cli's
-realm model predates that setting and drops it on every import. It replaced the `Faber.Bootstrap` worker
+realm model predates that setting and drops it on every import. It replaced the `Cvitlo.Bootstrap` worker
 once that was all the worker did (#83).
 
-Update (#83): bootstrap used to regenerate the `faber-api` client secret on every start and write it
-to Vault at `secrets/keycloak`. The secret is now the AppHost parameter `faber-api-client-secret`,
+Update (#83): bootstrap used to regenerate the API client secret on every start and write it
+to Vault at `secrets/keycloak`. The secret is now the AppHost parameter `cvitlo-api-client-secret`,
 generated once and kept in user-secrets. The AppHost passes it to keycloak-config as
-`FABER_API_CLIENT_SECRET`, which the realm file uses as the client's `secret`, and to the API as
+`CVITLO_API_CLIENT_SECRET`, which the realm file uses as the client's `secret`, and to the API as
 `Keycloak__ClientSecret`. Both sides always read the same value, so nothing has to be kept in sync
 by a job.
 
@@ -56,7 +56,7 @@ It is a separate one-shot service rather than part of the migration step because
 opposite sides of Keycloak: the schema must exist *before* Keycloak starts, and the passkey setting
 can only be set *after* the realm exists.
 
-The API reads `ConnectionStrings__faberdb`, which Aspire injects, and has no fallback.
+The API reads `ConnectionStrings__cvitlodb`, which Aspire injects, and has no fallback.
 
 ## Local mail secret
 
@@ -85,7 +85,7 @@ locally, and a missing one fails on the first email with an error that names it.
 ## Required parameters
 
 Update (#83): this section first described five parameters, including `vault-token`, which was
-removed with Vault. The `faber-api-client-secret` parameter was added; it is generated, not entered.
+removed with Vault. The `cvitlo-api-client-secret` parameter was added; it is generated, not entered.
 
 All parameters fail closed: a missing value stops the resources that need it and the dashboard
 names it, rather than passing an empty string to a container.
@@ -102,7 +102,7 @@ new database volume anyway (below). The contributor steps are in
 
 ## Checkout-isolated PostgreSQL storage
 
-PostgreSQL uses a persistent Docker volume named `faber-postgres-data-<suffix>`, where the suffix is the
+PostgreSQL uses a persistent Docker volume named `cvitlo-postgres-data-<suffix>`, where the suffix is the
 first 8 bytes, in hex, of the SHA-256 of the canonical checkout path. Restarting one checkout reuses
 its database, while a different clone or Git worktree gets a distinct volume. This prevents concurrent
 issue branches from sharing or corrupting migration state while preserving normal local persistence.
@@ -112,14 +112,14 @@ keeps local directory and user names out of volume listings.
 To find the volumes on a machine:
 
 ```bash
-docker volume ls --filter name=faber-postgres-data-
+docker volume ls --filter name=cvitlo-postgres-data-
 ```
 
 Consequences for a checkout that existed before this change:
 
 - It starts on a new, empty volume. Migrations recreate the schema, `keycloak-config` recreates the realm, so the stack comes up without manual steps.
   Local data in the old database, such as registered users, is not carried over.
-- The old fixed-name `faber-postgres-data` volume is no longer used by anything and can be removed once
+- The old fixed-name Postgres data volume is no longer used by anything and can be removed once
   its data is not needed. Stopped Aspire containers can still hold it; the removal steps are in
   [Resetting local state](../../CONTRIBUTING.md#resetting-local-state).
 - The Postgres credentials are applied only when a volume is first initialized, so the new volume uses

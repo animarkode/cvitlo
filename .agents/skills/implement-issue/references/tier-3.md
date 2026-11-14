@@ -15,9 +15,9 @@ Then follow the Tier 2 plan flow (`references/plan-template.md`, `AskUserQuestio
 For each task, in plan order:
 
 1. **Re-check the task's "Required skills"** against the currently available skills list — a plan written an hour ago can already be stale. Correct the brief, never invent a name.
-2. **Dispatch `faber-implementer`** (foreground) with that task's brief only — not the whole plan file.
-3. **Dispatch `faber-reviewer`** (foreground) against the resulting diff. Give it: the task brief, the commit range, and the project skills it should judge by. It returns findings plus `CLEAN` or `BLOCKED`.
-4. **Fix loop** — on Critical or Important findings, dispatch `faber-implementer` again with the findings as its brief, then re-review with a fresh `faber-reviewer`. Repeat until `CLEAN`. Never move on with an open Critical or Important finding, and never fix the findings yourself — the session reviews at Tier 2 precisely because Tier 3 delegates it.
+2. **Dispatch `cvitlo-implementer`** (foreground) with that task's brief only — not the whole plan file.
+3. **Dispatch `cvitlo-reviewer`** (foreground) against the resulting diff. Give it: the task brief, the commit range, and the project skills it should judge by. It returns findings plus `CLEAN` or `BLOCKED`.
+4. **Fix loop** — on Critical or Important findings, dispatch `cvitlo-implementer` again with the findings as its brief, then re-review with a fresh `cvitlo-reviewer`. Repeat until `CLEAN`. Never move on with an open Critical or Important finding, and never fix the findings yourself — the session reviews at Tier 2 precisely because Tier 3 delegates it.
 5. **Two rounds and still blocked** on the same finding means the plan is wrong, not the implementer. Stop, say so, and re-plan that task with the user.
 6. **Tick the checkbox** in the plan file with the commit hash and `review clean`, then proceed.
 

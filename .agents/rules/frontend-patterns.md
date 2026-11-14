@@ -5,14 +5,14 @@ paths:
   - "src/web/**/*.css"
 ---
 
-# Frontend Patterns — Faber
+# Frontend Patterns — Cvitlo
 
-**Location:** `src/web/faber-app/`
+**Location:** `src/web/cvitlo-app/`
 
 ```text
 src/app/
 ├── core/           # App-wide singletons: auth (session store, guard, CSRF interceptor), layouts
-├── shared/         # Reusable standalone components (fb-* prefix), pipes, directives
+├── shared/         # Reusable standalone components (cv-* prefix), pipes, directives
 └── modules/        # Lazy-loaded feature modules
     ├── users/      # Account page (`/account`: profile, sign-in methods, devices, linked accounts, delete)
     ├── resumes/    # Resume builder and catalog
@@ -33,7 +33,7 @@ src/app/
 
 ## Angular Patterns
 
-**Use:** standalone components — do NOT set `standalone: true` in decorator (default in Angular v20+) · signals for state (`signal()`, `computed()`, `input()`, `output()`) · `inject()` instead of constructor injection · `ChangeDetectionStrategy.OnPush` on all components · native control flow (`@if`/`@for`/`@switch`) · Reactive Forms over template-driven · lazy loading for feature routes · `providedIn: 'root'` for singleton services · `fb-` selector prefix for shared reusable components · `NgOptimizedImage` for all static images · `ng generate` for all scaffolding — never create files manually · always use separate `.html` and `.css` files — no inline templates or styles.
+**Use:** standalone components — do NOT set `standalone: true` in decorator (default in Angular v20+) · signals for state (`signal()`, `computed()`, `input()`, `output()`) · `inject()` instead of constructor injection · `ChangeDetectionStrategy.OnPush` on all components · native control flow (`@if`/`@for`/`@switch`) · Reactive Forms over template-driven · lazy loading for feature routes · `providedIn: 'root'` for singleton services · `cv-` selector prefix for shared reusable components · `NgOptimizedImage` for all static images · `ng generate` for all scaffolding — never create files manually · always use separate `.html` and `.css` files — no inline templates or styles.
 
 **Avoid:** complex template logic (move to `computed()` or methods) · arrow functions in templates · `@HostBinding`/`@HostListener` (use `host` in component decorator) · constructor for general initialization (use `ngOnInit()`; constructor reserved for `effect()`, `afterNextRender()`, `afterRender()`) · complex lifecycle hooks (extract into well-named methods).
 

@@ -54,7 +54,7 @@ export interface DialogData {
 }
 
 @Component({
-  selector: 'fb-dialog',
+  selector: 'cv-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="fixed inset-0 z-50 bg-black/80 animate-fade-in" (click)="close()"></div>
@@ -148,7 +148,7 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ThemeService } from '@/core/theme.service';
 
 @Component({
-  selector: 'fb-theme-toggle',
+  selector: 'cv-theme-toggle',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button

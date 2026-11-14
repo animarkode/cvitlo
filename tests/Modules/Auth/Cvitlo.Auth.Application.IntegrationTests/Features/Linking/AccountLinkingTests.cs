@@ -27,7 +27,7 @@ public class AccountLinkingTests(WebApp app)
 
         api.ShouldNotBeNull();
         api.StatusCode.ShouldBe(HttpStatusCode.Redirect);
-        api.Headers.GetValues("Set-Cookie").ShouldContain(c => c.StartsWith("__Host-faber=", StringComparison.Ordinal));
+        api.Headers.GetValues("Set-Cookie").ShouldContain(c => c.StartsWith("__Host-cvitlo=", StringComparison.Ordinal));
         var userId = await app.Keycloak.Admin.FindUserIdAsync(provider.Email, Ct);
         userId.ShouldNotBeNull();
         (await app.Keycloak.Admin.GetFederatedIdentitiesAsync(userId, Ct))
@@ -101,7 +101,7 @@ public class AccountLinkingTests(WebApp app)
     public async Task ProviderEmailNotVerified_ShouldBeRefusedWithoutCreatingAnAccount()
     {
         const string email = "unverified@standin.test";
-        await app.Keycloak.Container.AddStandInUserAsync(FaberKeycloak.AdminUsername, FaberKeycloak.AdminPassword,
+        await app.Keycloak.Container.AddStandInUserAsync(CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword,
             WebApp.StandIn, "unverified.user", "provider-password-2", email, emailVerified: false, Ct);
         using var client = app.CreateBrowserClient();
         using var driver = new KeycloakLoginDriver(client);
@@ -127,7 +127,7 @@ public class AccountLinkingTests(WebApp app)
         return await driver.FollowAsync(submitted, Ct);
     }
 
-    /// <summary>A password account in Faber plus a provider account with the same, verified e-mail.</summary>
+    /// <summary>A password account in Cvitlo plus a provider account with the same, verified e-mail.</summary>
     private async Task<(TestUser User, string UserId, string ProviderUsername, string ProviderPassword)>
         CreateOwnerWithProviderAccountAsync(string name)
     {
@@ -135,7 +135,7 @@ public class AccountLinkingTests(WebApp app)
         var userId = await app.Keycloak.Admin.CreateUserAsync(user, ct: Ct);
         var providerUsername = $"{name}.provider";
         const string providerPassword = "provider-password-3";
-        await app.Keycloak.Container.AddStandInUserAsync(FaberKeycloak.AdminUsername, FaberKeycloak.AdminPassword,
+        await app.Keycloak.Container.AddStandInUserAsync(CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword,
             WebApp.StandIn, providerUsername, providerPassword, user.Email, emailVerified: true, Ct);
 
         return (user, userId, providerUsername, providerPassword);

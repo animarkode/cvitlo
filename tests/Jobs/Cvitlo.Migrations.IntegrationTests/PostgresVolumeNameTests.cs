@@ -8,7 +8,7 @@ public class PostgresVolumeNameTests
     [Fact]
     public void SameCanonicalPath_ShouldProduceStableName()
     {
-        var checkoutPath = Path.Combine(Path.GetTempPath(), "faber", "checkout");
+        var checkoutPath = Path.Combine(Path.GetTempPath(), "cvitlo", "checkout");
 
         var first = PostgresVolumeName.FromCheckoutPath(checkoutPath);
         var second = PostgresVolumeName.FromCheckoutPath(checkoutPath + Path.DirectorySeparatorChar);
@@ -19,8 +19,8 @@ public class PostgresVolumeNameTests
     [Fact]
     public void DistinctCheckoutPaths_ShouldProduceDistinctNames()
     {
-        var first = PostgresVolumeName.FromCheckoutPath(Path.Combine(Path.GetTempPath(), "faber", "checkout-a"));
-        var second = PostgresVolumeName.FromCheckoutPath(Path.Combine(Path.GetTempPath(), "faber", "checkout-b"));
+        var first = PostgresVolumeName.FromCheckoutPath(Path.Combine(Path.GetTempPath(), "cvitlo", "checkout-a"));
+        var second = PostgresVolumeName.FromCheckoutPath(Path.Combine(Path.GetTempPath(), "cvitlo", "checkout-b"));
 
         second.ShouldNotBe(first, StringComparer.Ordinal);
     }
@@ -28,7 +28,7 @@ public class PostgresVolumeNameTests
     [Fact]
     public void CheckoutPath_ShouldProduceDockerSafeName()
     {
-        var checkoutPath = Path.Combine(Path.GetTempPath(), "Faber checkout with spaces", "issue/555");
+        var checkoutPath = Path.Combine(Path.GetTempPath(), "Cvitlo checkout with spaces", "issue/555");
 
         var volumeName = PostgresVolumeName.FromCheckoutPath(checkoutPath);
 

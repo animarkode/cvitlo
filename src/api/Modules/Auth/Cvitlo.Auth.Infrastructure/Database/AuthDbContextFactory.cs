@@ -17,8 +17,8 @@ public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("faberdb")
-            ?? throw new InvalidOperationException("Connection string 'faberdb' not found");
+        var connectionString = configuration.GetConnectionString("cvitlodb")
+            ?? throw new InvalidOperationException("Connection string 'cvitlodb' not found");
 
         var optionsBuilder = new DbContextOptionsBuilder<AuthDbContext>();
 

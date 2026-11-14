@@ -1,7 +1,7 @@
 # Caching
 
 Cvitlo.Api uses `HybridCache` (`Microsoft.Extensions.Caching.Hybrid`), wired in
-`src/api/Cvitlo.Api/Caching/CachingServiceCollectionExtensions.cs` (`AddFaberCaching`) and consumed
+`src/api/Cvitlo.Api/Caching/CachingServiceCollectionExtensions.cs` (`AddCvitloCaching`) and consumed
 by the Resumes module.
 
 ## What is cached
@@ -49,11 +49,11 @@ tags explicitly.
 
 ## Degradation posture
 
-When the Aspire-injected `ConnectionStrings:redis` is absent, `AddFaberCaching` registers
+When the Aspire-injected `ConnectionStrings:redis` is absent, `AddCvitloCaching` registers
 `HybridCache` with its built-in L1 (in-process) store only — no L2. This is how the Auth and Api
 test fixtures run.
 
-When Redis is configured, it becomes the L2 store with `InstanceName` `faber:`,
+When Redis is configured, it becomes the L2 store with `InstanceName` `cvitlo:`,
 `AbortOnConnectFail=false`, `BacklogPolicy.FailFast`, and 1000 ms connect/sync/async timeouts. A
 Redis outage fails fast instead of queuing requests behind the client's default 5-second backlog, so
 callers fall through to the database or renderer rather than blocking. Cache invalidation failures in
@@ -67,7 +67,7 @@ nobody out.
 
 ## TTLs and staleness bounds
 
-`HybridCache` defaults (set once in `AddFaberCaching`, applied to every Resumes entry):
+`HybridCache` defaults (set once in `AddCvitloCaching`, applied to every Resumes entry):
 
 - `Expiration` (L2/Redis): 10 minutes.
 - `LocalCacheExpiration` (L1/in-process): 1 minute.

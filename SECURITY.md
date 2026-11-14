@@ -6,7 +6,7 @@
 
 Report it through GitHub's private vulnerability reporting instead:
 
-1. Go to the [Security tab](https://github.com/VoxSollers/faber/security) of this repository.
+1. Go to the [Security tab](https://github.com/animarkode/cvitlo/security) of this repository.
 2. Choose **Report a vulnerability**.
 3. Describe the issue, the affected component, and how to reproduce it.
 
@@ -24,7 +24,7 @@ We will credit you in the advisory unless you ask us not to.
 
 ## Supported versions
 
-Faber is pre-1.0 and moves fast. Only the latest release on `main` receives security fixes; there are no maintained release branches yet.
+Cvitlo is pre-1.0 and moves fast. Only the latest release on `main` receives security fixes; there are no maintained release branches yet.
 
 ## Scope
 
@@ -40,11 +40,11 @@ Faber is pre-1.0 and moves fast. Only the latest release on `main` receives secu
 **Out of scope** — please do not report these:
 
 - **The documented local development defaults.** The Aspire AppHost configures a throwaway environment on a developer machine, and required credentials are supplied outside the repository. Weak developer-chosen credentials or unauthenticated local services are not findings on their own. A way to expose a secret or affect a production deployment remains in scope. Production orchestration and environment configuration are private deployment assets and are not included here.
-- **Test fixtures.** Test Keycloak instances use fake, well-known secrets and a test-only password-grant client on purpose; the realm configuration in `infra/keycloak/config/faber.json` holds placeholders, never real credentials.
+- **Test fixtures.** Test Keycloak instances use fake, well-known secrets and a test-only password-grant client on purpose; the realm configuration in `infra/keycloak/config/cvitlo.json` holds placeholders, never real credentials.
 - Missing security headers or TLS configuration on a deployment you do not control.
 - Findings from an automated scanner with no demonstrated impact — show us how it is exploited.
 - Denial of service by simply sending a lot of traffic.
-- Vulnerabilities in third-party dependencies that already have a public advisory — those are tracked through Dependabot. Report them only if Faber's specific usage makes the impact worse than the upstream advisory says.
+- Vulnerabilities in third-party dependencies that already have a public advisory — those are tracked through Dependabot. Report them only if Cvitlo's specific usage makes the impact worse than the upstream advisory says.
 
 ## Handling of secrets in this repository
 

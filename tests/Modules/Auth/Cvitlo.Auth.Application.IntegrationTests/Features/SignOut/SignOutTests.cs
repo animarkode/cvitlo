@@ -28,7 +28,7 @@ public class SignOutTests(WebApp app)
     {
         var (client, callback) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;
-        var stolen = callback.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("__Host-faber=", StringComparison.Ordinal)).Split(';')[0];
+        var stolen = callback.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("__Host-cvitlo=", StringComparison.Ordinal)).Split(';')[0];
 
         using var logout = await client.PostAsync("api/v1/auth/logout", null, TestContext.Current.CancellationToken);
         using var replay = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");

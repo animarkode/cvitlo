@@ -46,61 +46,61 @@ jobs:
       - name: Resolve image namespace
         run: echo "IMAGE_NAMESPACE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
 
-      - name: Build and push faber-api
+      - name: Build and push cvitlo-api
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: src/api/Cvitlo.Api/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_NAMESPACE }}/faber-api:${{ env.RELEASE_TAG }}
-            ${{ env.IMAGE_NAMESPACE }}/faber-api:latest
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-api:${{ env.RELEASE_TAG }}
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-api:latest
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push faber-migrations
+      - name: Build and push cvitlo-migrations
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: src/api/Jobs/Cvitlo.Migrations/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_NAMESPACE }}/faber-migrations:${{ env.RELEASE_TAG }}
-            ${{ env.IMAGE_NAMESPACE }}/faber-migrations:latest
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-migrations:${{ env.RELEASE_TAG }}
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-migrations:latest
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       # Unlike the two steps above, this one builds from the app directory
-      # (src/web/faber-app), which is where its Dockerfile's COPY paths and
+      # (src/web/cvitlo-app), which is where its Dockerfile's COPY paths and
       # .dockerignore are rooted. The gha cache is given an explicit scope so
       # this image does not share — and clobber — the default cache namespace
       # the other two images use.
-      - name: Build and push faber-web
+      - name: Build and push cvitlo-web
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: src/web/faber-app
-          file: src/web/faber-app/Dockerfile
+          context: src/web/cvitlo-app
+          file: src/web/cvitlo-app/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_NAMESPACE }}/faber-web:${{ env.RELEASE_TAG }}
-            ${{ env.IMAGE_NAMESPACE }}/faber-web:latest
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-web:${{ env.RELEASE_TAG }}
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-web:latest
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          cache-from: type=gha,scope=faber-web
-          cache-to: type=gha,mode=max,scope=faber-web
+          cache-from: type=gha,scope=cvitlo-web
+          cache-to: type=gha,mode=max,scope=cvitlo-web
 
       # Built from infra/keycloak, where the Dockerfile's COPY of the theme is
       # rooted. Its own gha cache scope keeps it from clobbering the others.
-      - name: Build and push faber-keycloak
+      - name: Build and push cvitlo-keycloak
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: infra/keycloak
           file: infra/keycloak/Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_NAMESPACE }}/faber-keycloak:${{ env.RELEASE_TAG }}
-            ${{ env.IMAGE_NAMESPACE }}/faber-keycloak:latest
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-keycloak:${{ env.RELEASE_TAG }}
+            ${{ env.IMAGE_NAMESPACE }}/cvitlo-keycloak:latest
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          cache-from: type=gha,scope=faber-keycloak
-          cache-to: type=gha,mode=max,scope=faber-keycloak
+          cache-from: type=gha,scope=cvitlo-keycloak
+          cache-to: type=gha,mode=max,scope=cvitlo-keycloak

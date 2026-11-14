@@ -1,0 +1,32 @@
+<button
+  cv-icon-button
+  intent="surface"
+  size="lg"
+  class="border border-provider-border"
+  type="button"
+  data-testid="theme-toggle"
+  [attr.aria-label]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+  [title]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+  (click)="themeService.toggle()">
+  <span class="relative flex h-5 w-5 items-center justify-center overflow-hidden">
+    @if (themeService.isDark()) {
+      <lucide-icon
+        name="sun"
+        [size]="20"
+        [strokeWidth]="2"
+        aria-hidden="true"
+        class="absolute inset-0"
+        [animate.enter]="animationsReady() ? 'theme-icon-sun-enter' : ''"
+        [animate.leave]="animationsReady() ? 'theme-icon-sun-leave' : ''" />
+    } @else {
+      <lucide-icon
+        name="moon"
+        [size]="20"
+        [strokeWidth]="2"
+        aria-hidden="true"
+        class="absolute inset-0"
+        [animate.enter]="animationsReady() ? 'theme-icon-moon-enter' : ''"
+        [animate.leave]="animationsReady() ? 'theme-icon-moon-leave' : ''" />
+    }
+  </span>
+</button>

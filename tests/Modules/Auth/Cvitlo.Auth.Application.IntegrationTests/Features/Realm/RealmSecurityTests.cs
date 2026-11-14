@@ -8,7 +8,7 @@ using Shouldly;
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Realm;
 
 /// <summary>
-/// Pins the security settings of the realm as applied from <c>infra/keycloak/config/faber.json</c>, so a
+/// Pins the security settings of the realm as applied from <c>infra/keycloak/config/cvitlo.json</c>, so a
 /// config change that weakens one of them fails here rather than in production.
 /// </summary>
 [Collection<CollectionAuth>]
@@ -54,7 +54,7 @@ public class RealmSecurityTests(WebApp app)
     [Fact]
     public async Task WebClient_ShouldBeConfidentialCodeFlowOnlyWithPkceRequired()
     {
-        var client = await app.Keycloak.Admin.GetClientAsync(FaberKeycloak.ClientId, Ct);
+        var client = await app.Keycloak.Admin.GetClientAsync(CvitloKeycloak.ClientId, Ct);
 
         client["publicClient"]!.GetValue<bool>().ShouldBeFalse();
         client["standardFlowEnabled"]!.GetValue<bool>().ShouldBeTrue();
@@ -87,10 +87,10 @@ public class RealmSecurityTests(WebApp app)
         // would land on an unrelated page, so it is read as is.
         using var handler = new HttpClientHandler { AllowAutoRedirect = false, CheckCertificateRevocationList = true };
         using var http = new HttpClient(handler) { BaseAddress = new Uri(app.Keycloak.BaseAddress) };
-        var redirectUri = Uri.EscapeDataString($"{app.Keycloak.BaseAddress.TrimEnd('/')}/realms/{FaberKeycloak.Realm}/account/");
+        var redirectUri = Uri.EscapeDataString($"{app.Keycloak.BaseAddress.TrimEnd('/')}/realms/{CvitloKeycloak.Realm}/account/");
 
         using var response = await http.GetAsync(
-            $"realms/{FaberKeycloak.Realm}/protocol/openid-connect/auth?client_id={clientId}&response_type=code&scope=openid&redirect_uri={redirectUri}", Ct);
+            $"realms/{CvitloKeycloak.Realm}/protocol/openid-connect/auth?client_id={clientId}&response_type=code&scope=openid&redirect_uri={redirectUri}", Ct);
         var body = await response.Content.ReadAsStringAsync(Ct);
         var refusedByRedirect = (int)response.StatusCode is >= 300 and < 400
                                 && response.Headers.Location?.ToString().Contains("error=", StringComparison.Ordinal) == true;
@@ -142,7 +142,7 @@ public class RealmSecurityTests(WebApp app)
     [Fact]
     public async Task DefaultRoles_ShouldNotLetUsersDeleteTheirOwnAccountThroughKeycloak()
     {
-        var composites = await app.Keycloak.Admin.GetRealmRoleCompositesAsync("default-roles-faber", Ct);
+        var composites = await app.Keycloak.Admin.GetRealmRoleCompositesAsync("default-roles-cvitlo", Ct);
 
         composites.Any(r => string.Equals(r!["name"]!.GetValue<string>(), "delete-account", StringComparison.Ordinal))
             .ShouldBeFalse();
@@ -165,12 +165,12 @@ public class RealmSecurityTests(WebApp app)
         using var content = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["grant_type"] = "password",
-                ["client_id"] = FaberKeycloak.AdminClientId,
-                ["client_secret"] = FaberKeycloak.AdminClientSecret,
+                ["client_id"] = CvitloKeycloak.AdminClientId,
+                ["client_secret"] = CvitloKeycloak.AdminClientSecret,
                 ["username"] = user.Email,
                 ["password"] = user.Password
             });
-        using var response = await http.PostAsync($"realms/{FaberKeycloak.Realm}/protocol/openid-connect/token", content, Ct);
+        using var response = await http.PostAsync($"realms/{CvitloKeycloak.Realm}/protocol/openid-connect/token", content, Ct);
 
         response.IsSuccessStatusCode.ShouldBeFalse();
     }
@@ -178,7 +178,7 @@ public class RealmSecurityTests(WebApp app)
     [Fact]
     public async Task AdminClient_ShouldHaveNoBrowserFlow()
     {
-        var client = await app.Keycloak.Admin.GetClientAsync(FaberKeycloak.AdminClientId, Ct);
+        var client = await app.Keycloak.Admin.GetClientAsync(CvitloKeycloak.AdminClientId, Ct);
 
         client["standardFlowEnabled"]!.GetValue<bool>().ShouldBeFalse();
         client["implicitFlowEnabled"]!.GetValue<bool>().ShouldBeFalse();
@@ -187,7 +187,7 @@ public class RealmSecurityTests(WebApp app)
 
         using var http = new HttpClient { BaseAddress = new Uri(app.Keycloak.BaseAddress) };
         using var response = await http.GetAsync(
-            $"realms/{FaberKeycloak.Realm}/protocol/openid-connect/auth?client_id={FaberKeycloak.AdminClientId}"
+            $"realms/{CvitloKeycloak.Realm}/protocol/openid-connect/auth?client_id={CvitloKeycloak.AdminClientId}"
             + "&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%2Fcb", Ct);
 
         // Keycloak shows an error page (or redirects with an error) instead of its login form.
@@ -198,7 +198,7 @@ public class RealmSecurityTests(WebApp app)
     [Fact]
     public async Task AdminClientServiceAccount_ShouldHoldOnlyManageUsers()
     {
-        var userId = await app.Keycloak.Admin.GetServiceAccountUserIdAsync(FaberKeycloak.AdminClientId, Ct);
+        var userId = await app.Keycloak.Admin.GetServiceAccountUserIdAsync(CvitloKeycloak.AdminClientId, Ct);
 
         var mappings = await app.Keycloak.Admin.GetRoleMappingsAsync(userId, Ct);
 
@@ -214,7 +214,7 @@ public class RealmSecurityTests(WebApp app)
         var user = app.Users[0];
         var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, Ct);
         using var http = new HttpClient { BaseAddress = new Uri(app.Keycloak.BaseAddress) };
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"realms/{FaberKeycloak.Realm}/account");
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"realms/{CvitloKeycloak.Realm}/account");
         request.Headers.Authorization = new("Bearer", tokens["access_token"]!.GetValue<string>());
         request.Headers.Accept.Add(new("application/json"));
 
@@ -236,7 +236,7 @@ public class RealmSecurityTests(WebApp app)
                 ["username"] = user.Email,
                 ["password"] = user.Password
             });
-        using var response = await http.PostAsync($"realms/{FaberKeycloak.Realm}/protocol/openid-connect/token", content, Ct);
+        using var response = await http.PostAsync($"realms/{CvitloKeycloak.Realm}/protocol/openid-connect/token", content, Ct);
 
         response.IsSuccessStatusCode.ShouldBeFalse();
     }
@@ -249,7 +249,7 @@ public class RealmSecurityTests(WebApp app)
         google["config"]!["filteredByClaim"]!.GetValue<string>().ShouldBe("true");
         google["config"]!["claimFilterName"]!.GetValue<string>().ShouldBe("email_verified");
         google["config"]!["claimFilterValue"]!.GetValue<string>().ShouldBe("true");
-        google["firstBrokerLoginFlowAlias"]!.GetValue<string>().ShouldBe("faber first broker login");
+        google["firstBrokerLoginFlowAlias"]!.GetValue<string>().ShouldBe("cvitlo first broker login");
     }
 
     // Without its own prompt, Keycloak forwards the client's prompt to the provider. The register
@@ -267,7 +267,7 @@ public class RealmSecurityTests(WebApp app)
     [Fact]
     public async Task FirstBrokerLogin_ShouldLinkOnlyAfterReauthentication()
     {
-        var executions = await app.Keycloak.Admin.GetFlowExecutionsAsync("faber first broker login", Ct);
+        var executions = await app.Keycloak.Admin.GetFlowExecutionsAsync("cvitlo first broker login", Ct);
         var byProvider = executions
             .Where(e => e!["providerId"] is not null)
             .ToDictionary(e => e!["providerId"]!.GetValue<string>(), e => e!["requirement"]!.GetValue<string>(), StringComparer.Ordinal);

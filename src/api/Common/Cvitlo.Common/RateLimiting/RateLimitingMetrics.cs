@@ -11,17 +11,15 @@ namespace Cvitlo.Common.RateLimiting;
 public static class RateLimitingMetrics
 {
     /// <summary>
-    /// Name of the meter; must match the meter registered in Cvitlo.ServiceDefaults. Deliberately kept
-    /// as <c>Faber.Api.RateLimiting</c> after the move out of Cvitlo.Api so existing exporter
-    /// configuration and dashboards keep resolving.
+    /// Name of the meter; must match the meter registered in Cvitlo.ServiceDefaults.
     /// </summary>
-    public const string MeterName = "Faber.Api.RateLimiting";
+    public const string MeterName = "Cvitlo.Api.RateLimiting";
 
     /// <summary>
     /// Name of the rejection counter instrument. Exposed so tests can subscribe with a
     /// <see cref="System.Diagnostics.Metrics.MeterListener"/> without duplicating the string.
     /// </summary>
-    public const string RejectionsCounterName = "faber.api.rate_limiting.rejections";
+    public const string RejectionsCounterName = "cvitlo.api.rate_limiting.rejections";
 
     private static readonly Meter Meter = new(MeterName);
 

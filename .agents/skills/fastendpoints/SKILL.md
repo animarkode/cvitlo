@@ -1,11 +1,11 @@
 ---
 name: fastendpoints
-description: FastEndpoints patterns for Faber — Endpoint, Group, SubGroup, Validator, ICommand/ICommandHandler, TypedResults, ErrorOr integration, logging rule. Use before creating any new Endpoint, Group, or Validator.
+description: FastEndpoints patterns for Cvitlo — Endpoint, Group, SubGroup, Validator, ICommand/ICommandHandler, TypedResults, ErrorOr integration, logging rule. Use before creating any new Endpoint, Group, or Validator.
 ---
 
-# FastEndpoints — Faber Patterns
+# FastEndpoints — Cvitlo Patterns
 
-FastEndpoints replaces Controllers and MinimalAPI in Faber. Most features follow the **Request → Command → Handler → Response** pipeline.
+FastEndpoints replaces Controllers and MinimalAPI in Cvitlo. Most features follow the **Request → Command → Handler → Response** pipeline.
 
 Canonical sources to mirror before generating new code:
 - `src/api/Modules/Resumes/Cvitlo.Resumes.Application/Features/Educations/CreateEducation/`
@@ -239,7 +239,7 @@ Results<NoContent, BadRequest<Error>, UnauthorizedHttpResult>  // 3 possible out
 ```
 
 Important distinction:
-- Validation failures in Faber tests are often asserted as `ErrorResponse` from FastEndpoints, not `BadRequest<Error>` from manual `TypedResults.BadRequest(...)`
+- Validation failures in Cvitlo tests are often asserted as `ErrorResponse` from FastEndpoints, not `BadRequest<Error>` from manual `TypedResults.BadRequest(...)`
 - Middleware-produced `403 Forbidden` can exist even when `ForbidHttpResult` is not part of the endpoint response union
 
 ---
@@ -381,7 +381,7 @@ var httpRes = await app.Client
 httpRes.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 ```
 
-Real test patterns in Faber:
+Real test patterns in Cvitlo:
 - use `ErrorResponse` for validator-driven `400` assertions
 - use `WithAuthToken(accessToken)` for protected endpoints
 - expect `403 Forbidden` for auth/policy failures even if the endpoint's generic return type only lists success/business-error results

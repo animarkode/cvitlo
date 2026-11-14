@@ -2,11 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "faber-app",
+      "name": "cvitlo-app",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["ng", "serve", "--port", "4200"],
       "port": 4200,
-      "cwd": "src/web/faber-app"
+      "cwd": "src/web/cvitlo-app"
     },
     {
       "name": "apphost",
