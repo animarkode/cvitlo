@@ -7,6 +7,7 @@ using Cvitlo.Common.Testing.Http;
 using FastEndpoints;
 using FastEndpoints.Testing;
 using Shouldly;
+using Cvitlo.Resumes.Application.Features.Courses.GetCourse;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Courses.CreateCourse;
 
@@ -114,5 +115,54 @@ public class CreateCourseTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.StartDate.ShouldBe(today);
+    }
+
+    [Fact]
+    [Priority(5)]
+    public async Task CreateCourse_UnsafeDescription_ShouldStoreSanitizedHtml()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        const string unsafeDescription =
+            "<p><strong>Module</strong> on XSS</p>"
+            + "<script>alert('xss')</script>"
+            + "<img src=x onerror=\"alert(1)\" />";
+
+        var request = new CreateCourseRequestFaker(resume.Id).Generate() with { Description = unsafeDescription };
+
+        var (createResponse, created) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, CreateCourseResponse>(request);
+
+        createResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var (_, getResponse) = await app.Client
+            .WithAuthToken(accessToken)
+            .GETAsync<GetCourseEndpoint, GetCourseRequest, GetCourseResponse>(
+                new GetCourseRequest(resume.Id, created.Id));
+
+        getResponse.Description.ShouldNotBeNull();
+        getResponse.Description.ShouldNotContain("<script");
+        getResponse.Description.ShouldNotContain("onerror");
+        getResponse.Description.ShouldContain("<strong>Module</strong>");
+    }
+
+    [Fact(Skip = "test-audit 05-B1: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
+    [Priority(6)]
+    public async Task CreateCourse_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var request = new CreateCourseRequestFaker(resume.Id).Generate() with { Description = new string('&', 1000) };
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateCourseEndpoint, CreateCourseRequest, ErrorResponse>(request);
+
+        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
     }
 }

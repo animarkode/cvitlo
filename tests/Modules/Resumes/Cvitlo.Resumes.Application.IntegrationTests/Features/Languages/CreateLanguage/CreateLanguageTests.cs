@@ -134,4 +134,21 @@ public class CreateLanguageTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Level.ShouldBeNull();
     }
+
+    [Fact(Skip = "test-audit 05-B4: a whitespace-only Level skips the whitelist and is stored; answers 200")]
+    [Priority(6)]
+    public async Task CreateLanguage_WhitespaceLevel_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var request = new CreateLanguageRequestFaker(resume.Id).Generate() with { Level = "  " };
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateLanguageEndpoint, CreateLanguageRequest, ErrorResponse>(request);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
 }
