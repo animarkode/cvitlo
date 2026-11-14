@@ -17,13 +17,13 @@ public class HtmlSanitizerTests
     [Fact]
     public void Sanitize_NonBreakingSpaces_ShouldBecomeRegularSpaces()
     {
-        "a b c d&nbsp;e".Sanitize().ShouldBe("a b c d e");
+        "a\u00A0b\u202Fc\u2007d&nbsp;e".Sanitize().ShouldBe("a b c d e");
     }
 
     [Fact]
     public void Sanitize_InvisibleCharacters_ShouldBeRemoved()
     {
-        "a​b‌c‍d﻿e⁠f­g&shy;h".Sanitize().ShouldBe("abcdefgh");
+        "a\u200Bb\u200Cc\u200Dd\uFEFFe\u2060f\u00ADg&shy;h".Sanitize().ShouldBe("abcdefgh");
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class HtmlSanitizerTests
     [Fact(Skip = "test-audit 03-B2: control-character regex is Java syntax; strips '^]' sequences")]
     public void Sanitize_BracketsAndAmpersands_ShouldBeKept()
     {
-        const string text = "C# [dotnet] R&D] x^]";
+        const string text = "a[]b &] c^] x";
 
         text.Sanitize().ShouldBe(text);
     }

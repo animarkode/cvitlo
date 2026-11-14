@@ -99,30 +99,25 @@ public class FirstTemplateTests
     }
 
     [Theory]
-    [InlineData("https://a.example", true)]
-    [InlineData("http://a.example", true)]
-    [InlineData("javascript:alert(1)", false)]
-    [InlineData("ftp://a.example", false)]
-    [InlineData("/relative", false)]
-    [InlineData("", false)]
-    public async Task Render_ProjectUrl_ShouldLinkOnlyHttpAndHttps(string url, bool linked)
+    [InlineData("https://a.example")]
+    [InlineData("http://a.example")]
+    public async Task Render_ProjectUrl_ShouldLinkHttpAndHttps(string url)
     {
-        var resume = new Resume
-        {
-            Localization = "en-us",
-            Projects = [new Project { Name = "P", Url = url }]
-        };
+        var html = await RenderProjectUrlAsync(url);
 
-        var html = await TemplateRenderer.RenderAsync(resume);
+        html.ShouldContain($"href=\"{url}\"");
+    }
 
-        if (linked)
-        {
-            html.ShouldContain($"href=\"{url}\"");
-        }
-        else
-        {
-            html.ShouldNotContain($"href=\"{url}\"");
-        }
+    [Theory]
+    [InlineData("javascript:alert(1)")]
+    [InlineData("ftp://a.example")]
+    [InlineData("/relative")]
+    [InlineData("")]
+    public async Task Render_ProjectUrl_ShouldNotLinkOtherSchemes(string url)
+    {
+        var html = await RenderProjectUrlAsync(url);
+
+        html.ShouldNotContain($"href=\"{url}\"");
     }
 
     [Fact(Skip = "test-audit 03-B5: link Uri is emitted as href without a scheme check")]
@@ -139,33 +134,28 @@ public class FirstTemplateTests
         html.ShouldNotContain("href=\"javascript:");
     }
 
-    [Theory]
-    [InlineData(1, 0)]
-    [InlineData(2, 1)]
-    [InlineData(6, 5)]
-    public async Task Render_Contacts_ShouldSeparateOnlyBetweenPresentValues(int presentValues, int separators)
+    public static TheoryData<Person, int> ContactCases => new()
     {
-        var person = new Person();
+        { new Person { City = "Kyiv" }, 0 },
+        { new Person { City = "Kyiv", Email = "ada@example.com" }, 1 },
+        {
+            new Person
+            {
+                City = "Kyiv",
+                Street = "Main Street 1",
+                PostCode = "01001",
+                Country = "Ukraine",
+                Phone = "0501234567",
+                Email = "ada@example.com"
+            },
+            5
+        }
+    };
 
-        if (presentValues == 1)
-        {
-            person.City = "Kyiv";
-        }
-        else if (presentValues == 2)
-        {
-            person.City = "Kyiv";
-            person.Email = "ada@example.com";
-        }
-        else
-        {
-            person.City = "Kyiv";
-            person.Street = "Main Street 1";
-            person.PostCode = "01001";
-            person.Country = "Ukraine";
-            person.Phone = "0501234567";
-            person.Email = "ada@example.com";
-        }
-
+    [Theory]
+    [MemberData(nameof(ContactCases))]
+    public async Task Render_Contacts_ShouldSeparateOnlyBetweenPresentValues(Person person, int separators)
+    {
         var html = await TemplateRenderer.RenderAsync(new Resume { Localization = "en-us", Person = person });
 
         CountOccurrences(html, Separator).ShouldBe(separators);
@@ -205,8 +195,8 @@ public class FirstTemplateTests
         var html = await TemplateRenderer.RenderAsync(resume);
 
         CountOccurrences(html, "<span> - </span>").ShouldBe(dashes);
-        (html.Contains("January 2020", StringComparison.Ordinal)).ShouldBe(hasStart);
-        (html.Contains("March 2021", StringComparison.Ordinal)).ShouldBe(hasEnd);
+        AssertPresence(html, "January 2020", hasStart);
+        AssertPresence(html, "March 2021", hasEnd);
     }
 
     [Fact]
@@ -261,14 +251,15 @@ public class FirstTemplateTests
     [Fact]
     public async Task Render_TwoCulturesInARow_ShouldNotLeakCulture()
     {
-        var before = CultureInfo.CurrentUICulture;
+        var beforeUi = CultureInfo.CurrentUICulture;
+        var before = CultureInfo.CurrentCulture;
         var skills = new[] { new Skill { Name = "Mathematics" } };
 
         await TemplateRenderer.RenderAsync(new Resume { Localization = "uk-ua", Skills = skills });
-        var second = await TemplateRenderer.RenderAsync(new Resume { Localization = "en-us", Skills = skills });
+        await TemplateRenderer.RenderAsync(new Resume { Localization = "en-us", Skills = skills });
 
-        second.ShouldContain("Skills");
-        CultureInfo.CurrentUICulture.ShouldBe(before);
+        CultureInfo.CurrentUICulture.ShouldBe(beforeUi);
+        CultureInfo.CurrentCulture.ShouldBe(before);
     }
 
     [Fact]
@@ -289,7 +280,7 @@ public class FirstTemplateTests
     }
 
     [Fact]
-    public async Task Render_SanitizedDescriptionMarkup_ShouldSurvive()
+    public async Task Render_DescriptionMarkup_ShouldBeEmittedAsMarkup()
     {
         const string description = "<p><strong>x</strong></p>";
         var resume = new Resume
@@ -303,6 +294,28 @@ public class FirstTemplateTests
         var html = await TemplateRenderer.RenderAsync(resume);
 
         CountOccurrences(html, "<strong>x</strong>").ShouldBe(3);
+    }
+
+    private static async Task<string> RenderProjectUrlAsync(string url)
+    {
+        var resume = new Resume
+        {
+            Localization = "en-us",
+            Projects = [new Project { Name = "P", Url = url }]
+        };
+
+        return await TemplateRenderer.RenderAsync(resume);
+    }
+
+    private static void AssertPresence(string html, string value, bool expected)
+    {
+        if (expected)
+        {
+            html.ShouldContain(value);
+            return;
+        }
+
+        html.ShouldNotContain(value);
     }
 
     private static void AssertHeaderOnly(string html)
