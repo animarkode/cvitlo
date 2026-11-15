@@ -14,12 +14,10 @@ using Cvitlo.Resumes.Application.Features.Educations.GetAllEducations;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Educations.CreateEducation;
 
 [Collection<CollectionResumes>]
-[Priority(20)]
 public class CreateEducationTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidEducationData))]
-    [Priority(1)]
     public async Task CreateEducation_ValidRequest_ShouldReturnTheCreatedItem(CreateEducationRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -46,7 +44,6 @@ public class CreateEducationTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidEducationData))]
-    [Priority(2)]
     public async Task CreateEducation_InvalidField_ShouldReturnBadRequest(
         CreateEducationRequest invalidRequest,
         string expectedKey)
@@ -66,7 +63,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateEducation_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -82,7 +78,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreateEducation_FieldsAtMaximumLength_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -103,7 +98,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task CreateEducation_StartDateToday_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -122,7 +116,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreateEducation_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -154,7 +147,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    [Priority(6)]
     public async Task CreateEducation_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -171,7 +163,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task CreateEducation_SeveralItems_ShouldNumberThemInCreationOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -194,7 +185,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task CreateEducation_AfterDeletingTheMiddleItem_ShouldAppendAfterTheLast()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -225,7 +215,6 @@ public class CreateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task CreateEducation_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client

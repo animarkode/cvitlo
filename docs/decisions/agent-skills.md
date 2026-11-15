@@ -186,6 +186,7 @@ not part of this path.
 - Vendored skills keep their upstream name, so `skills update` never renames a dir that `.claude/settings.json` points at. `opentelemetry-net-instrumentation` is the one old exception: its frontmatter says `OpenTelemetry-NET-Instrumentation`.
 - A local edit to a vendored skill is allowed only when it points the skill at this repo. Every one is listed here and must be re-applied after an update. The lock hash covers the local files.
   - `tdd`: the refactor checklist points at `AGENTS.md` and `.agents/rules/backend-patterns.md`.
+  - `tdd`: the good-test sample in `tests.md` follows the test naming rule and has no `[Priority]`.
   - `aspire`: a note under the frontmatter says that `aspire-init` and `aspireify` are not vendored.
 - `aspire-deployment`, `aspire-monitoring` and `aspire-orchestration` were refreshed to `microsoft/aspire-skills` HEAD (2026-11-12) when they joined the lock. The new content adds deployment targets such as Radius. We don't use them, and `aspire-deployment` stays `user-invocable-only`.
 - Known upstream issue: `skill-creator/eval-viewer/generate_review.py` serves `POST /api/feedback` on 127.0.0.1 with no Host or Origin check. A page open in the same browser during an eval review could overwrite that run's `feedback.json`. It is not patched locally, because that would break the lock hash. Report it upstream.

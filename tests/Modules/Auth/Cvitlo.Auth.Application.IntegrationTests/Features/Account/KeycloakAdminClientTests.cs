@@ -11,7 +11,7 @@ public class KeycloakAdminClientTests(WebApp app)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task DeleteUser_ShouldRemoveTheUserAndSucceedAgain()
+    public async Task DeleteUser_ExistingUserDeletedTwice_ShouldRemoveTheUserAndSucceedAgain()
     {
         var user = new TestUserFaker(9137).Generate();
         var id = await app.Keycloak.Admin.CreateUserAsync(user, ct: Ct);

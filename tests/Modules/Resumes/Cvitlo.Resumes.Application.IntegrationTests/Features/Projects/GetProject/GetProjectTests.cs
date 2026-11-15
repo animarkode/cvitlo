@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Projects.GetProject;
 
 [Collection<CollectionResumes>]
-[Priority(61)]
 public class GetProjectTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task GetProject_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -27,7 +25,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task GetProject_ExistingItem_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -52,7 +49,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GetAllProjects_ResumeWithItems_ShouldReturnThem()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -79,7 +75,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GetProject_UnknownProject_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -95,7 +90,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task GetAllProjects_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -110,7 +104,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task GetAllProjects_ResumeWithoutItems_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -127,7 +120,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task GetProject_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -151,7 +143,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task GetAllProjects_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -169,7 +160,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task GetProject_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -188,7 +178,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task GetProject_ItemOfTheCallersOtherResume_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -219,7 +208,6 @@ public class GetProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(10)]
     public async Task GetAllProjects_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client

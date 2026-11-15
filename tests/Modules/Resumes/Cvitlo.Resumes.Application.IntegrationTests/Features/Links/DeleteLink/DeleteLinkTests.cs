@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Links.DeleteLink;
 
 [Collection<CollectionResumes>]
-[Priority(73)]
 public class DeleteLinkTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task DeleteLink_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -27,7 +25,6 @@ public class DeleteLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task DeleteLink_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -56,7 +53,6 @@ public class DeleteLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task DeleteLink_UnknownLink_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -72,7 +68,6 @@ public class DeleteLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task DeleteLink_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -96,7 +91,6 @@ public class DeleteLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task DeleteLink_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndKeepIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -135,7 +129,6 @@ public class DeleteLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task DeleteLink_AlreadyDeleted_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;

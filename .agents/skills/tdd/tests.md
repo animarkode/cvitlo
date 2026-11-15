@@ -7,8 +7,7 @@
 ```csharp
 // GOOD: Tests observable behavior through HTTP
 [Fact]
-[Priority(1)]
-public async Task ValidCreateResume_ShouldReturnOk()
+public async Task CreateResume_ValidRequest_ShouldReturnOk()
 {
     var accessToken = await SignInAsRegisteredUserAsync();
     var request = new CreateResumeRequest("en-us");

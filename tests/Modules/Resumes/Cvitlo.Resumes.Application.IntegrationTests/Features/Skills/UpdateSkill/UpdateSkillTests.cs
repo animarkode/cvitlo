@@ -13,11 +13,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Skills.UpdateSkill;
 
 [Collection<CollectionResumes>]
-[Priority(42)]
 public class UpdateSkillTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateSkill_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -28,7 +26,6 @@ public class UpdateSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateSkill_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -62,7 +59,6 @@ public class UpdateSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateSkill_UnknownSkill_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -79,7 +75,6 @@ public class UpdateSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateSkill_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -105,7 +100,6 @@ public class UpdateSkillTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidUpdateSkillData))]
-    [Priority(4)]
     public async Task UpdateSkill_InvalidField_ShouldReturnBadRequest(
         UpdateSkillRequest invalidRequest,
         string expectedKey)
@@ -131,7 +125,6 @@ public class UpdateSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task UpdateSkill_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
     {
         var ct = TestContext.Current.CancellationToken;

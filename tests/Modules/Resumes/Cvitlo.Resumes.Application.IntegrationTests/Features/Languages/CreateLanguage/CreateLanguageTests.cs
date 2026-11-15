@@ -13,12 +13,10 @@ using Cvitlo.Resumes.Application.Features.Languages.GetAllLanguages;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Languages.CreateLanguage;
 
 [Collection<CollectionResumes>]
-[Priority(50)]
 public class CreateLanguageTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidLanguageData))]
-    [Priority(1)]
     public async Task CreateLanguage_ValidRequest_ShouldReturnTheCreatedItem(CreateLanguageRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -40,7 +38,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateLanguage_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -57,7 +54,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidLanguageData))]
-    [Priority(2)]
     public async Task CreateLanguage_InvalidField_ShouldReturnBadRequest(
         CreateLanguageRequest invalidRequest,
         string expectedKey)
@@ -77,7 +73,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreateLanguage_FieldsAtMaximumLength_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -102,7 +97,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     [InlineData("C1")]
     [InlineData("C2")]
     [InlineData("Native")]
-    [Priority(4)]
     public async Task CreateLanguage_EveryAllowedLevel_ShouldReturnOk(string level)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -120,7 +114,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreateLanguage_NoLevel_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -138,7 +131,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#161: a whitespace-only Level skips the whitelist and is stored; answers 200")]
-    [Priority(6)]
     public async Task CreateLanguage_WhitespaceLevel_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -155,7 +147,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task CreateLanguage_SeveralItems_ShouldNumberThemInCreationOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -178,7 +169,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task CreateLanguage_AfterDeletingTheMiddleItem_ShouldAppendAfterTheLast()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -209,7 +199,6 @@ public class CreateLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task CreateLanguage_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client

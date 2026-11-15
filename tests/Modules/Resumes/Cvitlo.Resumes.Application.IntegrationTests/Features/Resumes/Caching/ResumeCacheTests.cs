@@ -21,11 +21,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.Caching;
 
 [Collection<CollectionResumes>]
-[Priority(90)]
 public class ResumeCacheTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(1)]
     public async Task GetResume_RepeatCall_ShouldServeCachedValue()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -48,7 +46,6 @@ public class ResumeCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GetAllResumes_RepeatCall_ShouldServeCachedValue()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -71,7 +68,6 @@ public class ResumeCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateTitle_AfterCachedRead_ShouldReturnFreshResume()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -96,7 +92,6 @@ public class ResumeCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task UpdateTitle_AfterCachedList_ShouldReturnFreshList()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -121,7 +116,6 @@ public class ResumeCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreateSkill_AfterCachedRead_ShouldInvalidateResumeAndList()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -156,7 +150,6 @@ public class ResumeCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task DeleteExperience_AfterCachedRead_ShouldInvalidateResume()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -191,7 +184,6 @@ public class ResumeCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task DeleteResume_AfterCachedList_ShouldDropItFromList()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -218,7 +210,6 @@ public class ResumeCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task CreateResume_AfterCachedList_ShouldAppearInList()
     {
         var ct = TestContext.Current.CancellationToken;

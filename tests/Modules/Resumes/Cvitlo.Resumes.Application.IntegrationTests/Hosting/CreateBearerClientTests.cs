@@ -7,7 +7,6 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Hosting;
 
 [Collection<CollectionResumes>]
-[Priority(0)]
 public class CreateBearerClientTests(WebApp app) : TestBase
 {
     [Fact]

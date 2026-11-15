@@ -14,12 +14,10 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Persons.CreatePerson;
 
 [Collection<CollectionResumes>]
-[Priority(10)]
 public class CreatePersonTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidPersonData))]
-    [Priority(1)]
     public async Task CreatePerson_ValidRequest_ShouldReturnTheCreatedItem(CreatePersonRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -41,7 +39,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreatePerson_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -58,7 +55,6 @@ public class CreatePersonTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidPersonData))]
-    [Priority(2)]
     public async Task CreatePerson_InvalidField_ShouldReturnBadRequest(
         CreatePersonRequest invalidRequest,
         string expectedKey)
@@ -78,7 +74,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreatePerson_PersonAlreadyExists_ShouldReturnConflict()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -100,7 +95,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task CreatePerson_WithName_ShouldSnapshotFullNameIntoResumeTitle()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -126,7 +120,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreatePerson_WithMaximumLengthNames_ShouldTruncateResumeTitleToItsLimit()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -152,7 +145,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task CreatePerson_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -163,7 +155,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task CreatePerson_AfterDeletingThePerson_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -190,7 +181,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task CreatePerson_DateOfBirthToday_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -208,7 +198,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task CreatePerson_AllFieldsNull_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -227,7 +216,6 @@ public class CreatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(10)]
     public async Task CreatePerson_ValidRequest_ShouldNotLogContactDetails()
     {
         var ct = TestContext.Current.CancellationToken;

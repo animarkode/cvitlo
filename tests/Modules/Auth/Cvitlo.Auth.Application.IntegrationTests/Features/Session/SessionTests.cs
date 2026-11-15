@@ -48,7 +48,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task CookieRequest_NonBearerAuthorizationHeader_StillNeedsTheCsrfHeader()
+    public async Task CookieRequest_NonBearerAuthorizationHeader_ShouldStillNeedTheCsrfHeader()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;

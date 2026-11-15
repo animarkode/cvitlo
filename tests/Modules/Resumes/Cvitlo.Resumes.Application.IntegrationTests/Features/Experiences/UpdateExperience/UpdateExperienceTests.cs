@@ -13,11 +13,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Experiences.UpdateExperience;
 
 [Collection<CollectionResumes>]
-[Priority(32)]
 public class UpdateExperienceTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateExperience_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -28,7 +26,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateExperience_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -64,7 +61,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateExperience_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -82,7 +78,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateExperience_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -111,7 +106,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidUpdateExperienceData))]
-    [Priority(4)]
     public async Task UpdateExperience_InvalidField_ShouldReturnBadRequest(
         UpdateExperienceRequest invalidRequest,
         string expectedKey)
@@ -132,7 +126,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task UpdateExperience_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -173,7 +166,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task UpdateExperience_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -200,7 +192,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task UpdateExperience_UnknownItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -217,7 +208,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    [Priority(8)]
     public async Task UpdateExperience_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -235,7 +225,6 @@ public class UpdateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
-    [Priority(9)]
     public async Task UpdateExperience_FutureStartDate_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;

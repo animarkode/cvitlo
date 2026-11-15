@@ -14,12 +14,10 @@ using Cvitlo.Resumes.Application.Features.Experiences.GetAllExperiences;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Experiences.CreateExperience;
 
 [Collection<CollectionResumes>]
-[Priority(30)]
 public class CreateExperienceTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidExperienceData))]
-    [Priority(1)]
     public async Task CreateExperience_ValidRequest_ShouldReturnTheCreatedItem(CreateExperienceRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -46,7 +44,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateExperience_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -64,7 +61,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidExperienceData))]
-    [Priority(2)]
     public async Task CreateExperience_InvalidField_ShouldReturnBadRequest(
         CreateExperienceRequest invalidRequest,
         string expectedKey)
@@ -84,7 +80,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreateExperience_FieldsAtMaximumLength_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -105,7 +100,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task CreateExperience_StartDateToday_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -124,7 +118,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreateExperience_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -156,7 +149,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    [Priority(6)]
     public async Task CreateExperience_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -173,7 +165,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task CreateExperience_SeveralItems_ShouldNumberThemInCreationOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -196,7 +187,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task CreateExperience_AfterDeletingTheMiddleItem_ShouldAppendAfterTheLast()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -227,7 +217,6 @@ public class CreateExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task CreateExperience_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client

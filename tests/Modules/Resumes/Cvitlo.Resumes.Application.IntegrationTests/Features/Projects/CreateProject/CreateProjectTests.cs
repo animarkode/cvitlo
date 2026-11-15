@@ -13,12 +13,10 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Projects.CreateProject;
 
 [Collection<CollectionResumes>]
-[Priority(60)]
 public class CreateProjectTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidProjectData))]
-    [Priority(1)]
     public async Task CreateProject_ValidRequest_ShouldReturnTheCreatedItem(CreateProjectRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -39,7 +37,6 @@ public class CreateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateProject_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -56,7 +53,6 @@ public class CreateProjectTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidProjectData))]
-    [Priority(2)]
     public async Task CreateProject_InvalidField_ShouldReturnBadRequest(
         CreateProjectRequest invalidRequest,
         string expectedKey)
@@ -76,7 +72,6 @@ public class CreateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreateProject_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -87,7 +82,6 @@ public class CreateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task CreateProject_SeveralItems_ShouldNumberThemInCreationOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -109,7 +103,6 @@ public class CreateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreateProject_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -141,7 +134,6 @@ public class CreateProjectTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#147: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
-    [Priority(6)]
     public async Task CreateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
     {
         var ct = TestContext.Current.CancellationToken;

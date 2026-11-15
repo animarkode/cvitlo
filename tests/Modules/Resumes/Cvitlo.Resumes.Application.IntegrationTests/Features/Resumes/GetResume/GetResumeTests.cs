@@ -11,11 +11,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.GetResume;
 
 [Collection<CollectionResumes>]
-[Priority(2)]
 public class GetResumeTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task GetResume_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -26,8 +24,7 @@ public class GetResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
-    public async Task GetResume_ShouldReturnCreatedResume()
+    public async Task GetResume_ExistingResume_ShouldReturnResume()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -50,7 +47,6 @@ public class GetResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GetResume_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -66,7 +62,6 @@ public class GetResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GetResume_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Persons.GetPerson;
 
 [Collection<CollectionResumes>]
-[Priority(11)]
 public class GetPersonTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task GetPerson_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -27,7 +25,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task GetPerson_ExistingItem_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -51,7 +48,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GetPersonByResume_ResumeWithPerson_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -75,7 +71,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GetPerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -91,7 +86,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task GetPersonByResume_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -106,7 +100,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task GetPerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -130,7 +123,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task GetPersonByResume_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -154,7 +146,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task GetPerson_OwnResumeWithAnotherUsersPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -173,7 +164,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task GetPersonByResume_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -184,7 +174,6 @@ public class GetPersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task GetPersonByResume_ResumeWithoutPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;

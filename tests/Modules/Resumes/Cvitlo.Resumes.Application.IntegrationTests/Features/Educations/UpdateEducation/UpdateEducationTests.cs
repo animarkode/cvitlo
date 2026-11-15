@@ -13,11 +13,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Educations.UpdateEducation;
 
 [Collection<CollectionResumes>]
-[Priority(22)]
 public class UpdateEducationTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateEducation_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -28,7 +26,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateEducation_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -63,7 +60,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateEducation_UnknownItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -81,7 +77,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateEducation_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -109,7 +104,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidUpdateEducationData))]
-    [Priority(4)]
     public async Task UpdateEducation_InvalidField_ShouldReturnBadRequest(
         UpdateEducationRequest invalidRequest,
         string expectedKey)
@@ -130,7 +124,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task UpdateEducation_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -170,7 +163,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task UpdateEducation_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -197,7 +189,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    [Priority(7)]
     public async Task UpdateEducation_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -215,7 +206,6 @@ public class UpdateEducationTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
-    [Priority(8)]
     public async Task UpdateEducation_FutureStartDate_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;

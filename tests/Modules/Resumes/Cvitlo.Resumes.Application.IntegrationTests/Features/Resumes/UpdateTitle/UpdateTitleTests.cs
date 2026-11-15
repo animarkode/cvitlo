@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.UpdateTitle;
 
 [Collection<CollectionResumes>]
-[Priority(8)]
 public class UpdateTitleTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateTitle_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -27,7 +25,6 @@ public class UpdateTitleTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateTitle_ValidRequest_ShouldModifyTitle()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -50,7 +47,6 @@ public class UpdateTitleTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateTitle_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -65,7 +61,6 @@ public class UpdateTitleTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateTitle_101Characters_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -83,7 +78,6 @@ public class UpdateTitleTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task UpdateTitle_WhitespaceTitle_ShouldPersistAsEmptyString()
     {
         var ct = TestContext.Current.CancellationToken;

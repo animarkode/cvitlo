@@ -13,11 +13,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Links.UpdateLink;
 
 [Collection<CollectionResumes>]
-[Priority(72)]
 public class UpdateLinkTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateLink_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -28,7 +26,6 @@ public class UpdateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateLink_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -62,7 +59,6 @@ public class UpdateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateLink_UnknownLink_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -79,7 +75,6 @@ public class UpdateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateLink_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -106,7 +101,6 @@ public class UpdateLinkTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidUpdateLinkData))]
-    [Priority(4)]
     public async Task UpdateLink_InvalidField_ShouldReturnBadRequest(
         UpdateLinkRequest invalidRequest,
         string expectedKey)
@@ -132,7 +126,6 @@ public class UpdateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task UpdateLink_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
     {
         var ct = TestContext.Current.CancellationToken;

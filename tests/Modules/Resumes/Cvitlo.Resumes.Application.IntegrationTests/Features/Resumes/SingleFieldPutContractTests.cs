@@ -11,7 +11,6 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes;
 
 [Collection<CollectionResumes>]
-[Priority(9)]
 public class SingleFieldPutContractTests(WebApp app) : TestBase
 {
     private const string KnownValue = "known";

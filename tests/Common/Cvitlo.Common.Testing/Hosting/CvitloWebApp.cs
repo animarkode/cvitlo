@@ -67,6 +67,19 @@ public abstract class CvitloWebApp : AppFixture<Program>
         return tokens["access_token"]!.GetValue<string>();
     }
 
+    /// <summary>
+    /// Registers a user no other test knows and returns its access token. For tests that change
+    /// account-wide state: deletion, session counts, per-user rate-limit budgets.
+    /// </summary>
+    public async Task<string> SignInNewUserAsync(CancellationToken ct = default)
+    {
+        // A random seed, not a caller's constant: two tests can never pick the same account.
+        var user = new TestUserFaker(System.Security.Cryptography.RandomNumberGenerator.GetInt32(int.MaxValue)).Generate();
+        await Keycloak.Admin.CreateUserAsync(user, ct: ct);
+
+        return await GetAccessTokenAsync(user, ct);
+    }
+
     /// <summary>Runs after Keycloak starts and before the schemas are migrated and users seeded.</summary>
     protected virtual Task OnKeycloakStartedAsync(CancellationToken ct) => Task.CompletedTask;
 

@@ -72,7 +72,15 @@ Features/{Feature}/
 
 ## Tests
 
-**Test class pattern:** `[Collection<CollectionResumes>] [Priority(N)] public class {Feature}Tests(WebApp app) : TestBase`
+**Test class pattern:** `[Collection<CollectionResumes>] public class {Feature}Tests(WebApp app) : TestBase`
+
+**Order independence:** every test passes alone and in any order.
+- A test creates everything it needs (resume, items) and asserts only on what it created; one flow is one test.
+- No `[Priority]` and no `EnableAdvancedTesting`.
+- Never change `app.Client` headers: use `WithAuthToken` or `CreateBearerClientAsync`, which return a new client.
+- A test that changes account-wide state (deletion, session counts, per-user rate limits) signs in a fresh user with `app.SignInNewUserAsync(ct)`.
+- Rate-limit tests give each test its own client IP through `TestClientIpStartupFilter`.
+- `Cvitlo.ArchitectureTests.TestNamingTests` enforces the naming below.
 
 **Test naming:**
 - **Class:** `{Subject}Tests`, where the subject is what is tested: a feature, a production class, a behaviour, or a configuration (`UpdateSkillTests`, `ResumesCacheKeysTests`, `SessionResilienceTests`, `RealmSecurityTests`).
