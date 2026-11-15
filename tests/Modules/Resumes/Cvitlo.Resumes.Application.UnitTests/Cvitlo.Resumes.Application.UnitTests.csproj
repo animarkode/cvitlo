@@ -23,6 +23,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Application\Cvitlo.Resumes.Application.csproj"/>
+        <!-- Test-only: renders mapped resumes through the real template. -->
+        <ProjectReference Include="..\..\..\..\src\api\Modules\Documents\Cvitlo.Documents.Application\Cvitlo.Documents.Application.csproj"/>
     </ItemGroup>
 
 </Project>
