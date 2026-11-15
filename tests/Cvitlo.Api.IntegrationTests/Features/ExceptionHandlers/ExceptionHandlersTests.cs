@@ -8,7 +8,6 @@ namespace Cvitlo.Api.IntegrationTests.Features.ExceptionHandlers;
 // IP octets 194-199 reserved for this class: every request here is anonymous and spends the
 // global anonymous budget of its client IP.
 [Collection<CollectionRateLimiting>]
-[Priority(19)]
 public class ExceptionHandlersTests(WebApp app) : TestBase
 {
     private async Task<(HttpResponseMessage Response, string Body)> ThrowAsync(string kind, string clientIp)

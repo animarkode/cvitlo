@@ -14,12 +14,10 @@ using Cvitlo.Resumes.Application.Features.Courses.GetAllCourses;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Courses.CreateCourse;
 
 [Collection<CollectionResumes>]
-[Priority(60)]
 public class CreateCourseTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidCourseData))]
-    [Priority(1)]
     public async Task CreateCourse_ValidRequest_ShouldReturnTheCreatedItem(CreateCourseRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -44,7 +42,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateCourse_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -61,7 +58,6 @@ public class CreateCourseTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidCourseData))]
-    [Priority(2)]
     public async Task CreateCourse_InvalidField_ShouldReturnBadRequest(
         CreateCourseRequest invalidRequest,
         string expectedKey)
@@ -81,7 +77,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreateCourse_FieldsAtMaximumLength_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -101,7 +96,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task CreateCourse_StartDateToday_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -120,7 +114,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreateCourse_UnsafeDescription_ShouldStoreSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -152,7 +145,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    [Priority(6)]
     public async Task CreateCourse_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -169,7 +161,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task CreateCourse_SeveralItems_ShouldNumberThemInCreationOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -192,7 +183,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task CreateCourse_AfterDeletingTheMiddleItem_ShouldAppendAfterTheLast()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -223,7 +213,6 @@ public class CreateCourseTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task CreateCourse_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client

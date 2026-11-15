@@ -1,4 +1,3 @@
-using Cvitlo.Api.IntegrationTests.Features.RateLimiting.Data;
 using Cvitlo.Common.Testing.Hosting;
 using Cvitlo.Documents.PublicApi;
 using Microsoft.AspNetCore.Hosting;
@@ -8,16 +7,6 @@ namespace Cvitlo.Api.IntegrationTests;
 
 public class WebApp : CvitloWebApp
 {
-    protected override async Task SeedUsersAsync(CancellationToken ct)
-    {
-        await base.SeedUsersAsync(ct);
-
-        foreach (var user in RateLimitingUsersData.Generate())
-        {
-            await Keycloak.Admin.CreateUserAsync(user, ct: ct);
-        }
-    }
-
     protected override void ConfigureApp(IWebHostBuilder builder)
     {
         base.ConfigureApp(builder);

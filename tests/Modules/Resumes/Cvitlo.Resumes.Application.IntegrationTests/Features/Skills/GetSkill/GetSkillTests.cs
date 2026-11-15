@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Skills.GetSkill;
 
 [Collection<CollectionResumes>]
-[Priority(41)]
 public class GetSkillTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task GetSkill_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -27,7 +25,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task GetSkill_ExistingItem_ShouldReturnIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -52,7 +49,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GetAllSkills_ResumeWithItems_ShouldReturnThem()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -79,7 +75,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GetSkill_UnknownSkill_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -95,7 +90,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task GetAllSkills_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -110,7 +104,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task GetAllSkills_ResumeWithoutItems_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -127,7 +120,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task GetSkill_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -151,7 +143,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task GetAllSkills_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -169,7 +160,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task GetSkill_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -188,7 +178,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task GetSkill_ItemOfTheCallersOtherResume_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -219,7 +208,6 @@ public class GetSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(10)]
     public async Task GetAllSkills_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client

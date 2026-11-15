@@ -1,5 +1,4 @@
 using System.Net;
-using Cvitlo.Common.Testing.Data;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints.Testing;
 using Shouldly;
@@ -7,9 +6,8 @@ using static Cvitlo.Api.IntegrationTests.Features.RateLimiting.RateLimitingTestC
 
 namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
-// IP octets 180-187 and RegisteredUsersData indices 3-4 are reserved for this class.
+// IP octets 180-187 are reserved for this class.
 [Collection<CollectionRateLimiting>]
-[Priority(17)]
 public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
 {
     private HttpClient CreateClientWithIp(string ip)
@@ -18,14 +16,6 @@ public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
         client.DefaultRequestHeaders.Add(TestClientIpStartupFilter.HeaderName, ip);
 
         return client;
-    }
-
-    private async Task<string> SignInAsync(int userIndex)
-    {
-        var user = RegisteredUsersData.Generate()[userIndex];
-        var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
-
-        return tokens["access_token"]!.GetValue<string>();
     }
 
     private static async Task<HttpResponseMessage> PostBackchannelLogoutAsync(HttpClient client)
@@ -101,7 +91,7 @@ public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task Login_IpBudgetSpentThenBearerTokenAdded_ShouldReturn429()
     {
-        var token = await SignInAsync(3);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
         using var client = CreateClientWithIp("203.0.113.183");
 
         for (var i = 0; i < AuthExternalPermitLimit; i++)
@@ -118,7 +108,7 @@ public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task Logout_IpBudgetSpentThenBearerTokenAdded_ShouldReturn429()
     {
-        var token = await SignInAsync(4);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
         using var client = CreateClientWithIp("203.0.113.184");
 
         for (var i = 0; i < AuthSessionPermitLimit; i++)

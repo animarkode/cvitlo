@@ -13,11 +13,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Projects.UpdateProject;
 
 [Collection<CollectionResumes>]
-[Priority(62)]
 public class UpdateProjectTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateProject_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -28,7 +26,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateProject_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -69,7 +66,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateProject_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -94,7 +90,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateProject_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -129,7 +124,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidUpdateProjectData))]
-    [Priority(4)]
     public async Task UpdateProject_InvalidField_ShouldReturnBadRequest(
         UpdateProjectRequest invalidRequest,
         string expectedKey)
@@ -155,7 +149,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task UpdateProject_WithUnsafeDescription_ShouldPersistSanitizedHtml()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -195,7 +188,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task UpdateProject_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndChangeNothing()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -222,7 +214,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task UpdateProject_UnknownProject_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -248,7 +239,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#147: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
-    [Priority(8)]
     public async Task UpdateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -267,7 +257,6 @@ public class UpdateProjectTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#149: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]
-    [Priority(9)]
     public async Task UpdateProject_FutureStartDate_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;

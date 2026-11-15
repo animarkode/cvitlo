@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Experiences.DeleteExperience;
 
 [Collection<CollectionResumes>]
-[Priority(33)]
 public class DeleteExperienceTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task DeleteExperience_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -27,7 +25,6 @@ public class DeleteExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task DeleteExperience_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -57,7 +54,6 @@ public class DeleteExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task DeleteExperience_UnknownExperience_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -73,7 +69,6 @@ public class DeleteExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task DeleteExperience_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -98,7 +93,6 @@ public class DeleteExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task DeleteExperience_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndKeepIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -124,7 +118,6 @@ public class DeleteExperienceTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task DeleteExperience_AlreadyDeleted_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;

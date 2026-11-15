@@ -17,13 +17,13 @@ internal static class ProjectGraph
 
     // Only "Cvitlo.*" projects count: stale local directories of the old name are not part of the repo.
     private static IEnumerable<string> ProjectFiles() =>
-        Directory.EnumerateFiles(Path.Combine(FindRepositoryRoot(), "src", "api"), "Cvitlo.*.csproj", SearchOption.AllDirectories)
+        Directory.EnumerateFiles(Path.Combine(RepositoryRoot.Path, "src", "api"), "Cvitlo.*.csproj", SearchOption.AllDirectories)
             .Where(file => !IsBuildOutput(file));
 
     // Explicit AssemblyName values in a project or any Directory.Build.props above it.
     public static IReadOnlyList<(string Project, string AssemblyName)> AssemblyNameOverrides()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryRoot.Path;
         return ProjectFiles()
             .SelectMany(file => ScopeFiles(root, file)
                 .SelectMany(scope => XDocument.Load(scope).Descendants()
@@ -76,8 +76,8 @@ internal static class ProjectGraph
 
     private static IEnumerable<string> PropsFiles()
     {
-        var apiDirectory = Path.Combine(FindRepositoryRoot(), "src", "api");
-        var inherited = new[] { FindRepositoryRoot(), Path.Combine(FindRepositoryRoot(), "src"), apiDirectory }
+        var apiDirectory = Path.Combine(RepositoryRoot.Path, "src", "api");
+        var inherited = new[] { RepositoryRoot.Path, Path.Combine(RepositoryRoot.Path, "src"), apiDirectory }
             .SelectMany(dir => new[] { "Directory.Build.props", "Directory.Build.targets" }.Select(name => Path.Combine(dir, name)))
             .Where(File.Exists);
         var local = new[] { "*.props", "*.targets" }
@@ -91,16 +91,4 @@ internal static class ProjectGraph
         file.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj");
 
     private static string NameOf(string path) => Path.GetFileNameWithoutExtension(path.Replace('\\', '/'));
-
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Cvitlo.sln")))
-        {
-            directory = directory.Parent;
-        }
-
-        return directory?.FullName
-            ?? throw new InvalidOperationException("Cvitlo.sln was not found above " + AppContext.BaseDirectory);
-    }
 }

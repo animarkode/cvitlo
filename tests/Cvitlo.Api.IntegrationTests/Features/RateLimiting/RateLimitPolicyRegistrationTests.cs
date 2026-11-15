@@ -16,7 +16,6 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 // opt into it via RequireRateLimiting, and the app only discovers the gap at request time in
 // production instead of in CI.
 [Collection<CollectionRateLimiting>]
-[Priority(15)]
 public class RateLimitPolicyRegistrationTests(WebApp app) : TestBase
 {
     private static readonly HashSet<string> DeclaredPolicyNames = typeof(RateLimitPolicies)
@@ -26,7 +25,6 @@ public class RateLimitPolicyRegistrationTests(WebApp app) : TestBase
         .ToHashSet(StringComparer.Ordinal);
 
     [Fact]
-    [Priority(1)]
     public void EveryRateLimitPolicyConstant_ShouldBeRegisteredByAddCvitloRateLimiting()
     {
         DeclaredPolicyNames.ShouldNotBeEmpty();

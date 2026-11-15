@@ -17,11 +17,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Persons.UpdatePerson;
 
 [Collection<CollectionResumes>]
-[Priority(12)]
 public class UpdatePersonTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdatePerson_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -32,7 +30,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdatePerson_ValidRequest_ShouldModifyFields()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -79,7 +76,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdatePerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -99,7 +95,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdatePerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -128,7 +123,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidUpdatePersonData))]
-    [Priority(4)]
     public async Task UpdatePerson_InvalidField_ShouldReturnBadRequest(
         UpdatePersonRequest invalidRequest,
         string expectedKey)
@@ -153,7 +147,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task UpdatePerson_FirstNameSetWhileTitleIsEmpty_ShouldSnapshotFullNameIntoResumeTitle()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -199,7 +192,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task UpdatePerson_NameChangedAfterTitleSnapshot_ShouldLeaveResumeTitleUnchanged()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -251,7 +243,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task UpdatePerson_ManualTitleSet_ShouldLeaveManualTitleUnchanged()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -297,7 +288,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task UpdatePerson_BlankNames_ShouldLeaveResumeTitleNull()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -343,7 +333,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task UpdatePerson_OwnResumeWithAnotherUsersPerson_ShouldReturnNotFoundAndChangeNothing()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -373,7 +362,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(10)]
     public async Task UpdatePerson_FieldsAtMaximumLength_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -404,7 +392,6 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(11)]
     public async Task UpdatePerson_ValidRequest_ShouldNotLogContactDetails()
     {
         var ct = TestContext.Current.CancellationToken;

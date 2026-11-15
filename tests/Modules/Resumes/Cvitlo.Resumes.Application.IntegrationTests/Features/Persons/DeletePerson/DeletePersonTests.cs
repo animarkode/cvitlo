@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Persons.DeletePerson;
 
 [Collection<CollectionResumes>]
-[Priority(13)]
 public class DeletePersonTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task DeletePerson_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -27,7 +25,6 @@ public class DeletePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task DeletePerson_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -56,7 +53,6 @@ public class DeletePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task DeletePerson_UnknownPerson_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -72,7 +68,6 @@ public class DeletePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task DeletePerson_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -96,7 +91,6 @@ public class DeletePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task DeletePerson_OwnResumeWithAnotherUsersPerson_ShouldReturnNotFoundAndKeepIt()
     {
         var ct = TestContext.Current.CancellationToken;
