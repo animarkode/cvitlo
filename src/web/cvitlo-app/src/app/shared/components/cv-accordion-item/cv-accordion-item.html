@@ -54,8 +54,7 @@
   role="region"
   [attr.aria-labelledby]="triggerId">
   <div class="overflow-hidden">
-    <!-- #425 — a list entry nests two of these bodies, so px-5 was charged
-         twice (80px) on a phone. Below md each level pays px-3 instead. -->
+    <!-- A list entry nests two of these bodies, so each level pays px-3 below md instead of px-5. -->
     <div class="pt-3 px-5 max-md:px-3 pb-5">
       <ng-content />
     </div>

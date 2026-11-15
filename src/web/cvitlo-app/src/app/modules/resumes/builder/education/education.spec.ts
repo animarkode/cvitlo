@@ -47,9 +47,8 @@ describe('Education', () => {
     const rows = Array.from(
       fixture.nativeElement.querySelectorAll('form > div.grid'),
     ) as HTMLElement[];
-    // Two grid rows per entry: the text pair, then the date/city row. The date
-    // row uses a smaller track than the text row so Start/End date pair up at
-    // a narrower width than School/Degree do — dates need far less room.
+    // Two grid rows per entry; the date row uses a smaller track so the dates pair up
+    // at a narrower width than the text pair.
     expect(rows.length).toBe(seed.length * 2);
 
     const textRows = rows.filter((_, i) => i % 2 === 0);
@@ -62,8 +61,7 @@ describe('Education', () => {
       expect(row.classList.contains('grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]')).toBe(true);
     }
 
-    // The old fixed-column classes ignored the form's own rendered width;
-    // none of them should remain.
+    // Fixed-column classes ignore the form's own rendered width.
     for (const row of rows) {
       expect(row.classList.contains('grid-cols-2')).toBe(false);
       expect(row.classList.contains('grid-cols-3')).toBe(false);
@@ -76,9 +74,7 @@ describe('Education', () => {
     ).filter((_, i) => i % 2 === 1) as HTMLElement[];
 
     for (const row of dateRows) {
-      // Scoped to this row so the [300px, 456px) range below matches its own
-      // width — the window where auto-fit gives exactly 2 columns, leaving
-      // City alone in row 2 with an empty second track beside it otherwise.
+      // Scoped to this row so [300px, 456px) (exactly 2 columns) matches its own width.
       expect(row.classList.contains('@container')).toBe(true);
 
       const city = row.querySelector('[formControlName="city"]') as HTMLElement;

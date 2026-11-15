@@ -7,12 +7,8 @@ import {
   type TokenMap,
 } from './contrast';
 
-/**
- * Contrast guard for the dual-use status colours. The status fill tokens
- * (`--color-{status}`) stay tuned for white-on-fill backgrounds (the solid
- * destructive button); the `-text` tokens are tuned for AA as text on neutral
- * surfaces. This spec is the gate that keeps both true in light AND dark mode.
- */
+// The status fill tokens stay tuned for white-on-fill; the `-text` tokens for AA as text on neutral
+// surfaces. Both must hold in light and dark mode.
 
 const stylesCss = readFileSync(`${process.cwd()}/src/styles.css`, 'utf8');
 const { light, dark } = parseColorTokens(stylesCss);
@@ -72,11 +68,7 @@ describe('status colour contrast (WCAG AA)', () => {
   });
 });
 
-/**
- * #369 gray surface audit — every adjacent surface level must be visually
- * distinct WITHOUT shadows. 1.15 is the measured floor of the chosen ramp;
- * anything below reads as "same gray" on real displays.
- */
+// Adjacent surface levels must be distinct without shadows; 1.15 is the measured floor of the ramp.
 const SURFACE_SEPARATION_MIN = 1.15;
 
 describe('gray surface ramp separation (#369)', () => {
@@ -134,13 +126,8 @@ describe('surface icon-button contrast (#479)', () => {
   });
 });
 
-/**
- * #370 dark-mode button contrast — the soft-destructive / default cv-button
- * fills must not collapse into the same gray. Alpha fills are banned in
- * cv-button; these opaque per-theme tokens are the replacement. The chroma
- * floor is what keeps Delete visibly red next to Edit's gray bg-muted —
- * luminance ratio cannot capture red-vs-gray at equal lightness.
- */
+// Alpha fills are banned in cv-button, so the opaque per-theme tokens must not collapse into one gray.
+// The chroma floor keeps Delete red next to Edit's gray, which a luminance ratio cannot capture.
 function oklchChroma(value: string): number {
   const match = /oklch\(\s*[\d.]+%\s+([\d.]+)\s+[\d.]+\s*\)/i.exec(value);
   expect(match, `"${value}" should be an opaque oklch() value`).not.toBeNull();
@@ -231,14 +218,8 @@ describe('about-page GitHub button (#370)', () => {
   });
 });
 
-/**
- * #407 builder Add button — the hover fill is theme-split on purpose: light
- * keeps its original `--color-primary/10` wash, dark takes the solid accent.
- *
- * `--color-primary` (oklch 78.4%) sits *between* the light card (98.5%) and the
- * dark card (31%), so no single treatment reads the same on both: light stays
- * translucent at /38, dark goes solid.
- */
+// The hover fill is theme-split: light stays translucent (/38), dark goes solid, because
+// `--color-primary` (oklch 78.4%) sits between the light card (98.5%) and the dark card (31%).
 describe('Add button hover fill (#407)', () => {
   // Keep in step with the class list in `orderable-list.html`.
   const LIGHT_WASH_ALPHA = 0.38;
@@ -251,7 +232,6 @@ describe('Add button hover fill (#407)', () => {
     composite(color(light, '--color-primary'), LIGHT_WASH_ALPHA, color(light, '--color-card'));
 
   it('light: the wash separates from the card', () => {
-    // This is the assertion the original /10 (1.07) would have failed.
     expect(contrastRatio(lightWash(), color(light, '--color-card'))).toBeGreaterThanOrEqual(
       SEPARATION_FLOOR,
     );
@@ -299,18 +279,8 @@ describe('Add button hover fill (#407)', () => {
   });
 });
 
-/**
- * #405 section-rail icon chip — `--color-lavender` is the 42px chip behind each
- * section icon in `cv-accordion-item`, sitting on the editor pane's `bg-card`.
- *
- * The chip is a neutral surface, NOT an accent, and it carries the same fill as
- * the chevron's hover state sitting beside it in the same row. Light mode
- * already does this — `#E8EBF4` measures 1.03 against `--color-muted` — and
- * dark matches the token exactly. The dark ramp is a strictly achromatic gray
- * scale (background/card/muted/surface/line all sit at chroma 0), so a
- * high-chroma dark value reads as a foreign blue tile rather than a chip, which
- * is the regression these assertions exist to prevent.
- */
+// The chip is a neutral surface, not an accent: it shares the fill of the chevron hover beside it.
+// The dark ramp is strictly achromatic, so a high-chroma value reads as a foreign blue tile.
 describe('section-rail icon chip (#405)', () => {
   describe.each(MODES)('$name mode', ({ name, tokens }) => {
     it('foreground (the lucide icon) meets AA on lavender', () => {

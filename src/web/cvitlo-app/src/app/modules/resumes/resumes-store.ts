@@ -33,44 +33,24 @@ import { isRateLimited, retryOnRateLimit } from '../../shared/utils/rate-limit';
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 export type SyncErrorKind = 'save' | 'preview' | null;
 
-/**
- * Where the preview pipeline stands: `'generating'` while the current persisted revision is
- * being produced or painted, `'ready'` only after PDF.js promotes that frame, and `'unavailable'`
- * when the last attempt failed or the preview pane was turned off.
- */
+// 'ready' only after PDF.js promotes the frame; 'unavailable' also covers the pane being off.
 export type PreviewStatus = 'generating' | 'ready' | 'unavailable';
 
-/**
- * How a store notice should read to the user: `'warning'` for a throttled request the user can
- * recover from by pausing, `'error'` for a genuine failure. Maps onto `CvToast`'s variant.
- */
 export type NoticeVariant = 'error' | 'warning';
 
-/** Direction of a bulk open/close request aimed at every accordion section in the editor. */
 export type SectionBulkAction = 'expand' | 'collapse';
 
-/**
- * One bulk open/close request. Carried as an object rather than a bare string so that every
- * call allocates a fresh value: two identical requests in a row (expand → the user closes a
- * section by hand → expand again) stay two distinct signal values, and the `effect()` in
- * `SectionList` that applies them re-runs for both.
- */
+// An object rather than a bare string so every call is a fresh signal value: two identical
+// requests in a row (expand, close by hand, expand) still re-run the effect in `SectionList`.
 export interface SectionBulkRequest {
   readonly action: SectionBulkAction;
 }
 
-/**
- * Shown when a request was still throttled after `retryOnRateLimit` exhausted its retries —
- * the user is editing faster than the server's rate limit allows, and the fix is to pause,
- * not to report a broken app.
- */
+// Shown when a request is still throttled after the retries: the fix is to pause, not a bug.
 const RATE_LIMIT_MESSAGE = 'Too many requests — slow down for a moment and try again.';
 
-/**
- * One completed server round-trip reduced to a value. `guarded` uses this so a failure travels
- * as data rather than as an error notification — an error surfacing in one of the store's
- * long-lived pipes would unsubscribe it for the rest of the page's life.
- */
+// A failure travels as data: an error surfacing in a long-lived pipe would unsubscribe it
+// for the rest of the page's life.
 type SaveOutcome<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: unknown };
@@ -135,7 +115,7 @@ export class ResumesStore {
   // in-flight state. Different keys may still save concurrently.
   private readonly inFlightSaveKeys = signal<ReadonlySet<string>>(new Set());
   // Sticky per key: a failure is only cleared by a later *success of that same key*, never by
-  // an unrelated key succeeding (§3.2/§3.3 — see `saveStatus` below).
+  // an unrelated key succeeding.
   private readonly failedSaveKeys = signal<ReadonlySet<string>>(new Set());
   private readonly requestedSectionSignal = signal<string | null>(null);
   private readonly requestedAllSectionsSignal = signal<SectionBulkRequest | null>(null);
@@ -153,8 +133,7 @@ export class ResumesStore {
   readonly previewStatus = this.previewStatusSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
   readonly noticeVariant = this.noticeVariantSignal.asReadonly();
-  // Derived, not written directly, so there is exactly one place that decides the status —
-  // see the priority order in the comment above the computation below.
+  // Derived so one place decides the status; the checks run in priority order.
   readonly saveStatus = computed<SaveStatus>(() => {
     if (this.failedSaveKeys().size > 0) return 'error';
     if (
@@ -183,7 +162,6 @@ export class ResumesStore {
   readonly hasRenderedPreview = computed(() => this.renderedPreviewRevisionSignal() >= 0);
   readonly requestedSection = this.requestedSectionSignal.asReadonly();
   readonly requestedAllSections = this.requestedAllSectionsSignal.asReadonly();
-  /** True while an on-demand PDF request is in flight — no preview blob was cached. */
   readonly isDownloading = this.downloadingSignal.asReadonly();
   readonly canDownload = computed(() =>
     Boolean(this.state())
@@ -273,7 +251,6 @@ export class ResumesStore {
     this.requestedSectionSignal.set(id);
   }
 
-  /** Asks every editor section to open (`'expand'`) or close (`'collapse'`) in one action. */
   requestAllSections(action: SectionBulkAction): void {
     this.requestedAllSectionsSignal.set({ action });
   }
@@ -307,7 +284,6 @@ export class ResumesStore {
     this.startPreviewGeneration(this.persistedRevisionSignal());
   }
 
-  /** Marks an API-produced document as the revision that is actually visible to the user. */
   confirmPreviewRendered(revision: number, generation: number): void {
     if (
       !this.previewEnabledSignal()
@@ -328,7 +304,6 @@ export class ResumesStore {
     }
   }
 
-  /** Routes a PDF.js parse/render failure into the same synchronization state as generation. */
   reportPreviewRenderFailure(revision: number, generation: number, error: unknown): void {
     if (
       !this.previewEnabledSignal()
@@ -343,12 +318,8 @@ export class ResumesStore {
     this.previewStatusSignal.set('unavailable');
   }
 
-  /**
-   * Saves the resume as a PDF. The cached preview blob is used when one exists;
-   * otherwise the server renders one on demand. The preview blob is null whenever
-   * the preview pane is off (every narrow screen, #425), so a cache-only download
-   * made the app's primary output unreachable on a phone.
-   */
+  // The preview blob is null whenever the pane is off (every narrow screen), so without
+  // the on-demand server render the download would be unreachable on a phone.
   downloadPdf(): void {
     const resume = this.state();
     if (!resume || !this.canDownload() || this.downloadingSignal()) {
@@ -387,12 +358,8 @@ export class ResumesStore {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    // Revoking right after click() races the browser's own read of the blob: this
-    // is now the only download path on mobile (#425), where the click can still be
-    // queued to start reading the blob asynchronously — revoking before that read
-    // begins silently kills the download with no error surfaced anywhere. A 0ms
-    // timeout defers the revoke to the next macrotask, after the browser has had a
-    // turn to start reading. Do NOT "simplify" this back to a synchronous revoke.
+    // A synchronous revoke races the browser's read of the blob and silently kills the
+    // download on mobile; the 0ms timeout defers it past that read. Do not simplify.
     setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
@@ -740,7 +707,6 @@ export class ResumesStore {
     );
   }
 
-  // Education
   addEducation(): void {
     const resume = this.state();
     if (!resume) return;
@@ -803,7 +769,6 @@ export class ResumesStore {
     );
   }
 
-  // Experience
   addExperience(): void {
     const resume = this.state();
     if (!resume) return;
@@ -866,7 +831,6 @@ export class ResumesStore {
     );
   }
 
-  // Skills
   addSkill(): void {
     const resume = this.state();
     if (!resume) return;
@@ -928,7 +892,6 @@ export class ResumesStore {
     );
   }
 
-  // Languages
   addLanguage(): void {
     const resume = this.state();
     if (!resume) return;
@@ -990,7 +953,6 @@ export class ResumesStore {
     );
   }
 
-  // Links
   addLink(): void {
     const resume = this.state();
     if (!resume) return;
@@ -1052,7 +1014,6 @@ export class ResumesStore {
     );
   }
 
-  // Courses
   addCourse(): void {
     const resume = this.state();
     if (!resume) return;
@@ -1115,7 +1076,6 @@ export class ResumesStore {
     );
   }
 
-  // Projects
   // Project endpoints return the created resource only for POST. For the 204
   // mutations, apply the server-confirmed request only after it succeeds.
   addProject(): void {

@@ -42,11 +42,7 @@ const SECTION_LINKS: readonly AccountSectionLink[] = [
   { path: ACCOUNT_SECTIONS.linkedAccounts, label: 'Linked accounts', icon: 'link' },
 ];
 
-/**
- * The person's account settings: who they are, a side menu of sections, and the open section. Keycloak is only
- * visited for the steps that need its own pages (password, passkeys, 2FA, e-mail, linking, signing in again before deletion), and returns
- * to the section the step belongs to with `?action=…&status=…`.
- */
+// Keycloak is visited only for steps that need its own pages; it returns to the section with `?action=…&status=…`.
 @Component({
   selector: 'app-account',
   imports: [RouterLink, RouterLinkActive, RouterOutlet, LucideAngularModule, CvButton, CvInitials],

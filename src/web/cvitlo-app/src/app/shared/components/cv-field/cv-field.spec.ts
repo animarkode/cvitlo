@@ -29,8 +29,6 @@ describe('CvField', () => {
     host = hostFixture.componentInstance;
   });
 
-  // --- Rendering ---
-
   it('should create', () => {
     expect(hostFixture.componentInstance).toBeTruthy();
   });
@@ -71,8 +69,6 @@ describe('CvField', () => {
     expect(input.type).toBe('email');
   });
 
-  // --- CVA: value binding ---
-
   it('should display value set via writeValue', async () => {
     host.ctrl.setValue('Frontend Developer');
     hostFixture.detectChanges();
@@ -106,8 +102,6 @@ describe('CvField', () => {
     expect(input.disabled).toBe(true);
   });
 
-  // --- Focus state ---
-
   it('should highlight the label on focus and revert on blur', async () => {
     hostFixture.detectChanges();
     const input = hostFixture.nativeElement.querySelector('input') as HTMLInputElement;
@@ -123,8 +117,6 @@ describe('CvField', () => {
     await hostFixture.whenStable();
     expect(label.classList.contains('text-muted-foreground')).toBe(true);
   });
-
-  // --- Hint ---
 
   it('should not render hint or aria-describedby when hint is empty', () => {
     hostFixture.detectChanges();

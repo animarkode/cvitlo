@@ -1,4 +1,4 @@
-/** The Keycloak flows the API can send the browser to; each returns to `/account?action={name}&status=…`. */
+// Each flow returns to `/account?action={name}&status=…`.
 export type AccountAction =
   | 'password'
   | 'passkey'

@@ -72,9 +72,7 @@ describe('dateRangeValidator', () => {
     const group = makeGroup('2024-06-01', '2023-01-01');
     const endCtrl = group.get('endDate')!;
 
-    // Add another error to the end control
     endCtrl.setErrors({ ...(endCtrl.errors ?? {}), required: true });
-    // Re-run group validators
     group.updateValueAndValidity();
 
     expect(endCtrl.hasError('endBeforeStart')).toBe(true);

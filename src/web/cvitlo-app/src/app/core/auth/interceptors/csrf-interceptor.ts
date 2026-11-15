@@ -5,13 +5,10 @@ import { AuthStore } from '../auth-store';
 import { API_ROUTES } from '../../routes/api-routes';
 import { environment } from '../../../../environments/environment';
 
-/** The header the API requires on every cookie-authenticated call; a cross-site page cannot add it. */
+// A cross-site page cannot add this header.
 const CSRF_HEADER = 'X-CSRF';
 
-/**
- * Marks calls to Cvitlo's own API with the CSRF header, and re-checks the session when the API answers 401
- * (the session ended elsewhere: signed out in another tab, in Keycloak's account console, or expired).
- */
+// The session may end elsewhere (another tab, Keycloak's account console, expiry), so a 401 re-checks it.
 export const csrfInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.startsWith(environment.api)) {
     return next(req);

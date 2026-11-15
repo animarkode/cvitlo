@@ -1,16 +1,8 @@
-/**
- * Pure-TS colour-contrast helpers for auditing the theme tokens in
- * `src/styles.css` against WCAG AA. jsdom (the unit-test DOM) cannot compute
- * layout or colour, so axe-core's `color-contrast` rule is disabled — these
- * helpers let a plain Vitest spec verify contrast deterministically instead.
- *
- * The `oklch → sRGB` conversion is the standard oklab matrix; it was validated
- * against the originally measured ratios before the status-colour token split.
- */
+// jsdom cannot compute colour, so axe's color-contrast rule is off; these helpers let a plain
+// spec check the `src/styles.css` tokens against WCAG AA instead.
 
 export type Rgb = readonly [number, number, number];
 
-/** Convert an `oklch(L% C H)` triple to sRGB in the 0–255 range. */
 export function oklchToSrgb(lPct: number, c: number, hDeg: number): Rgb {
   const l = lPct / 100;
   const h = (hDeg * Math.PI) / 180;
@@ -38,7 +30,6 @@ function gammaEncode(channel: number): number {
   return encoded * 255;
 }
 
-/** Convert a 6-digit `#rrggbb` string to sRGB in the 0–255 range. */
 export function hexToSrgb(hex: string): Rgb {
   const value = hex.replace('#', '');
   return [
@@ -48,11 +39,7 @@ export function hexToSrgb(hex: string): Rgb {
   ];
 }
 
-/**
- * Parse a CSS colour value into sRGB. Supports `oklch(L% C H[/ A])` (alpha
- * ignored — callers composite explicitly) and `#rrggbb`. Throws on anything
- * else so a missing/renamed token fails loudly rather than silently passing.
- */
+// Alpha is ignored (callers composite explicitly). Throws on anything else so a renamed token fails loudly.
 export function cssColorToSrgb(value: string): Rgb {
   const oklch = /oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)\s*(?:\/\s*[\d.]+)?\s*\)/i.exec(value);
   if (oklch) {
@@ -65,7 +52,7 @@ export function cssColorToSrgb(value: string): Rgb {
   throw new Error(`Unsupported CSS colour value: "${value}"`);
 }
 
-/** Alpha-composite `fg` at `alpha` over `bg`, in gamma (sRGB) space — matches how browsers blend a translucent fill over an opaque background. */
+// Blends in gamma space, as browsers do for a translucent fill.
 export function composite(fg: Rgb, alpha: number, bg: Rgb): Rgb {
   return [
     fg[0] * alpha + bg[0] * (1 - alpha),
@@ -74,7 +61,6 @@ export function composite(fg: Rgb, alpha: number, bg: Rgb): Rgb {
   ];
 }
 
-/** WCAG relative luminance of an sRGB colour. */
 export function relativeLuminance([r, g, b]: Rgb): number {
   const linear = (channel: number) => {
     const c = channel / 255;
@@ -83,7 +69,6 @@ export function relativeLuminance([r, g, b]: Rgb): number {
   return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
 }
 
-/** WCAG contrast ratio between two sRGB colours (always ≥ 1). */
 export function contrastRatio(a: Rgb, b: Rgb): number {
   const la = relativeLuminance(a);
   const lb = relativeLuminance(b);
@@ -94,12 +79,7 @@ export function contrastRatio(a: Rgb, b: Rgb): number {
 
 export type TokenMap = Record<string, string>;
 
-/**
- * Extract the `--color-*` custom properties from `styles.css`, resolved per
- * mode. `light` is the `@theme` block; `dark` is `@theme` overlaid with the
- * `.dark` block — so each map is the complete palette as it renders in that
- * mode and the test reads the real CSS as its single source of truth.
- */
+// `dark` is `@theme` overlaid with `.dark`, so each map is the complete palette as rendered.
 export function parseColorTokens(css: string): { light: TokenMap; dark: TokenMap } {
   const theme = extractBlock(css, '@theme');
   const dark = extractBlock(css, '.dark');
@@ -108,10 +88,8 @@ export function parseColorTokens(css: string): { light: TokenMap; dark: TokenMap
 }
 
 function extractBlock(css: string, selector: string): string {
-  // Anchor to the selector's own rule (start of line, followed by `{`) so a
-  // substring match elsewhere — e.g. `.dark` inside `@custom-variant dark
-  // (&:where(.dark, .dark *));` — cannot hijack the lookup and silently
-  // return the wrong (light) palette.
+  // Anchor to the rule start so `.dark` inside `@custom-variant dark (...)` cannot match and
+  // return the light palette.
   const rule = new RegExp(`^${escapeRegExp(selector)}\\s*\\{`, 'm');
   const match = rule.exec(css);
   if (!match) {

@@ -1,5 +1,4 @@
-/* Inset separator between draggable items — matches the section-list divider
- * (1px, var(--color-line), 1.25rem horizontal inset so it doesn't touch edges). */
+/* Matches the section-list divider. */
 cv-accordion-item {
   position: relative;
 }

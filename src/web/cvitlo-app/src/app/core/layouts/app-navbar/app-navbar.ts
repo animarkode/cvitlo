@@ -38,13 +38,12 @@ import { AppUserMenu } from './app-user-menu/app-user-menu';
 export class AppNavbar implements OnInit {
   protected readonly authStore = inject(AuthStore);
   protected readonly routes = APP_ROUTES;
-  /** Full-page navigations through the API to Keycloak's own sign-in and registration pages. */
   protected readonly signInUrl = API_ROUTES.auth.login();
   protected readonly signUpUrl = API_ROUTES.auth.register;
 
   isUserMenuDropdownVisible = signal(false);
   isDrawerOpen = signal(false);
-  /** Set by the shell from its scroll container: the window itself never scrolls. */
+  // Set by the shell from its scroll container: the window itself never scrolls.
   scrolled = input(false);
   title = input('Cvitlo');
 

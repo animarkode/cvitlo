@@ -111,7 +111,6 @@ describe('SectionList', () => {
   it('should allow multiple sections to be open simultaneously', () => {
     getTrigger(1).click();
     fixture.detectChanges();
-    // Both person (index 0) and summary (index 1) should now be open
     expect(getItemComponent(0).open()).toBe(true);
     expect(getItemComponent(1).open()).toBe(true);
   });

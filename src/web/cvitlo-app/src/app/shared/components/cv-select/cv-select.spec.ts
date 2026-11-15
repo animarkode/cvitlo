@@ -30,8 +30,6 @@ describe('CvSelect', () => {
     host = hostFixture.componentInstance;
   });
 
-  // --- Rendering ---
-
   it('should create', () => {
     expect(host).toBeTruthy();
   });
@@ -66,8 +64,6 @@ describe('CvSelect', () => {
     expect((options[1] as HTMLOptionElement).value).toBe('Beginner');
   });
 
-  // --- CVA: value binding ---
-
   it('should display value set via writeValue', async () => {
     host.ctrl.setValue('Advanced');
     hostFixture.detectChanges();
@@ -101,8 +97,6 @@ describe('CvSelect', () => {
     expect(select.disabled).toBe(true);
   });
 
-  // --- Focus state ---
-
   it('should highlight the label on focus and revert on blur', async () => {
     hostFixture.detectChanges();
     const select = hostFixture.nativeElement.querySelector('select') as HTMLSelectElement;
@@ -118,8 +112,6 @@ describe('CvSelect', () => {
     await hostFixture.whenStable();
     expect(label.classList.contains('text-muted-foreground')).toBe(true);
   });
-
-  // --- Accessibility ---
 
   it('should have no AXE violations', async () => {
     hostFixture.detectChanges();

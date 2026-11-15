@@ -4,7 +4,6 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AppNavbar } from '../app-navbar/app-navbar';
 
-/** How far the content scrolls before the navbar turns to glass. */
 const SCROLLED_THRESHOLD_PX = 10;
 
 @Component({

@@ -30,9 +30,8 @@ describe('Summary', () => {
   });
 
   it('does not persist the summary when the section is opened with existing content', async () => {
-    // The section component is created lazily on expand, so this fixture
-    // creation is the expand. Seed non-empty HTML: an empty document produces
-    // no ProseMirror transaction and would make this test vacuous.
+    // The section is created lazily on expand, so creating the fixture is the expand.
+    // Seed non-empty HTML: an empty document emits no ProseMirror transaction.
     TestBed.resetTestingModule();
     vi.useFakeTimers();
     try {

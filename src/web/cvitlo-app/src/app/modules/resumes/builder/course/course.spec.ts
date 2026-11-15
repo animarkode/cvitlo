@@ -47,9 +47,8 @@ describe('Course', () => {
     const rows = Array.from(
       fixture.nativeElement.querySelectorAll('form > div.grid'),
     ) as HTMLElement[];
-    // Two grid rows per entry: name/institution, then the date pair. The date
-    // row uses a smaller track so Start/End date pair up at a narrower width
-    // than Course name/Institution do — dates need far less room.
+    // Two grid rows per entry; the date row uses a smaller track so the dates pair up
+    // at a narrower width than the text pair.
     expect(rows.length).toBe(seed.length * 2);
 
     const textRows = rows.filter((_, i) => i % 2 === 0);

@@ -30,9 +30,7 @@ describe('Person', () => {
     const form = fixture.nativeElement.querySelector('form') as HTMLElement;
 
     expect(form.classList.contains('grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]')).toBe(true);
-    // Both the old container-query and viewport-prefixed variants ignored the
-    // form's own rendered width, nested inside accordion padding; neither
-    // should remain.
+    // Container-query and viewport-prefixed variants ignore the form's own rendered width.
     expect(form.classList.contains('@sm:grid-cols-2')).toBe(false);
     expect(form.classList.contains('sm:grid-cols-2')).toBe(false);
   });

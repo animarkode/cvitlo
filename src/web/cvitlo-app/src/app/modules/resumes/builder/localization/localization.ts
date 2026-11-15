@@ -28,8 +28,6 @@ export class Localization implements OnInit {
   private readonly document = inject(DOCUMENT);
   protected readonly store = inject(ResumesStore);
 
-  /** Which edge the dropdown flies out from: `'left'` beside the desktop
-   *  action pill, `'top'` out of the mobile bottom bar. */
   readonly placement = input<'left' | 'top'>('left');
 
   protected readonly languages = LANGUAGES;

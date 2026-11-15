@@ -5,9 +5,7 @@
 } @else {
   <div class="builder-canvas flex h-dvh flex-col overflow-hidden">
 
-    <!-- Top bar: three separate pill islands -->
     <header class="shrink-0 flex items-center justify-center gap-2.5 max-md:gap-1.5 px-3 pt-4 pb-2">
-      <!-- Pill 1 — Back -->
       <button
         type="button"
         aria-label="Back to resumes"
@@ -17,7 +15,6 @@
         <lucide-icon name="arrow-left" [size]="20" [strokeWidth]="2.2" aria-hidden="true" />
       </button>
 
-      <!-- Pill 2 — resume title / role -->
       <div class="py-0 pl-5 pr-0 max-md:pl-3 inline-flex items-center gap-3 bg-card border-[0.5px] border-line rounded-full min-w-0 max-w-[420px] max-md:max-w-none">
         @if (isEditingTitle()) {
           <span class="relative inline-grid min-w-0 max-w-[260px] overflow-hidden">
@@ -58,7 +55,6 @@
         </button>
       </div>
 
-      <!-- Pill 3 — theme toggle + user avatar (user menu trigger) -->
       @if (authStore.user(); as user) {
         <div class="flex items-center gap-3">
           <cv-theme-toggle />
@@ -74,19 +70,14 @@
       }
     </header>
 
-    <!-- Body band: rail + list editor + PDF preview.
-         Below md (#425) the rail column is gone entirely — 60px of a 375px
-         screen spent duplicating what scrolling already does — and the editor
-         takes the whole band. Navigation and the action controls move to the
-         bottom bar below the band. -->
+    <!-- Below md the rail column is gone (it duplicates scrolling on a small screen);
+         navigation and actions move to the bottom bar. -->
     @if (store.resume()) {
       <div class="flex flex-1 overflow-hidden gap-3 px-3 pb-3 max-md:pb-2">
 
         @if (isWideScreen()) {
-          <!-- Rail column — bulk section controls stacked above the section rail -->
           <div class="self-center flex flex-col items-center gap-2 shrink-0 min-h-0 max-h-full">
 
-            <!-- Bulk controls island — same treatment as the rail below it -->
             <div
               class="flex flex-col items-center gap-1.5 shrink-0 bg-card border-[0.5px] border-line rounded-full p-1.5"
               role="group"
@@ -109,7 +100,6 @@
               </button>
             </div>
 
-            <!-- Rail island — floating pill; scrolls on its own when the column runs out of height -->
             <nav
               class="flex flex-col items-center gap-1.5 bg-card border-[0.5px] border-line rounded-full p-1.5 min-h-0 overflow-y-auto"
               aria-label="Resume sections">
@@ -128,15 +118,9 @@
           </div>
         }
 
-        <!-- Section list editor — shares the row 50/50 with the preview on wide
-             screens; owns the whole band on mobile, where the preview is a mode
-             rather than a column.
-
-             Hidden rather than unmounted when the mobile preview is showing:
-             which accordion sections are open lives in the SectionList
-             instance, so an @if here would reset the editor to its default
-             every time the user peeked at the PDF. `inert` keeps the hidden
-             pane out of the tab order and off the a11y tree. -->
+        <!-- Hidden, not unmounted, behind the mobile preview: open sections live in the
+             SectionList instance and an @if would reset them. `inert` keeps the pane
+             out of the tab order and a11y tree. -->
         <div
           class="relative flex-1 min-w-0 bg-card border-[0.5px] border-line rounded-2xl overflow-y-auto"
           data-testid="editor-pane"
@@ -145,10 +129,8 @@
           <app-editor />
         </div>
 
-        <!-- PDF preview — the other half; the page fills its width and scrolls
-             vertically. Builder actions render as a row-level sibling (mirrors
-             the left rail) so the editor and preview cards stay equal flex
-             halves (wide screen only) -->
+        <!-- Builder actions are a row-level sibling of the preview so the editor and
+             preview cards stay equal flex halves. -->
         @if (isWideScreen()) {
           <app-preview class="flex-1 min-w-0" />
           <app-builder-actions />
@@ -160,9 +142,6 @@
 
       </div>
 
-      <!-- Mobile action bar — everything the desktop attached to the preview
-           column, plus the navigation the rail used to hold. Costs no
-           horizontal width and stays inside the thumb arc. -->
       @if (!isWideScreen()) {
         <div class="shrink-0 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div
@@ -210,7 +189,6 @@
   </div>
 }
 
-<!-- User menu (portal-positioned, anchored to the top-right avatar pill) -->
 @if (!store.isLoading() && authStore.user(); as user) {
   <app-user-menu
     #userMenu

@@ -1,5 +1,3 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -23,11 +21,9 @@ body {
 }
 
 @theme {
-  /* Brand */
   --color-primary: oklch(78.4% 0.16 80);
   --color-primary-foreground: oklch(14.5% 0.02 264);
 
-  /* Semantic */
   --color-background: oklch(93% 0 0);
   --color-foreground: oklch(14.5% 0.025 264);
   --color-card: oklch(98.5% 0 0);
@@ -45,9 +41,8 @@ body {
   --color-ring: oklch(60% 0.18 250);
   --color-destructive: oklch(58% 0.22 27);
   --color-destructive-foreground: oklch(98% 0.01 264);
-  /* Opaque soft-destructive button fills (#370) — alpha fills (destructive/10)
-     read as plain gray over dark cards, so each theme gets its own opaque
-     value; see the .dark block for the dark pair and contrast.spec.ts guards. */
+  /* Opaque soft-destructive fills (#370): alpha fills read as plain gray over dark cards.
+     The .dark block has the dark pair; contrast.spec.ts guards them. */
   --color-destructive-soft: oklch(94.5% 0.03 25);
   --color-destructive-soft-hover: oklch(91% 0.05 25);
   --color-destructive-hover: oklch(52% 0.20 27);
@@ -75,11 +70,9 @@ body {
   --color-dot: oklch(80% 0 0);
   --color-bg: oklch(93% 0 0);
 
-  /* Glass surface */
   --color-glass: oklch(100% 0 0 / 0.46);
   --color-glass-border: oklch(100% 0 0 / 0.3);
 
-  /* Decorative — hero blobs */
   --color-blob-1-from: #bfdbfe;
   --color-blob-1-to: #e9d5ff;
   --color-blob-2-from: #e9d5ff;
@@ -87,7 +80,6 @@ body {
   --color-blob-3-from: #dbeafe;
   --color-blob-3-to: #cffafe;
 
-  /* Typography */
   /* Body text and Angular Material UI — Nunito Sans variable (wght 300–700) */
   --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
   /* Navbar brand/logo name only — Space Grotesk variable (wght 600–700) */
@@ -97,23 +89,19 @@ body {
   /* Social sign-in buttons only — Google's branding guidelines require Google Sans Medium (wght 500) */
   --font-provider: 'Google Sans', ui-sans-serif, system-ui, sans-serif;
 
-  /* Builder brand accent tokens */
   --color-brand-yellow: #F5B400;
   --color-lavender: #E8EBF4;
   --font-brand-serif: 'DM Serif Display', ui-serif, Georgia, serif;
 
-  /* Custom font sizes */
   --text-2xs: 0.72rem;
   --text-3xs: 0.65rem;
 
-  /* Radii */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
 
-  /* Animations */
   --animate-fade-in: fade-in 0.2s ease-out;
   --animate-spin-slow: spin 1.5s linear infinite;
   --animate-underline-in: underline-in 0.15s ease-out;
@@ -150,13 +138,8 @@ body {
   --color-glass: oklch(27.5% 0 0 / 0.55);
   --color-glass-border: oklch(98% 0 0 / 0.12);
   --color-bg: oklch(22% 0 0);
-  /* #405 — the section-rail icon chip. It is a neutral surface, not an accent,
-     and it deliberately carries the same fill as the chevron's hover state
-     (--color-muted) sitting beside it in the same row. Light mode already does
-     this: #E8EBF4 measures 1.03 against its --color-muted #E4E8EF. Dark mode
-     matches exactly rather than approximately, since the dark ramp is
-     achromatic and has no tint to mirror. Lifts 1.19 off card; icon at 10.5:1.
-     Keep this in step with --color-muted if that token ever moves. */
+  /* #405: the section-rail icon chip shares --color-muted (the chevron's hover fill beside it), as in
+     light mode (1.03 contrast). Exact match because the dark ramp is achromatic. Keep in step with it. */
   --color-lavender: oklch(35.5% 0 0);
   --color-dot: oklch(38% 0 0);
 }
@@ -184,14 +167,9 @@ body {
 }
 
 /*
- * Shared frosted-glass surface (#371). Lives in @layer components so Tailwind
- * utilities still win — cv-toast overrides the background with tinted bg-*\/10
- * variants.
- *
- * No border by design (#408): the solid 1px ring read as heavy, so edge
- * definition comes from --glass-shadow plus the ::after refraction rim alone.
- * --color-glass-border survives only for the navbar shell's bottom edge
- * (app-navbar.css); do not reintroduce it here.
+ * In @layer components so Tailwind utilities still win (cv-toast overrides the background).
+ * No border by design (#408): edges come from --glass-shadow and the ::after rim;
+ * --color-glass-border is only for the navbar shell's bottom edge, do not add it here.
  */
 @layer components {
   .glass-surface {
@@ -202,10 +180,7 @@ body {
     backdrop-filter: var(--glass-filter);
   }
 
-  /* Refraction rim: a 1px ring hugging the full rounded perimeter — brightest
-     along the top edge (light from above), wrapping the corners and fading
-     down the sides. Replaces the old straight-line ::before/::after edge
-     highlights and the inset box-shadow highlights. */
+  /* Refraction rim: a 1px ring around the rounded perimeter, brightest along the top edge. */
   .glass-surface::after {
     content: '';
     position: absolute;
@@ -227,15 +202,8 @@ body {
   }
 }
 
-/*
- * The date-picker overlay needs the same glass recipe but CANNOT join the
- * layered rule above: Angular Material injects unlayered styles for
- * .mat-datepicker-content (background-color, box-shadow), and unlayered CSS
- * always beats @layer components. This unlayered twin out-specifies Material
- * instead. Material owns the element (panelClass lands on the inner
- * mat-calendar), so it can't carry the .glass-surface class itself.
- * Keep these declarations in lockstep with .glass-surface above.
- */
+/* Unlayered twin of .glass-surface: Material's unlayered .mat-datepicker-content styles beat
+   @layer components, and Material owns the element, so it cannot take the class. Keep in lockstep. */
 .mat-datepicker-content:has(.cv-date-picker-panel) {
   position: relative;
   background: var(--color-glass);
@@ -304,11 +272,8 @@ body {
   background: rgb(0 0 0 / 0.4);
 }
 
-/* Bottom-sheet panel for the builder's mobile section navigation (#425).
-   `.cdk-global-overlay-wrapper` is a row-direction flex container, so
-   `align-self` controls the vertical edge: `flex-end` overrides the dialog's
-   default centring and pins the sheet to the bottom with no custom position
-   strategy. */
+/* `.cdk-global-overlay-wrapper` is a row flex container, so `align-self: flex-end` pins the mobile
+   section sheet to the bottom without a custom position strategy. */
 .cv-sheet-panel {
   outline: none;
   width: 100%;
@@ -329,12 +294,6 @@ body {
 .cv-toast-enter { animation: cv-toast-enter 200ms ease both; }
 .cv-toast-leave { animation: cv-toast-leave 200ms ease both; }
 
-/*
- * cv-theme-toggle icon swap: moon enters from the top / leaves upward;
- * sun enters from the bottom / leaves downward. Mirrors the cv-toast
- * animate.enter/animate.leave pattern above, with a bouncier entrance
- * (overshoot easing + scale pop) for a more expressive swap.
- */
 @keyframes theme-icon-sun-enter {
   from { opacity: 0; transform: translateY(18px) scale(0.6); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -375,23 +334,16 @@ body {
   }
 }
 
-/*
- * cv-date-picker calendar overlay (rendered in a CDK overlay, outside the
- * component view — must be styled globally). Drop only the expanding click
- * ripple on the header buttons (left = period/view switcher, right =
- * previous/next navigation); the hover/focus state-layer background stays.
- */
+/* The calendar renders in a CDK overlay outside the component view, so it is styled globally.
+   Only the expanding click ripple goes; the hover/focus state layer stays. */
 .cv-date-picker-panel .mat-calendar-controls .mat-ripple-element {
   display: none;
 }
 
-/* period button (left, view switcher): denser, brand-tinted hover */
 .cv-date-picker-panel .mat-calendar-period-button {
   --mat-button-text-state-layer-color: var(--color-primary);
   --mat-button-text-hover-state-layer-opacity: 0.22;
 }
-
-/* Frosted-glass calendar surface: see the .mat-datepicker-content twin of .glass-surface above. */
 
 /*
  * Material fixes the popup calendar to 354px (sized for the day grid). Our
@@ -402,12 +354,6 @@ body {
   height: auto;
 }
 
-/*
- * Present toggle footer (mat-datepicker-actions): left-aligned and pulled up
- * tight under the calendar, instead of Material's default right-aligned row.
- * Keep Material's 8px side padding so the switch lines up with the calendar's
- * content edges; only flip alignment and shrink the top gap.
- */
 .mat-datepicker-content:has(.cv-date-picker-panel) .mat-datepicker-actions {
   justify-content: flex-start;
   min-height: 0;
@@ -426,11 +372,6 @@ body {
   opacity: 0.45;
 }
 
-/*
- * Pill-shaped Material tooltips. matTooltip is currently used only by the
- * datepicker's prev/next nav buttons (built into Material's template), so this
- * effectively scopes to them while staying consistent for any future tooltip.
- */
 .mat-mdc-tooltip {
   --mat-tooltip-container-shape: 9999px;
 }
@@ -439,16 +380,10 @@ body {
   padding: 5px 12px;
 }
 
-/*
- * CDK drag-and-drop for the resume builder's orderable lists.
- * Both the card (preview) and the zone (placeholder) are clones of the dragged
- * element; hiding the collapsible body [role="region"] makes them render as the
- * closed element, so they stay consistent regardless of the item's open state.
- */
+/* The preview and placeholder clone the dragged element; hiding its [role="region"] body renders
+   both as the closed element whatever the item's open state. */
 
-/* Карта (preview) — the element itself, collapsed and a touch smaller.
- * CDK pins an inline height matching the (possibly open) source, so force it
- * back to auto and let the hidden body collapse the card to header height. */
+/* CDK pins an inline height matching the (possibly open) source; force auto so the hidden body collapses it. */
 .cdk-drag-preview {
   scale: 0.95;
   box-sizing: border-box;
@@ -464,7 +399,6 @@ body {
   display: none;
 }
 
-/* Зона (drop slot) — collapses to the closed-element height; dashed muted hint. */
 .cdk-drag-placeholder {
   box-sizing: border-box;
   border: 2px dashed color-mix(in oklch, var(--color-primary) 45%, transparent);
@@ -486,7 +420,6 @@ body {
   transition: none;
 }
 
-/* Smooth settle of the dropped item and reflow of the others. */
 .cdk-drag-animating {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }

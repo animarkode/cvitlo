@@ -2,14 +2,8 @@ import { ComponentFixture } from '@angular/core/testing';
 import axe from 'axe-core';
 import { expect } from 'vitest';
 
-/**
- * Runs axe-core against a component fixture and asserts there are no WCAG A/AA
- * violations. The fixture root is temporarily attached to `document.body` so axe
- * can evaluate it in document context, then detached again.
- *
- * Note: jsdom cannot compute layout or colour, so the `color-contrast` rule is
- * disabled here — contrast is verified manually against the AA design tokens.
- */
+// Attached to `document.body` so axe evaluates it in document context. color-contrast is off because
+// jsdom cannot compute colour; contrast is checked in contrast.spec.ts.
 export async function expectNoAxeViolations(
   fixture: ComponentFixture<unknown>,
 ): Promise<void> {
