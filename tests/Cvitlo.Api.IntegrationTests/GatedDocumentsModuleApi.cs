@@ -23,21 +23,6 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
     public Task Entered => _entered?.Task ?? Task.CompletedTask;
 
     /// <summary>Renders a stub PDF, blocking while a gate from <see cref="Hold"/> is held.</summary>
-    /// <typeparam name="TComponent">The Razor component that would be rendered.</typeparam>
-    /// <param name="parameters">Render parameters — ignored by this double.</param>
-    /// <param name="ct">The request's cancellation token.</param>
-    /// <returns>A stream over a four-byte stub PDF.</returns>
-    public async Task<Stream> RenderToPdfAsync<TComponent>(
-        IReadOnlyDictionary<string, object?> parameters,
-        CancellationToken ct)
-        where TComponent : IComponent
-    {
-        await PassGateAsync(ct);
-
-        return new MemoryStream(StubPdf);
-    }
-
-    /// <summary>Renders a stub PDF, blocking while a gate from <see cref="Hold"/> is held.</summary>
     public async Task<Stream> RenderResumeToPdfAsync(ResumeDocument resume, ResumeTemplate template, CancellationToken ct)
     {
         await PassGateAsync(ct);

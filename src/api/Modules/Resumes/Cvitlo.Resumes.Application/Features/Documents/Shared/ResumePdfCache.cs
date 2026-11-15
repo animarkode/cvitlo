@@ -1,6 +1,6 @@
 using ErrorOr;
-using Cvitlo.Documents.Application.Templates;
 using Cvitlo.Documents.PublicApi;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Cvitlo.Resumes.Application.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,8 +24,10 @@ public class ResumePdfCache(
     /// <returns>The rendered PDF, or a <c>Resume.NotFound</c> error when the resume does not exist or is not owned by the user.</returns>
     public async Task<ErrorOr<ResumePdf>> GetOrRenderAsync(Guid userId, Guid resumeId, CancellationToken ct)
     {
+        var templateVersion = ResolveTemplateVersion(ResumeTemplate.First);
+
         var pdf = await cache.GetOrCreateAsync(
-            ResumesCacheKeys.Pdf(userId, resumeId, typeof(FirstTemplate)),
+            ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, templateVersion),
             async cacheCt =>
             {
                 // HybridCache runs this factory once for every concurrent caller of the same key and
@@ -46,10 +48,9 @@ public class ResumePdfCache(
                 }
 
                 var resume = result.Value;
-                var parameters = new Dictionary<string, object?>(StringComparer.Ordinal) { { "Resume", resume } };
-
                 var documentsModuleApi = scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>();
-                var stream = await documentsModuleApi.RenderToPdfAsync<FirstTemplate>(parameters, cacheCt);
+                var stream = await documentsModuleApi.RenderResumeToPdfAsync(
+                    resume.ToDocument(), ResumeTemplate.First, cacheCt);
 
                 await using var _ = stream;
                 using var buffer = new MemoryStream();
@@ -68,5 +69,12 @@ public class ResumePdfCache(
         }
 
         return pdf;
+    }
+
+    private string ResolveTemplateVersion(ResumeTemplate template)
+    {
+        using var scope = scopeFactory.CreateScope();
+
+        return scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>().TemplateVersion(template);
     }
 }

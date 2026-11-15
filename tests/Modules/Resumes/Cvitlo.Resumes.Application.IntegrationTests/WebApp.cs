@@ -1,6 +1,6 @@
 using Cvitlo.Common.Testing.Hosting;
-using Cvitlo.Documents.Application.Templates;
 using Cvitlo.Documents.PublicApi;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -42,10 +42,13 @@ public class WebApp : CvitloWebApp
             var documentsModuleApiMock = Substitute.For<IDocumentsModuleApi>();
 
             documentsModuleApiMock
-                .RenderToPdfAsync<FirstTemplate>(
-                    Arg.Any<IReadOnlyDictionary<string, object?>>(),
+                .RenderResumeToPdfAsync(
+                    Arg.Any<ResumeDocument>(),
+                    ResumeTemplate.First,
                     Arg.Any<CancellationToken>())
                 .Returns(_ => new MemoryStream(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
+
+            documentsModuleApiMock.TemplateVersion(ResumeTemplate.First).Returns("test-version");
 
             services.AddScoped<IDocumentsModuleApi>(_ => documentsModuleApiMock);
         });

@@ -23,17 +23,6 @@ public class DocumentsModuleApi(IRender render) : IDocumentsModuleApi
         return TemplateComponent(template).Assembly.ManifestModule.ModuleVersionId.ToString();
     }
 
-    public async Task<Stream> RenderToPdfAsync<TComponent>(
-        IReadOnlyDictionary<string, object?> parameters,
-        CancellationToken ct)
-        where TComponent : IComponent
-    {
-        var html = render.RazorToHtmlAsync<TComponent>(parameters, ct);
-        var stream = await render.ToPdfAsync(async () => await html, ct);
-
-        return stream;
-    }
-
     public async Task<string> RenderToHtmlAsync<TComponent>(
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct)

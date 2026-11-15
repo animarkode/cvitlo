@@ -16,7 +16,7 @@ internal static class ResumeBuilder
             Hobbies = "<p>Chess</p>",
             Person = FullPerson(),
             Links = [new LinkDocument { Label = "Portfolio", Uri = "https://portfolio.example" }],
-            Skills = [new SkillDocument { Name = "Mathematics", Level = "Expert" }],
+            Skills = [new SkillDocument { Name = "Mathematics" }],
             Languages = [new LanguageDocument { Name = "English", Level = "C1" }],
             Experiences = [FullExperience()],
             Educations = [FullEducation()],

@@ -1,3 +1,5 @@
+using Cvitlo.Documents.PublicApi.Resumes;
+
 namespace Cvitlo.Resumes.Application.Caching;
 
 /// <summary>
@@ -34,13 +36,12 @@ public static class ResumesCacheKeys
     /// <summary>Builds the cache key for a rendered resume PDF.</summary>
     /// <param name="userId">The id of the user who owns the resume.</param>
     /// <param name="resumeId">The id of the resume the PDF was rendered from.</param>
-    /// <param name="template">The template type used to render the PDF.</param>
+    /// <param name="template">The template used to render the PDF.</param>
+    /// <param name="templateVersion">Identifies the compiled template, so a changed template busts the entry.</param>
     /// <returns>The cache key for the rendered PDF.</returns>
-    public static string Pdf(Guid userId, Guid resumeId, Type template)
+    public static string Pdf(Guid userId, Guid resumeId, ResumeTemplate template, string templateVersion)
     {
-        var templateBuild = template.Assembly.ManifestModule.ModuleVersionId;
-
-        return $"resumes:{Build}:user:{userId}:pdf:{resumeId}:{ToKebabCase(template.Name)}:{templateBuild}";
+        return $"resumes:{Build}:user:{userId}:pdf:{resumeId}:{ToKebabCase(template.ToString())}:{templateVersion}";
     }
 
     /// <summary>Builds the cache tag shared by every cache entry derived from a single resume.</summary>
