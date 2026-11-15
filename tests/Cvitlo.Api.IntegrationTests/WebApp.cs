@@ -1,66 +1,27 @@
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Networks;
 using Cvitlo.Api.IntegrationTests.Features.RateLimiting.Data;
-using Cvitlo.Auth.Infrastructure.Database;
+using Cvitlo.Common.Testing.Hosting;
 using Cvitlo.Documents.PublicApi;
-using Cvitlo.Resumes.Infrastructure.Database;
-using Cvitlo.Common.Testing.Containers;
-using Cvitlo.Common.Testing.Data;
-using FastEndpoints.Testing;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Testcontainers.PostgreSql;
-using AuthDbConst = Cvitlo.Auth.Infrastructure.Database.DbConstants;
 
 namespace Cvitlo.Api.IntegrationTests;
 
-public class WebApp : AppFixture<Program>
+public class WebApp : CvitloWebApp
 {
-    private CvitloKeycloak? _keycloak;
-    private INetwork? _network;
-    private PostgreSqlContainer? _postgresContainer;
-
-    public CvitloKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not initialized");
-
-    public Task StopPostgresAsync() => Postgres.StopAsync();
-
-    private PostgreSqlContainer Postgres =>
-        _postgresContainer ?? throw new InvalidOperationException("Postgres container not initialized");
-
-    protected override async ValueTask PreSetupAsync()
+    protected override async Task SeedUsersAsync(CancellationToken ct)
     {
-        _network = new NetworkBuilder().WithName($"cvitlo-test-network-{Guid.NewGuid()}").Build();
-        await _network.CreateAsync();
+        await base.SeedUsersAsync(ct);
 
-        _postgresContainer = new PostgreSqlBuilder("postgres:17.6").WithNetwork(_network).Build();
-        await _postgresContainer.StartAsync();
-        _keycloak = await CvitloKeycloak.StartAsync(_network, "https://localhost", "http://localhost/backchannel-logout");
-
-        // Before the API starts: Data Protection reads its key table on first use.
-        await using (var auth = new AuthDbContext(new DbContextOptionsBuilder<AuthDbContext>()
-                         .UseNpgsql(Postgres.GetConnectionString(), o => o.MigrationsHistoryTable(
-                             AuthDbConst.MigrationsHistoryTableName, AuthDbConst.SchemaName))
-                         .UseSnakeCaseNamingConvention()
-                         .Options))
+        foreach (var user in RateLimitingUsersData.Generate())
         {
-            await auth.Database.MigrateAsync();
+            await Keycloak.Admin.CreateUserAsync(user, ct: ct);
         }
-
-        foreach (var user in RegisteredUsersData.Generate().Concat(RateLimitingUsersData.Generate()))
-        {
-            await Keycloak.Admin.CreateUserAsync(user);
-        }
-    }
-
-    protected override async ValueTask SetupAsync()
-    {
-        var resumesDbContext = Services.GetRequiredService<ResumesDbContext>();
-        await resumesDbContext.Database.MigrateAsync();
     }
 
     protected override void ConfigureApp(IWebHostBuilder builder)
     {
+        base.ConfigureApp(builder);
+
         builder.ConfigureServices(services =>
         {
             services.AddTransient<IStartupFilter, TestClientIpStartupFilter>();
@@ -68,17 +29,6 @@ public class WebApp : AppFixture<Program>
             services.AddSingleton<GatedDocumentsModuleApi>();
             services.AddScoped<IDocumentsModuleApi>(sp => sp.GetRequiredService<GatedDocumentsModuleApi>());
         });
-
-        builder.UseSetting("ConnectionStrings:cvitlodb", Postgres.GetConnectionString());
-
-        builder.UseSetting("Keycloak:BaseUrl", Keycloak.BaseAddress);
-        builder.UseSetting("Keycloak:Realm", CvitloKeycloak.Realm);
-        builder.UseSetting("Keycloak:Issuer", Keycloak.Issuer);
-        builder.UseSetting("Keycloak:Audience", CvitloKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientId", CvitloKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientSecret", CvitloKeycloak.ClientSecret);
-        builder.UseSetting("Keycloak:AdminClientSecret", CvitloKeycloak.AdminClientSecret);
-        builder.UseSetting("Keycloak:RequireHttpsMetadata", "false");
 
         builder.UseSetting("RateLimiting:Enabled", "true");
         builder.UseSetting("RateLimiting:GlobalAnonymous:PermitLimit", "3");
@@ -108,23 +58,5 @@ public class WebApp : AppFixture<Program>
         builder.UseSetting("ResumeLimits:Limits:Regular", "1");
 
         builder.UseSetting("ForwardedHeaders:KnownProxies:0", "10.10.10.10");
-    }
-
-    protected override async ValueTask TearDownAsync()
-    {
-        if (_keycloak is not null)
-        {
-            await _keycloak.DisposeAsync();
-        }
-
-        if (_postgresContainer is not null)
-        {
-            await _postgresContainer.DisposeAsync();
-        }
-
-        if (_network is not null)
-        {
-            await _network.DisposeAsync();
-        }
     }
 }

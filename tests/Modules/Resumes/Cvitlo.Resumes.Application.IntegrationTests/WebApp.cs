@@ -1,96 +1,42 @@
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Networks;
-using Cvitlo.Auth.Infrastructure.Database;
+using Cvitlo.Common.Testing.Hosting;
 using Cvitlo.Documents.Application.Templates;
 using Cvitlo.Documents.PublicApi;
-using Cvitlo.Resumes.Infrastructure.Database;
-using Cvitlo.Common.Testing.Containers;
-using Cvitlo.Common.Testing.Data;
-using FastEndpoints.Testing;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using Testcontainers.PostgreSql;
-using Testcontainers.Redis;
-using AuthDbConst = Cvitlo.Auth.Infrastructure.Database.DbConstants;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests;
 
-public class WebApp : AppFixture<Program>
+public class WebApp : CvitloWebApp
 {
     /// <summary>The first two users get the <c>premium</c> realm role.</summary>
     private const int PremiumUsers = 2;
 
-    private CvitloKeycloak? _keycloak;
-    private INetwork? _network;
-    private PostgreSqlContainer? _postgresContainer;
-    private RedisContainer? _redisContainer;
-
-    public CvitloKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not initialized");
-
     public CollectingLoggerProvider Logs { get; } = new();
-
-    public List<TestUser> Users { get; } = RegisteredUsersData.Generate();
-
-    private PostgreSqlContainer Postgres =>
-        _postgresContainer ?? throw new InvalidOperationException("Postgres container not initialized");
-
-    private RedisContainer Redis =>
-        _redisContainer ?? throw new InvalidOperationException("Redis container not initialized");
 
     /// <summary>
     /// When false, no Redis container is built or started, so a fixture that never exercises Redis
     /// against a real instance (e.g. <see cref="RedisUnavailableWebApp"/>) doesn't pay for one.
     /// </summary>
-    protected virtual bool UsesRedis => true;
+    protected override bool UsesRedis => true;
 
-    protected override async ValueTask PreSetupAsync()
+    protected override async Task SeedUsersAsync(CancellationToken ct)
     {
-        _network = new NetworkBuilder().WithName($"cvitlo-test-network-{Guid.NewGuid()}").Build();
-        await _network.CreateAsync();
-
-        _postgresContainer = new PostgreSqlBuilder("postgres:17.6").WithNetwork(_network).Build();
-        _redisContainer = UsesRedis ? new RedisBuilder("redis:7.4").WithNetwork(_network).Build() : null;
-
-        var startTasks = new List<Task> { _postgresContainer.StartAsync() };
-        if (_redisContainer is not null)
-        {
-            startTasks.Add(_redisContainer.StartAsync());
-        }
-
-        await Task.WhenAll(startTasks);
-        _keycloak = await CvitloKeycloak.StartAsync(_network, "https://localhost", "http://localhost/backchannel-logout");
-
-        // Before the API starts: Data Protection reads its key table on first use.
-        await using (var auth = new AuthDbContext(new DbContextOptionsBuilder<AuthDbContext>()
-                         .UseNpgsql(Postgres.GetConnectionString(), o => o.MigrationsHistoryTable(
-                             AuthDbConst.MigrationsHistoryTableName, AuthDbConst.SchemaName))
-                         .UseSnakeCaseNamingConvention()
-                         .Options))
-        {
-            await auth.Database.MigrateAsync();
-        }
-
         for (var i = 0; i < Users.Count; i++)
         {
-            var userId = await Keycloak.Admin.CreateUserAsync(Users[i]);
+            var userId = await Keycloak.Admin.CreateUserAsync(Users[i], ct: ct);
             if (i < PremiumUsers)
             {
-                await Keycloak.Admin.AssignRealmRoleAsync(userId, "premium");
+                await Keycloak.Admin.AssignRealmRoleAsync(userId, "premium", ct);
             }
         }
     }
 
-    protected override async ValueTask SetupAsync()
-    {
-        var resumesDbContext = Services.GetRequiredService<ResumesDbContext>();
-        await resumesDbContext.Database.MigrateAsync();
-    }
-
     protected override void ConfigureApp(IWebHostBuilder builder)
     {
+        base.ConfigureApp(builder);
+
         builder.ConfigureServices(services =>
         {
             var documentsModuleApiMock = Substitute.For<IDocumentsModuleApi>();
@@ -105,45 +51,5 @@ public class WebApp : AppFixture<Program>
         });
 
         builder.ConfigureLogging(logging => logging.AddProvider(Logs));
-
-        builder.UseSetting("ConnectionStrings:cvitlodb", Postgres.GetConnectionString());
-
-        if (UsesRedis)
-        {
-            builder.UseSetting("ConnectionStrings:redis", Redis.GetConnectionString());
-        }
-
-        builder.UseSetting("Keycloak:BaseUrl", Keycloak.BaseAddress);
-        builder.UseSetting("Keycloak:Realm", CvitloKeycloak.Realm);
-        builder.UseSetting("Keycloak:Issuer", Keycloak.Issuer);
-        builder.UseSetting("Keycloak:Audience", CvitloKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientId", CvitloKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientSecret", CvitloKeycloak.ClientSecret);
-        builder.UseSetting("Keycloak:AdminClientSecret", CvitloKeycloak.AdminClientSecret);
-        builder.UseSetting("Keycloak:RequireHttpsMetadata", "false");
-        builder.UseSetting("RateLimiting:Enabled", "false");
-    }
-
-    protected override async ValueTask TearDownAsync()
-    {
-        if (_redisContainer is not null)
-        {
-            await _redisContainer.DisposeAsync();
-        }
-
-        if (_keycloak is not null)
-        {
-            await _keycloak.DisposeAsync();
-        }
-
-        if (_postgresContainer is not null)
-        {
-            await _postgresContainer.DisposeAsync();
-        }
-
-        if (_network is not null)
-        {
-            await _network.DisposeAsync();
-        }
     }
 }

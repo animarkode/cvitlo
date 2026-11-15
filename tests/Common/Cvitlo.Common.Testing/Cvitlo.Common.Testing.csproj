@@ -2,8 +2,17 @@
 
     <ItemGroup>
         <PackageReference Include="Bogus" />
+        <PackageReference Include="FastEndpoints.Testing" />
         <PackageReference Include="Testcontainers.Keycloak" />
+        <PackageReference Include="Testcontainers.PostgreSql" />
+        <PackageReference Include="Testcontainers.Redis" />
         <PackageReference Include="xunit.v3.extensibility.core" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\src\api\Cvitlo.Api\Cvitlo.Api.csproj"/>
+        <ProjectReference Include="..\..\..\src\api\Modules\Auth\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Infrastructure\Cvitlo.Resumes.Infrastructure.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

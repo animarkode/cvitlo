@@ -1,27 +1,19 @@
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Networks;
 using Cvitlo.Auth.Application.Sessions;
 using Cvitlo.Auth.Application.IntegrationTests.Support;
-using Cvitlo.Auth.Infrastructure.Database;
 using Cvitlo.Auth.PublicApi.Events;
-using Cvitlo.Resumes.Infrastructure.Database;
-using AuthDbConstants = Cvitlo.Auth.Infrastructure.Database.DbConstants;
-using ResumesDbConstants = Cvitlo.Resumes.Infrastructure.Database.DbConstants;
 using Cvitlo.Common.Testing.Containers;
 using Cvitlo.Common.Testing.Data;
+using Cvitlo.Common.Testing.Hosting;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints;
 using FastEndpoints.Testing;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
-using Testcontainers.PostgreSql;
 
 namespace Cvitlo.Auth.Application.IntegrationTests;
 
-public class WebApp : AppFixture<Program>
+public class WebApp : CvitloWebApp
 {
     /// <summary>
     /// The origin the "browser" uses for the API. It is HTTPS so that the client keeps and sends the
@@ -29,19 +21,10 @@ public class WebApp : AppFixture<Program>
     /// </summary>
     public static readonly Uri AppOrigin = new("https://localhost");
 
-    private INetwork? _network;
-    private PostgreSqlContainer? _postgres;
-    private CvitloKeycloak? _keycloak;
-    private BackchannelLogoutRelay? _relay;
-
-    public CvitloKeycloak Keycloak => _keycloak ?? throw new InvalidOperationException("Keycloak not started");
-
-    public BackchannelLogoutRelay Relay => _relay ?? throw new InvalidOperationException("Relay not started");
+    public BackchannelLogoutRelay Relay { get; } = new();
 
     /// <summary>The clock the API reads; tests move it forward to make access tokens look expired.</summary>
     public RealignableClock Clock { get; } = new(DateTimeOffset.UtcNow);
-
-    public List<TestUser> Users { get; } = RegisteredUsersData.Generate();
 
     /// <summary>Lets a test make Keycloak's token endpoint misbehave for the API's back-channel calls.</summary>
     public TokenEndpointInterceptor KeycloakBackChannel { get; } = new();
@@ -91,63 +74,18 @@ public class WebApp : AppFixture<Program>
         return (client, callback);
     }
 
-    protected override async ValueTask PreSetupAsync()
-    {
-        _network = new NetworkBuilder().WithName($"cvitlo-auth-tests-{Guid.NewGuid()}").Build();
-        await _network.CreateAsync();
+    protected override string WebOrigin => AppOrigin.ToString();
 
-        _postgres = new PostgreSqlBuilder("postgres:17.6").WithNetwork(_network).Build();
-        _relay = new BackchannelLogoutRelay();
+    protected override string BackchannelLogoutUrl => Relay.ContainerUrl;
 
-        await _postgres.StartAsync();
-        _keycloak = await CvitloKeycloak.StartAsync(_network, AppOrigin.ToString().TrimEnd('/'), _relay.ContainerUrl);
-        await _keycloak.Container.AddStandInIdentityProviderAsync(
-            CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword, CvitloKeycloak.Realm, StandIn);
-
-        // Before the API starts: Data Protection reads its key table on first use.
-        await using (var db = new AuthDbContext(new DbContextOptionsBuilder<AuthDbContext>()
-                         .UseNpgsql(_postgres.GetConnectionString(), o => o.MigrationsHistoryTable(
-                             AuthDbConstants.MigrationsHistoryTableName, AuthDbConstants.SchemaName))
-                         .UseSnakeCaseNamingConvention()
-                         .Options))
-        {
-            await db.Database.MigrateAsync();
-        }
-
-        // Deleting an account reaches the resumes schema.
-        await using (var resumesDb = new ResumesDbContext(new DbContextOptionsBuilder<ResumesDbContext>()
-                         .UseNpgsql(_postgres.GetConnectionString(), o => o.MigrationsHistoryTable(
-                             ResumesDbConstants.MigrationsHistoryTableName, ResumesDbConstants.SchemaName))
-                         .UseSnakeCaseNamingConvention()
-                         .Options))
-        {
-            await resumesDb.Database.MigrateAsync();
-        }
-
-        foreach (var user in Users)
-        {
-            await Keycloak.Admin.CreateUserAsync(user);
-        }
-    }
+    protected override async Task OnKeycloakStartedAsync(CancellationToken ct) =>
+        await Keycloak.Container.AddStandInIdentityProviderAsync(
+            CvitloKeycloak.AdminUsername, CvitloKeycloak.AdminPassword, CvitloKeycloak.Realm, StandIn, ct);
 
     protected override ValueTask SetupAsync()
     {
         Relay.Start(() => CreateClient(new ClientOptions { BaseAddress = AppOrigin }));
         return ValueTask.CompletedTask;
-    }
-
-    protected override void ConfigureApp(IWebHostBuilder builder)
-    {
-        builder.UseSetting("ConnectionStrings:cvitlodb", _postgres!.GetConnectionString());
-        builder.UseSetting("Keycloak:BaseUrl", Keycloak.BaseAddress);
-        builder.UseSetting("Keycloak:Realm", CvitloKeycloak.Realm);
-        builder.UseSetting("Keycloak:Issuer", Keycloak.Issuer);
-        builder.UseSetting("Keycloak:Audience", CvitloKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientId", CvitloKeycloak.ClientId);
-        builder.UseSetting("Keycloak:ClientSecret", CvitloKeycloak.ClientSecret);
-        builder.UseSetting("Keycloak:AdminClientSecret", CvitloKeycloak.AdminClientSecret);
-        builder.UseSetting("Keycloak:RequireHttpsMetadata", "false");
-        builder.UseSetting("RateLimiting:Enabled", "false");
     }
 
     protected override void ConfigureServices(IServiceCollection services)
@@ -162,24 +100,7 @@ public class WebApp : AppFixture<Program>
 
     protected override async ValueTask TearDownAsync()
     {
-        if (_relay is not null)
-        {
-            await _relay.DisposeAsync();
-        }
-
-        if (_keycloak is not null)
-        {
-            await _keycloak.DisposeAsync();
-        }
-
-        if (_postgres is not null)
-        {
-            await _postgres.DisposeAsync();
-        }
-
-        if (_network is not null)
-        {
-            await _network.DisposeAsync();
-        }
+        await Relay.DisposeAsync();
+        await base.TearDownAsync();
     }
 }
