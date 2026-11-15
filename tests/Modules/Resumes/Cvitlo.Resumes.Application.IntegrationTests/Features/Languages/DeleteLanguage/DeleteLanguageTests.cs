@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Languages.DeleteLanguage;
 
 [Collection<CollectionResumes>]
-[Priority(53)]
 public class DeleteLanguageTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task DeleteLanguage_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -27,7 +25,6 @@ public class DeleteLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task DeleteLanguage_ExistingItem_ShouldRemoveIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -56,7 +53,6 @@ public class DeleteLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task DeleteLanguage_UnknownLanguage_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -72,7 +68,6 @@ public class DeleteLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task DeleteLanguage_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -96,7 +91,6 @@ public class DeleteLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task DeleteLanguage_OwnResumeWithAnotherUsersItem_ShouldReturnNotFoundAndKeepIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -122,7 +116,6 @@ public class DeleteLanguageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task DeleteLanguage_AlreadyDeleted_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;

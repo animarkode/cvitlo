@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Educations.GetEducation;
 
 [Collection<CollectionResumes>]
-[Priority(21)]
 public class GetEducationTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task GetEducation_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -27,7 +25,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task GetEducation_ExistingItem_ShouldReturnTheCreatedEducation()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -52,7 +49,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GetAllEducations_ResumeWithTwoItems_ShouldReturnBoth()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -79,7 +75,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GetEducation_UnknownEducation_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -95,7 +90,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task GetAllEducations_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -110,7 +104,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task GetAllEducations_ResumeWithoutEducations_ShouldReturnEmptyList()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -127,7 +120,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task GetEducation_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -151,7 +143,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task GetAllEducations_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -169,7 +160,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task GetEducation_OwnResumeWithAnotherUsersItem_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -188,7 +178,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(9)]
     public async Task GetEducation_EducationOfTheCallersOtherResume_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -206,7 +195,6 @@ public class GetEducationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(10)]
     public async Task GetAllEducations_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client

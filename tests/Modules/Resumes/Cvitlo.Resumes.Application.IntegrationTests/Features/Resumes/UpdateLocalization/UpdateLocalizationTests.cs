@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.UpdateLocalization;
 
 [Collection<CollectionResumes>]
-[Priority(7)]
 public class UpdateLocalizationTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateLocalization_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -27,7 +25,6 @@ public class UpdateLocalizationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateLocalization_ValidRequest_ShouldModifyLocalization()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -57,7 +54,6 @@ public class UpdateLocalizationTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateLocalization_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;

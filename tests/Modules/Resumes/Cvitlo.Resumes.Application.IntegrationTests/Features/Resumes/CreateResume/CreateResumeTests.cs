@@ -9,11 +9,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.CreateResume;
 
 [Collection<CollectionResumes>]
-[Priority(1)]
 public class CreateResumeTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(1)]
     public async Task CreateResume_ValidRequest_ShouldReturnCreatedResume()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -32,7 +30,6 @@ public class CreateResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateResume_RegularUser_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;

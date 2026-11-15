@@ -15,11 +15,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.DeleteResume;
 
 [Collection<CollectionResumes>]
-[Priority(4)]
 public class DeleteResumeTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task DeleteResume_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -30,7 +28,6 @@ public class DeleteResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task DeleteResume_ExistingResume_ShouldRemoveResume()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -60,7 +57,6 @@ public class DeleteResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task DeleteResume_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -75,7 +71,6 @@ public class DeleteResumeTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task DeleteResume_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;

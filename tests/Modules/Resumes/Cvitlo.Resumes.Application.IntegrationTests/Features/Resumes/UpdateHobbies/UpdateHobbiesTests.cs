@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.UpdateHobbies;
 
 [Collection<CollectionResumes>]
-[Priority(6)]
 public class UpdateHobbiesTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task UpdateHobbies_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -27,7 +25,6 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task UpdateHobbies_ValidRequest_ShouldModifyHobbies()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -57,7 +54,6 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task UpdateHobbies_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -72,7 +68,6 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task UpdateHobbies_Exactly200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -95,7 +90,6 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task UpdateHobbies_DisallowedAttributeWithAngleBracketAnd200VisibleCharacters_ShouldReturnNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -114,7 +108,6 @@ public class UpdateHobbiesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task UpdateHobbies_201VisibleCharacters_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;

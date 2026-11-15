@@ -20,11 +20,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Documents.Caching;
 
 [Collection<CollectionResumes>]
-[Priority(91)]
 public class ResumePdfCacheTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(1)]
     public async Task DownloadDocument_Twice_ShouldRenderOnce()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -49,7 +47,6 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GenerateDocument_AfterDownload_ShouldReuseRenderedPdf()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -77,7 +74,6 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task DownloadDocument_AfterPersonUpdate_ShouldRenderAgain()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -123,7 +119,6 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task DownloadDocument_AfterSkillCreate_ShouldRenderAgain()
     {
         var ct = TestContext.Current.CancellationToken;

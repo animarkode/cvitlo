@@ -12,11 +12,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Documents.GenerateDocument;
 
 [Collection<CollectionResumes>]
-[Priority(81)]
 public class GenerateDocumentTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task GenerateDocument_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -27,7 +25,6 @@ public class GenerateDocumentTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task GenerateDocument_ResumeWithPerson_ShouldReturnBase64Pdf()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -50,7 +47,6 @@ public class GenerateDocumentTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task GenerateDocument_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -65,7 +61,6 @@ public class GenerateDocumentTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GenerateDocument_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;

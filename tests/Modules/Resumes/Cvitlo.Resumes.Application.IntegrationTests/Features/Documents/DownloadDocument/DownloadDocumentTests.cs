@@ -12,13 +12,11 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Documents.DownloadDocument;
 
 [Collection<CollectionResumes>]
-[Priority(80)]
 public class DownloadDocumentTests(WebApp app) : TestBase
 {
     private static readonly byte[] PdfStub = [0x25, 0x50, 0x44, 0x46];
 
     [Fact]
-    [Priority(0)]
     public async Task DownloadDocument_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -29,7 +27,6 @@ public class DownloadDocumentTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task DownloadDocument_ResumeWithPerson_ShouldReturnPdfStream()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -54,7 +51,6 @@ public class DownloadDocumentTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task DownloadDocument_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -69,7 +65,6 @@ public class DownloadDocumentTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task DownloadDocument_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;

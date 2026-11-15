@@ -19,7 +19,6 @@ using StackExchange.Redis;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.Caching;
 
 [Collection<CollectionRedisUnavailable>]
-[Priority(92)]
 public class RedisUnavailableTests(RedisUnavailableWebApp app) : TestBase
 {
     [Fact]

@@ -12,12 +12,10 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Skills.CreateSkill;
 
 [Collection<CollectionResumes>]
-[Priority(40)]
 public class CreateSkillTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidSkillData))]
-    [Priority(1)]
     public async Task CreateSkill_ValidRequest_ShouldReturnTheCreatedItem(CreateSkillRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -38,7 +36,6 @@ public class CreateSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateSkill_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -55,7 +52,6 @@ public class CreateSkillTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidSkillData))]
-    [Priority(2)]
     public async Task CreateSkill_InvalidField_ShouldReturnBadRequest(
         CreateSkillRequest invalidRequest,
         string expectedKey)
@@ -75,7 +71,6 @@ public class CreateSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreateSkill_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -86,7 +81,6 @@ public class CreateSkillTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task CreateSkill_SeveralItems_ShouldNumberThemInCreationOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -112,7 +106,6 @@ public class CreateSkillTests(WebApp app) : TestBase
     [InlineData("Intermediate")]
     [InlineData("Advanced")]
     [InlineData("Expert")]
-    [Priority(5)]
     public async Task CreateSkill_EveryAllowedLevel_ShouldReturnOk(string level)
     {
         var ct = TestContext.Current.CancellationToken;

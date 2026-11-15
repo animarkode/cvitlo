@@ -12,12 +12,10 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Links.CreateLink;
 
 [Collection<CollectionResumes>]
-[Priority(70)]
 public class CreateLinkTests(WebApp app) : TestBase
 {
     [Theory]
     [ClassData(typeof(ValidLinkData))]
-    [Priority(1)]
     public async Task CreateLink_ValidRequest_ShouldReturnTheCreatedItem(CreateLinkRequest request)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -38,7 +36,6 @@ public class CreateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task CreateLink_UnknownResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -55,7 +52,6 @@ public class CreateLinkTests(WebApp app) : TestBase
 
     [Theory]
     [ClassData(typeof(InvalidLinkData))]
-    [Priority(2)]
     public async Task CreateLink_InvalidField_ShouldReturnBadRequest(
         CreateLinkRequest invalidRequest,
         string expectedKey)
@@ -75,7 +71,6 @@ public class CreateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task CreateLink_NoToken_ShouldReturnUnauthorized()
     {
         var (httpResponse, _) = await app.Client
@@ -86,7 +81,6 @@ public class CreateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task CreateLink_SeveralItems_ShouldNumberThemInCreationOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -108,7 +102,6 @@ public class CreateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task CreateLink_UriOf2083Characters_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -126,7 +119,6 @@ public class CreateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task CreateLink_LabelOf100Characters_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -143,7 +135,6 @@ public class CreateLinkTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task CreateLink_UppercaseScheme_ShouldReturnOk()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -10,11 +10,9 @@ using Shouldly;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Resumes.GetAllResumes;
 
 [Collection<CollectionResumes>]
-[Priority(3)]
 public class GetAllResumesTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(1)]
     public async Task GetAllResumes_UserWithResume_ShouldReturnUserResumes()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -14,11 +14,9 @@ using System.Text;
 namespace Cvitlo.Resumes.Application.IntegrationTests.Features.Experiences.ReorderExperiences;
 
 [Collection<CollectionResumes>]
-[Priority(34)]
 public class ReorderExperiencesTests(WebApp app) : TestBase
 {
     [Fact]
-    [Priority(0)]
     public async Task ReorderExperiences_NoToken_ShouldReturnUnauthorized()
     {
         var httpResponse = await app.Client
@@ -29,7 +27,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task ReorderExperiences_NewOrder_ShouldPersistIt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -57,7 +54,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task ReorderExperiences_UnknownId_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -77,7 +73,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task ReorderExperiences_EmptyOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -93,7 +88,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task ReorderExperiences_DuplicateOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -111,7 +105,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task ReorderExperiences_OtherUsersResume_ShouldReturnForbidden()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -131,7 +124,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task ReorderExperiences_IdsFromAnotherResume_ShouldReturnNotFoundAndKeepOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -158,7 +150,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(7)]
     public async Task ReorderExperiences_FewerIdsThanItems_ShouldReturnNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -175,7 +166,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(8)]
     public async Task ReorderExperiences_SameOrder_ShouldReturnNoContentAndKeepOrder()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -199,7 +189,6 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
     }
 
     [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; answers 500")]
-    [Priority(9)]
     public async Task ReorderExperiences_BodyWithoutOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
