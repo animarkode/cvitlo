@@ -78,7 +78,7 @@ Features/{Feature}/
 - A test creates everything it needs (resume, items) and asserts only on what it created; one flow is one test.
 - No `[Priority]` and no `EnableAdvancedTesting`.
 - Never change `app.Client` headers: use `WithAuthToken` or `CreateBearerClientAsync`, which return a new client.
-- A test that changes account-wide state (deletion, session counts, per-user rate limits) registers a fresh user with `TestUserFaker(seed)`; seeds are unique within the project.
+- A test that changes account-wide state (deletion, session counts, per-user rate limits) signs in a fresh user with `app.SignInNewUserAsync(ct)`.
 - Rate-limit tests give each test its own client IP through `TestClientIpStartupFilter`.
 - `Cvitlo.ArchitectureTests.TestNamingTests` enforces the naming below.
 

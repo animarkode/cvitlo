@@ -332,7 +332,7 @@ Test rules:
 - use NSubstitute for mocks
 - use seeded Bogus/class data when practical
 - use `TestContext.Current.CancellationToken`
-- keep every test order-independent: no `[Priority]`, no changes to `app.Client` headers, a fresh `TestUserFaker` user for account-wide state (`.agents/rules/backend-patterns.md`)
+- keep every test order-independent: no `[Priority]`, no changes to `app.Client` headers, a fresh user (`app.SignInNewUserAsync`) for account-wide state (`.agents/rules/backend-patterns.md`)
 - compare Keycloak username/email case-insensitively when relevant
 
 ---
