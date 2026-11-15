@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.DependencyModel" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="Shouldly"/>
+        <PackageReference Include="TngTech.ArchUnitNET" />
+        <PackageReference Include="xunit.v3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Every production assembly the rules cover; a new module project is added here. -->
+        <ProjectReference Include="..\..\src\api\Common\Cvitlo.Common\Cvitlo.Common.csproj"/>
+        <ProjectReference Include="..\..\src\api\Cvitlo.Api\Cvitlo.Api.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Auth\Cvitlo.Auth.Application\Cvitlo.Auth.Application.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Auth\Cvitlo.Auth.Infrastructure\Cvitlo.Auth.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Auth\Cvitlo.Auth.PublicApi\Cvitlo.Auth.PublicApi.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Documents\Cvitlo.Documents.Application\Cvitlo.Documents.Application.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Documents\Cvitlo.Documents.PublicApi\Cvitlo.Documents.PublicApi.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Application\Cvitlo.Resumes.Application.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Domain\Cvitlo.Resumes.Domain.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Infrastructure\Cvitlo.Resumes.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\src\api\Modules\Resumes\Cvitlo.Resumes.PublicApi\Cvitlo.Resumes.PublicApi.csproj"/>
+    </ItemGroup>
+
+</Project>
