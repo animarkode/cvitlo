@@ -20,12 +20,39 @@ internal static class ProjectGraph
         Directory.EnumerateFiles(Path.Combine(FindRepositoryRoot(), "src", "api"), "Cvitlo.*.csproj", SearchOption.AllDirectories)
             .Where(file => !file.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj"));
 
+    // Explicit AssemblyName values in a project or any Directory.Build.props above it.
+    public static IReadOnlyList<(string Project, string AssemblyName)> AssemblyNameOverrides()
+    {
+        var root = FindRepositoryRoot();
+        return ProjectFiles()
+            .SelectMany(file => ScopeFiles(root, file)
+                .SelectMany(scope => XDocument.Load(scope).Descendants()
+                    .Where(e => string.Equals(e.Name.LocalName, "AssemblyName", StringComparison.Ordinal))
+                    .Select(e => (Project: NameOf(file), AssemblyName: e.Value.Trim()))))
+            .ToList();
+    }
+
+    private static IEnumerable<string> ScopeFiles(string root, string projectFile)
+    {
+        yield return projectFile;
+        for (var dir = new DirectoryInfo(Path.GetDirectoryName(projectFile)!);
+             dir is not null && dir.FullName.StartsWith(root, StringComparison.Ordinal);
+             dir = dir.Parent)
+        {
+            var props = Path.Combine(dir.FullName, "Directory.Build.props");
+            if (File.Exists(props))
+            {
+                yield return props;
+            }
+        }
+    }
+
     private static List<string> LoadProjects() =>
         ProjectFiles().Select(NameOf).Order(StringComparer.Ordinal).ToList();
 
     private static List<ProjectEdge> LoadEdges() =>
         ProjectFiles()
-            .SelectMany(file => XDocument.Load(file).Descendants("ProjectReference")
+            .SelectMany(file => XDocument.Load(file).Descendants().Where(e => string.Equals(e.Name.LocalName, "ProjectReference", StringComparison.Ordinal))
                 .Select(reference => reference.Attribute("Include")?.Value)
                 .OfType<string>()
                 .Select(include => new ProjectEdge(NameOf(file), NameOf(include))))
