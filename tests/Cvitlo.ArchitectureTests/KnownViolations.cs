@@ -6,7 +6,7 @@ internal static class KnownViolations
     private const string ResumeEntities = "Cvitlo.Resumes.Domain.Entities.";
 
     // Frozen: FirstTemplate.razor binds Resumes.Domain entities and ResumePdfCache renders it.
-    // Exact types and project edges only; both lists are removed by #TBD.
+    // Exact types and project edges only; both lists are removed by #165.
     public static readonly IReadOnlyList<KnownViolation> ModuleBoundary =
     [
         new("Cvitlo.Resumes.Application.Features.Documents.Shared.ResumePdfCache", FirstTemplate),
