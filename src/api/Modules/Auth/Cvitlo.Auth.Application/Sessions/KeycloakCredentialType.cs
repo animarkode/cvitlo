@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>One credential type of the user (<c>GET /account/credentials</c>).</summary>
 public sealed record KeycloakCredentialType(
     string Type,
     string? Category,

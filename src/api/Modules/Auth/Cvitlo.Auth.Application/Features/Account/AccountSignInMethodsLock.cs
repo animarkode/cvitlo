@@ -5,19 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cvitlo.Auth.Application.Features.Account;
 
-/// <summary>
-/// Removes a sign-in method with the last-method guard and the removal as one step per user. Reading the
-/// user's methods, checking the guard and deleting would otherwise be check-then-act: two removals at once
-/// (two tabs) could both pass the guard and leave nobody able to sign in. A Postgres transaction-scoped
-/// advisory lock keyed by the user's <c>sub</c> serialises them, across every API instance because they share
-/// the database. The wait for the lock is bounded by the request's cancellation token.
-/// </summary>
+// Check-then-act: two removals at once (two tabs) could both pass the guard and leave nobody able to sign in.
+// A transaction-scoped advisory lock keyed by the user's sub serialises them across API instances.
 public sealed class AccountSignInMethodsLock(AuthDbContext db, KeycloakAccountClient keycloak)
 {
-    /// <summary>
-    /// Under the user's lock: reads their credentials and linked accounts, runs <paramref name="guard"/> on them
-    /// and, if it allows, runs <paramref name="remove"/>.
-    /// </summary>
     public async Task<ErrorOr<Success>> RemoveAsync(
         string subject,
         string accessToken,

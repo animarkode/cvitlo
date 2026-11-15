@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.EndOtherSessions;
 
-/// <summary>Ends all the signed-in user's sessions but the current one.</summary>
 public class EndOtherSessionsEndpoint : EndpointWithoutRequest<Results<NoContent, ProblemHttpResult>>
 {
     public override void Configure()

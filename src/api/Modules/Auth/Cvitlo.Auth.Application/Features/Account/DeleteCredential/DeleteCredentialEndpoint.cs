@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.DeleteCredential;
 
-/// <summary>Removes one of the signed-in user's stored credentials (password, passkey, authenticator app).</summary>
 public class DeleteCredentialEndpoint : Endpoint<DeleteCredentialRequest, Results<NoContent, ProblemHttpResult>>
 {
     public override void Configure()

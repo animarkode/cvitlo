@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Login;
 
-/// <summary>Sends the browser to Keycloak's sign-in page; the browser navigates here, it does not fetch.</summary>
+// A navigation, not a fetch: Keycloak's own page takes over the browser.
 public class LoginEndpoint : EndpointWithoutRequest<Results<ChallengeHttpResult, RedirectHttpResult>>
 {
     public override void Configure()

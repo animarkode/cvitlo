@@ -12,11 +12,6 @@ using Microsoft.IdentityModel.Tokens;
 namespace Cvitlo.Auth.Application.Features.BackchannelLogout;
 
 
-/// <summary>
-/// Checks a logout token as OpenID Connect Back-Channel Logout 1.0 requires: signed by Keycloak's realm keys,
-/// issued by the realm, addressed to this client, unexpired (<c>exp</c> is required), carrying the back-channel logout event and a <c>sid</c> or
-/// <c>sub</c>, and no <c>nonce</c> (which would make it an ID token).
-/// </summary>
 public class LogoutTokenValidator(
     IOptionsMonitor<OpenIdConnectOptions> oidc,
     IOptions<KeycloakOptions> keycloak)

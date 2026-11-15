@@ -5,11 +5,8 @@ using FastEndpoints;
 
 namespace Cvitlo.Auth.Application.Features.Account.UpdateProfile;
 
-/// <summary>
-/// Keycloak's <c>POST /account</c> replaces the whole representation, so the current one is read first and
-/// only the editable parts are changed. The e-mail is never one of them (it changes through the
-/// <c>UPDATE_EMAIL</c> action, which verifies it), and neither is any read-only field.
-/// </summary>
+// Keycloak's POST /account replaces the whole representation, so the current one is read first. The e-mail is
+// never changed here (it goes through UPDATE_EMAIL, which verifies it), nor is any read-only field.
 public class UpdateProfileCommandHandler(KeycloakAccountClient keycloak)
     : ICommandHandler<UpdateProfileCommand, ErrorOr<GetProfileResponse>>
 {

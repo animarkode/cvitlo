@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.GetCredentials;
 
-/// <summary>The credential types the user can have (password, passkeys, authenticator app) and what is stored.</summary>
 public class GetCredentialsEndpoint(KeycloakAccountClient keycloak)
     : EndpointWithoutRequest<Results<Ok<GetCredentialsResponse[]>, ProblemHttpResult>>
 {

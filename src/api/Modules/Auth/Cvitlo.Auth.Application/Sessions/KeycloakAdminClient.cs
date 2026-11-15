@@ -7,26 +7,15 @@ using Microsoft.Extensions.Options;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>
-/// Keycloak's Admin API, called as the <c>cvitlo-admin</c> client's service account, which holds only the
-/// <c>manage-users</c> role. It exists to delete a user's own account; failures come back as errors, never
-/// as exceptions.
-/// </summary>
 public sealed class KeycloakAdminClient(
     HttpClient http,
     KeycloakTokenClient tokenClient,
     IOptions<KeycloakOptions> options,
     ILogger<KeycloakAdminClient> logger)
 {
-    /// <summary>The error code for every failure to reach or use the Admin API.</summary>
     public const string UnavailableErrorCode = "Account.Unavailable";
 
-    /// <summary>
-    /// Deletes a user and, with them, everything Keycloak holds for them. A user Keycloak no longer knows
-    /// counts as deleted, so a retry after a half-finished deletion succeeds.
-    /// </summary>
-    /// <param name="subject">The Keycloak user id (the token's <c>sub</c>).</param>
-    /// <param name="ct">Cancels the calls.</param>
+    // A user Keycloak no longer knows counts as deleted, so a retry after a half-finished deletion succeeds.
     public async Task<ErrorOr<Deleted>> DeleteUserAsync(string subject, CancellationToken ct)
     {
         try
@@ -56,9 +45,6 @@ public sealed class KeycloakAdminClient(
         }
     }
 
-    /// <summary>Asks whether Keycloak still knows a user. Viewing is part of <c>manage-users</c>.</summary>
-    /// <param name="subject">The Keycloak user id (the token's <c>sub</c>).</param>
-    /// <param name="ct">Cancels the calls.</param>
     public async Task<ErrorOr<bool>> UserExistsAsync(string subject, CancellationToken ct)
     {
         try

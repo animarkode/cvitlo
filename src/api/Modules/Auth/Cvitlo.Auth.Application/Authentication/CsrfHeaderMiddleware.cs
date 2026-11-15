@@ -2,13 +2,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace Cvitlo.Auth.Application.Authentication;
 
-/// <summary>
-/// Refuses API calls that ride on the session cookie without the <see cref="AuthSchemes.CsrfHeaderName"/>
-/// header. A forged cross-site request can carry the cookie (were <c>SameSite</c> ever bypassed) but cannot
-/// add a custom header without a CORS preflight, and the API grants none. Bearer calls carry no cookie
-/// authority and are left alone, as are the top-level navigations of the sign-in flow and Keycloak's
-/// back-channel call.
-/// </summary>
+// A forged cross-site request can carry the cookie but cannot add a custom header without a CORS preflight, which the API
+// never grants. Bearer calls, the sign-in navigations and Keycloak's back-channel call are left alone.
 public sealed class CsrfHeaderMiddleware(RequestDelegate next)
 {
     private static readonly PathString Api = "/api";
@@ -41,7 +36,6 @@ public sealed class CsrfHeaderMiddleware(RequestDelegate next)
         return next(context);
     }
 
-    /// <summary>Exactly one extra segment after the prefix: <c>/account-action/{action}</c>.</summary>
     private static bool IsAccountAction(PathString path)
     {
         return path.StartsWithSegments(AccountActionPrefix, StringComparison.OrdinalIgnoreCase, out var rest)

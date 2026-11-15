@@ -11,18 +11,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>
-/// Keeps each web session (claims and tokens) in PostgreSQL. The cookie carries only a random key, so the
-/// browser never sees a token, and deleting the row (sign-out, back-channel logout) ends the session at once.
-/// Tickets are encrypted with Data Protection before they reach the database, and rows are found by the
-/// SHA-256 of the key, so reading the table (a leaked backup, a replica) yields no usable cookie.
-/// </summary>
+// The cookie carries only a random key and rows are found by its SHA-256, so a leaked backup or replica yields no usable cookie.
+// Tickets are Data-Protection-encrypted; deleting the row ends the session at once.
 public sealed class PostgresTicketStore(
     IServiceScopeFactory scopes,
     IDataProtectionProvider dataProtection,
     TimeProvider time) : ITicketStore
 {
-    /// <summary>The ticket item that carries the session key back to whoever retrieved the ticket.</summary>
     public const string SessionKeyItem = ".cvitlo.session";
 
     private readonly IDataProtector _protector = dataProtection.CreateProtector("Cvitlo.Auth.Sessions.v1");
@@ -83,10 +78,7 @@ public sealed class PostgresTicketStore(
         await db.Sessions.Where(session => session.Id == id).ExecuteDeleteAsync();
     }
 
-    /// <summary>
-    /// Deletes a session row by its id, leaving the Keycloak session alone (its tokens are shared with the
-    /// session that replaces this one). When <paramref name="subject"/> is given, only that user's row goes.
-    /// </summary>
+    // The Keycloak session is left alone: its tokens are shared with the session that replaces this one.
     public async Task RemoveByIdAsync(string id, string? subject = null)
     {
         await using var scope = scopes.CreateAsyncScope();
@@ -96,7 +88,6 @@ public sealed class PostgresTicketStore(
             .ExecuteDeleteAsync();
     }
 
-    /// <summary>Deletes every session row of a user, as when the account itself is gone.</summary>
     public async Task RemoveBySubjectAsync(string subject)
     {
         await using var scope = scopes.CreateAsyncScope();
@@ -104,7 +95,6 @@ public sealed class PostgresTicketStore(
         await db.Sessions.Where(session => session.Subject == subject).ExecuteDeleteAsync();
     }
 
-    /// <summary>The row id of the session the cookie key names.</summary>
     public static string HashKey(string key)
     {
         return WebEncoders.Base64UrlEncode(SHA256.HashData(Encoding.UTF8.GetBytes(key)));
@@ -116,8 +106,6 @@ public sealed class PostgresTicketStore(
         return _protector.Protect(TicketSerializer.Default.Serialize(ticket));
     }
 
-    /// <summary>Decrypts and deserializes a stored authentication ticket.</summary>
-    /// <returns>The ticket, or <see langword="null"/> when it no longer decrypts (keys rotated away).</returns>
     public AuthenticationTicket? Unprotect(byte[] protectedTicket, string key)
     {
         try

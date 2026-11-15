@@ -4,10 +4,7 @@ using FastEndpoints;
 
 namespace Cvitlo.Auth.Application.Features.Logout;
 
-/// <summary>
-/// Ends the Keycloak session on the back channel, with the session's refresh token and the client secret,
-/// so the browser never needs an ID token or a logout URL.
-/// </summary>
+// Back channel with the refresh token and client secret, so the browser needs no ID token or logout URL.
 public class LogoutCommandHandler(KeycloakTokenClient keycloak)
     : ICommandHandler<LogoutCommand, ErrorOr<Success>>
 {

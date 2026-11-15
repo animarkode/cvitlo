@@ -6,7 +6,7 @@ namespace Cvitlo.Auth.Application.Features.Account.GetProfile;
 
 public static class GetProfileMapper
 {
-    /// <summary>Keycloak's built-in profile attributes, which live beside <c>attributes</c> rather than in it.</summary>
+    // Keycloak's built-in profile attributes live beside attributes rather than in it.
     public static readonly IReadOnlySet<string> BuiltInAttributes =
         new HashSet<string>(["username", "email", "firstName", "lastName"], StringComparer.Ordinal);
 

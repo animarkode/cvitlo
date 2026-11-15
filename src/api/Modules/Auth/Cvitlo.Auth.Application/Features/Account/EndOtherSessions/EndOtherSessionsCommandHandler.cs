@@ -4,7 +4,6 @@ using FastEndpoints;
 
 namespace Cvitlo.Auth.Application.Features.Account.EndOtherSessions;
 
-/// <summary>Ends every session of the user but the current one.</summary>
 public class EndOtherSessionsCommandHandler(KeycloakAccountClient keycloak)
     : ICommandHandler<EndOtherSessionsCommand, ErrorOr<Success>>
 {

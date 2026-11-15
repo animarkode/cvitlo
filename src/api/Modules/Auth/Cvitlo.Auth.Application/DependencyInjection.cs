@@ -16,7 +16,7 @@ namespace Cvitlo.Auth.Application;
 
 public static class DependencyInjection
 {
-    /// <summary>The application name all API instances share, so each can read the others' cookies and sessions.</summary>
+    // Shared by every API instance so each can read the others' cookies and sessions.
     private const string DataProtectionApplicationName = "Cvitlo";
 
     public static IServiceCollection AddAuthModule(this IServiceCollection services, IConfiguration configuration)
@@ -64,7 +64,7 @@ public static class DependencyInjection
         return services;
     }
 
-    /// <summary>Requires the CSRF header on cookie-authenticated API calls. Call before authentication.</summary>
+    // Call before authentication.
     public static IApplicationBuilder UseCvitloCsrfProtection(this IApplicationBuilder app)
     {
         return app.UseMiddleware<CsrfHeaderMiddleware>();

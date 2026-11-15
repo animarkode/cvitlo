@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.GetProfile;
 
-/// <summary>The signed-in user's profile and the realm's editable profile fields, read from Keycloak.</summary>
 public class GetProfileEndpoint(KeycloakAccountClient keycloak)
     : EndpointWithoutRequest<Results<Ok<GetProfileResponse>, ProblemHttpResult>>
 {

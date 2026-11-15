@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>The back-channel calls the BFF makes to Keycloak's token endpoints: refresh, logout and client credentials.</summary>
 public sealed class KeycloakTokenClient(
     HttpClient http,
     IOptions<KeycloakOptions> options,
@@ -15,12 +14,8 @@ public sealed class KeycloakTokenClient(
 {
     private readonly KeycloakOptions _options = options.Value;
 
-    /// <summary>Requests fresh tokens for a session from Keycloak.</summary>
-    /// <remarks>
-    /// Only <c>invalid_grant</c> means the session is over (expired, signed out, revoked, or the refresh token
-    /// already used). Everything else — an unreachable or slow Keycloak, <c>invalid_client</c> after a secret
-    /// rotation, an unreadable answer — is a server-side problem, and the session is kept.
-    /// </remarks>
+    // Only invalid_grant means the session is over. Anything else (unreachable Keycloak, invalid_client after a secret
+    // rotation, an unreadable answer) is a server-side problem, and the session is kept.
     public async Task<RefreshResult> RefreshAsync(string refreshToken, CancellationToken ct)
     {
         try
@@ -56,8 +51,6 @@ public sealed class KeycloakTokenClient(
         }
     }
 
-    /// <summary>Requests an access token for a confidential client's own service account.</summary>
-    /// <returns>The tokens, or <see langword="null"/> when Keycloak refused or could not be reached (logged).</returns>
     public async Task<TokenResponse?> GetClientCredentialsTokenAsync(
         string clientId, string clientSecret, CancellationToken ct)
     {
@@ -104,7 +97,6 @@ public sealed class KeycloakTokenClient(
         }
     }
 
-    /// <summary>Ends the Keycloak session the refresh token belongs to.</summary>
     public async Task<bool> LogoutAsync(string refreshToken, CancellationToken ct)
     {
         try

@@ -4,7 +4,7 @@ namespace Cvitlo.Auth.Application.Features.Account.GetDevices;
 
 public static class GetDevicesMapper
 {
-    /// <summary>Flattens devices into their sessions; Keycloak sends times as epoch seconds.</summary>
+    // Keycloak sends times as epoch seconds.
     public static IEnumerable<GetDevicesResponse> MapToResponse(this KeycloakDevice device)
     {
         return (device.Sessions ?? []).Select(session => new GetDevicesResponse(

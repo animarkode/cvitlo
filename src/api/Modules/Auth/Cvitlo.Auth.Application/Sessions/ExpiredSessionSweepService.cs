@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>Runs <see cref="ExpiredSessionSweeper"/> once an hour.</summary>
 public sealed class ExpiredSessionSweepService(
     IServiceScopeFactory scopes,
     ILogger<ExpiredSessionSweepService> logger) : BackgroundService

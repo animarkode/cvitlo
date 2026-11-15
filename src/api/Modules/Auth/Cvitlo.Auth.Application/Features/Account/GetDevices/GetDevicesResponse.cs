@@ -1,6 +1,5 @@
 namespace Cvitlo.Auth.Application.Features.Account.GetDevices;
 
-/// <summary>One signed-in session of the user, with the device it runs on.</summary>
 public record GetDevicesResponse(
     string Id,
     string? Device,

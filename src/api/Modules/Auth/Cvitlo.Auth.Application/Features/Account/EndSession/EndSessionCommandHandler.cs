@@ -4,10 +4,7 @@ using FastEndpoints;
 
 namespace Cvitlo.Auth.Application.Features.Account.EndSession;
 
-/// <summary>
-/// Ends one other session of the user. The current session is refused: the user signs out instead. Keycloak's
-/// back-channel logout then removes the ended session's app session.
-/// </summary>
+// Keycloak's back-channel logout then removes the ended session's app session.
 public class EndSessionCommandHandler(KeycloakAccountClient keycloak)
     : ICommandHandler<EndSessionCommand, ErrorOr<Success>>
 {

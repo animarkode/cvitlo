@@ -3,11 +3,8 @@ using Cvitlo.Auth.Application.Sessions;
 
 namespace Cvitlo.Auth.Application.Features.Account;
 
-/// <summary>
-/// Keeps a user from removing their last way to sign in. Sign-in methods are the stored passwords, the stored
-/// passwordless passkeys and the connected linked accounts; an authenticator app (<c>otp</c>) and a
-/// two-factor security key (<c>webauthn</c>) only complete a sign-in, so removing them is always allowed.
-/// </summary>
+// Sign-in methods are stored passwords, stored passwordless passkeys and connected linked accounts;
+// an authenticator app (otp) and a two-factor security key (webauthn) only complete a sign-in, so they are always removable.
 public static class LastSignInMethodGuard
 {
     public const string LastSignInMethodCode = "Account.LastSignInMethod";
@@ -21,7 +18,6 @@ public static class LastSignInMethodGuard
         "webauthn-passwordless"
     };
 
-    /// <summary>How many ways to sign in the user has.</summary>
     public static int CountSignInMethods(
         IReadOnlyList<KeycloakCredentialType> credentials,
         IReadOnlyList<KeycloakLinkedAccount> linkedAccounts)
@@ -33,10 +29,6 @@ public static class LastSignInMethodGuard
         return stored + linkedAccounts.Count(account => account.Connected);
     }
 
-    /// <summary>
-    /// Whether the credential may go: it must exist, be of a kind Keycloak lets the user remove, and must not be
-    /// the last way to sign in.
-    /// </summary>
     public static ErrorOr<Success> CheckCredentialRemoval(
         IReadOnlyList<KeycloakCredentialType> credentials,
         IReadOnlyList<KeycloakLinkedAccount> linkedAccounts,
@@ -61,7 +53,6 @@ public static class LastSignInMethodGuard
             : Result.Success;
     }
 
-    /// <summary>Whether the provider may be unlinked: it must be connected, and not the last way to sign in.</summary>
     public static ErrorOr<Success> CheckUnlink(
         IReadOnlyList<KeycloakCredentialType> credentials,
         IReadOnlyList<KeycloakLinkedAccount> linkedAccounts,

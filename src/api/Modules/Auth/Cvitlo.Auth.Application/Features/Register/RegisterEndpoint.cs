@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Register;
 
-/// <summary>Sends the browser straight to Keycloak's registration page (<c>prompt=create</c>).</summary>
 public class RegisterEndpoint : EndpointWithoutRequest<Results<ChallengeHttpResult, RedirectHttpResult>>
 {
     public override void Configure()

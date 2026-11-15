@@ -4,7 +4,6 @@ using FastEndpoints;
 
 namespace Cvitlo.Auth.Application.Features.Account.DeleteCredential;
 
-/// <summary>Removes a stored credential, unless it is the user's last way to sign in.</summary>
 public class DeleteCredentialCommandHandler(
     AccountSignInMethodsLock signInMethods,
     KeycloakAccountClient keycloak)

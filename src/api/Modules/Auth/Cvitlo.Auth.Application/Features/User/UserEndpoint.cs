@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.User;
 
-/// <summary>
-/// Who is signed in. Baseline-only for rate limiting, as <c>me</c> was (epic #331): the SPA calls it on every
-/// load, and an anonymous call is the global-anonymous probe.
-/// </summary>
+// Baseline-only for rate limiting: the SPA calls it on every load,
+// and an anonymous call is the global-anonymous probe.
 public class UserEndpoint : EndpointWithoutRequest<Ok<UserResponse>>
 {
     public override void Configure()

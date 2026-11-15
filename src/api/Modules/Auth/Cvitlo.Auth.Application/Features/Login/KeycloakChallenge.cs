@@ -7,9 +7,6 @@ namespace Cvitlo.Auth.Application.Features.Login;
 
 internal static class KeycloakChallenge
 {
-    /// <summary>
-    /// A challenge that redirects to Keycloak, or a plain redirect when the browser is already signed in.
-    /// </summary>
     public static Results<ChallengeHttpResult, RedirectHttpResult> For(
         System.Security.Claims.ClaimsPrincipal user,
         string? returnUrl,
