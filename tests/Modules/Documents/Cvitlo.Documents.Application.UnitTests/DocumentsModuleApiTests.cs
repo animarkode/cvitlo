@@ -1,6 +1,7 @@
 using Cvitlo.Documents.Application.Templates;
 using Cvitlo.Documents.Application.UnitTests.Templates;
 using Cvitlo.Documents.PublicApi;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -19,6 +20,28 @@ public class DocumentsModuleApiTests
         var html = await api.RenderToHtmlAsync<FirstTemplate>(parameters, TestContext.Current.CancellationToken);
 
         html.ShouldContain("Ada");
+    }
+
+    [Fact]
+    public async Task TemplateVersion_FirstTemplate_ShouldReturnAssemblyModuleVersion()
+    {
+        await using var provider = new ServiceCollection().AddLogging().AddDocumentsModule().BuildServiceProvider();
+        await using var scope = provider.CreateAsyncScope();
+        var api = scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>();
+
+        var version = api.TemplateVersion(ResumeTemplate.First);
+
+        version.ShouldBe(typeof(FirstTemplate).Assembly.ManifestModule.ModuleVersionId.ToString());
+    }
+
+    [Fact]
+    public async Task TemplateVersion_UnknownTemplate_ShouldThrowArgumentOutOfRange()
+    {
+        await using var provider = new ServiceCollection().AddLogging().AddDocumentsModule().BuildServiceProvider();
+        await using var scope = provider.CreateAsyncScope();
+        var api = scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>();
+
+        Should.Throw<ArgumentOutOfRangeException>(() => api.TemplateVersion((ResumeTemplate)99));
     }
 
     [Fact]

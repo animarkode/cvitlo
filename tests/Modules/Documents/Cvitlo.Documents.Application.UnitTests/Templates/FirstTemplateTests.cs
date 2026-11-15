@@ -1,5 +1,5 @@
 using System.Globalization;
-using Cvitlo.Resumes.Domain.Entities;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Shouldly;
 
 namespace Cvitlo.Documents.Application.UnitTests.Templates;
@@ -19,7 +19,7 @@ public class FirstTemplateTests
     [Fact]
     public async Task Render_EmptyResume_ShouldOmitEverySection()
     {
-        var html = await TemplateRenderer.RenderAsync(new Resume());
+        var html = await TemplateRenderer.RenderAsync(new ResumeDocument());
 
         AssertHeaderOnly(html);
     }
@@ -50,12 +50,12 @@ public class FirstTemplateTests
     [Fact]
     public async Task Render_WhitespaceOnlyOptionalFields_ShouldOmitTheirSections()
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
             Summary = "  ",
             Hobbies = "  ",
-            Person = new Person { Nationality = "  ", DrivingLicense = "  " }
+            Person = new PersonDocument { Nationality = "  ", DrivingLicense = "  " }
         };
 
         var html = await TemplateRenderer.RenderAsync(resume);
@@ -70,12 +70,12 @@ public class FirstTemplateTests
     public async Task Render_MarkupInPlainFields_ShouldBeEncoded()
     {
         const string payload = "<script>x</script>";
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
-            Person = new Person { Firstname = payload, JobTitle = payload },
-            Skills = [new Skill { Name = payload }],
-            Links = [new Link { Label = payload, Uri = "https://a.example" }]
+            Person = new PersonDocument { Firstname = payload, JobTitle = payload },
+            Skills = [new SkillDocument { Name = payload }],
+            Links = [new LinkDocument { Label = payload, Uri = "https://a.example" }]
         };
 
         var html = await TemplateRenderer.RenderAsync(resume);
@@ -87,7 +87,7 @@ public class FirstTemplateTests
     [Fact(Skip = "#144: render-time Sanitize decodes encoded markup into a live <img> tag")]
     public async Task Render_SummaryWithEncodedMarkup_ShouldNotEmitLiveTags()
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
             Summary = "<p>&lt;img src=x onerror=alert(1)&gt;</p>"
@@ -123,10 +123,10 @@ public class FirstTemplateTests
     [Fact(Skip = "#154: link Uri is emitted as href without a scheme check")]
     public async Task Render_LinkWithJavascriptUri_ShouldNotEmitItAsHref()
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
-            Links = [new Link { Label = "x", Uri = "javascript:alert(1)" }]
+            Links = [new LinkDocument { Label = "x", Uri = "javascript:alert(1)" }]
         };
 
         var html = await TemplateRenderer.RenderAsync(resume);
@@ -134,12 +134,12 @@ public class FirstTemplateTests
         html.ShouldNotContain("href=\"javascript:");
     }
 
-    public static TheoryData<Person, int> ContactCases => new()
+    public static TheoryData<PersonDocument, int> ContactCases => new()
     {
-        { new Person { City = "Kyiv" }, 0 },
-        { new Person { City = "Kyiv", Email = "ada@example.com" }, 1 },
+        { new PersonDocument { City = "Kyiv" }, 0 },
+        { new PersonDocument { City = "Kyiv", Email = "ada@example.com" }, 1 },
         {
-            new Person
+            new PersonDocument
             {
                 City = "Kyiv",
                 Street = "Main Street 1",
@@ -154,9 +154,9 @@ public class FirstTemplateTests
 
     [Theory]
     [MemberData(nameof(ContactCases))]
-    public async Task Render_Contacts_ShouldSeparateOnlyBetweenPresentValues(Person person, int separators)
+    public async Task Render_Contacts_ShouldSeparateOnlyBetweenPresentValues(PersonDocument person, int separators)
     {
-        var html = await TemplateRenderer.RenderAsync(new Resume { Localization = "en-us", Person = person });
+        var html = await TemplateRenderer.RenderAsync(new ResumeDocument { Localization = "en-us", Person = person });
 
         CountOccurrences(html, Separator).ShouldBe(separators);
     }
@@ -164,9 +164,9 @@ public class FirstTemplateTests
     [Fact(Skip = "#157: IsComma compares values, so City equal to Country loses its separator")]
     public async Task Render_CityEqualToCountry_ShouldStillSeparateThem()
     {
-        var person = new Person { City = "Monaco", Country = "Monaco" };
+        var person = new PersonDocument { City = "Monaco", Country = "Monaco" };
 
-        var html = await TemplateRenderer.RenderAsync(new Resume { Localization = "en-us", Person = person });
+        var html = await TemplateRenderer.RenderAsync(new ResumeDocument { Localization = "en-us", Person = person });
 
         CountOccurrences(html, Separator).ShouldBe(1);
     }
@@ -178,12 +178,12 @@ public class FirstTemplateTests
     [InlineData(false, false, 0)]
     public async Task Render_DateInterval_ShouldRenderPresentEnds(bool hasStart, bool hasEnd, int dashes)
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
             Experiences =
             [
-                new Experience
+                new ExperienceDocument
                 {
                     JobTitle = "Dev",
                     StartDate = hasStart ? new DateOnly(2020, 1, 15) : null,
@@ -202,10 +202,10 @@ public class FirstTemplateTests
     [Fact]
     public async Task Render_DateOfBirth_ShouldUseDayMonthYear()
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
-            Person = new Person { DateOfBirth = new DateOnly(1990, 3, 7) }
+            Person = new PersonDocument { DateOfBirth = new DateOnly(1990, 3, 7) }
         };
 
         var html = await TemplateRenderer.RenderAsync(resume);
@@ -223,10 +223,10 @@ public class FirstTemplateTests
     [InlineData("de-de", "Skills")]
     public async Task Render_Localization_ShouldTranslateHeadings(string? localization, string heading)
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = localization,
-            Skills = [new Skill { Name = "Mathematics" }]
+            Skills = [new SkillDocument { Name = "Mathematics" }]
         };
 
         var html = await TemplateRenderer.RenderAsync(resume);
@@ -237,10 +237,10 @@ public class FirstTemplateTests
     [Fact(Skip = "#153: unknown localization makes CultureInfo.GetCultureInfo throw CultureNotFoundException")]
     public async Task Render_UnknownLocalization_ShouldFallBackToEnglish()
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "not a culture!",
-            Skills = [new Skill { Name = "Mathematics" }]
+            Skills = [new SkillDocument { Name = "Mathematics" }]
         };
 
         var html = await TemplateRenderer.RenderAsync(resume);
@@ -253,10 +253,10 @@ public class FirstTemplateTests
     {
         var beforeUi = CultureInfo.CurrentUICulture;
         var before = CultureInfo.CurrentCulture;
-        var skills = new[] { new Skill { Name = "Mathematics" } };
+        var skills = new[] { new SkillDocument { Name = "Mathematics" } };
 
-        await TemplateRenderer.RenderAsync(new Resume { Localization = "uk-ua", Skills = skills });
-        await TemplateRenderer.RenderAsync(new Resume { Localization = "en-us", Skills = skills });
+        await TemplateRenderer.RenderAsync(new ResumeDocument { Localization = "uk-ua", Skills = skills });
+        await TemplateRenderer.RenderAsync(new ResumeDocument { Localization = "en-us", Skills = skills });
 
         CultureInfo.CurrentUICulture.ShouldBe(beforeUi);
         CultureInfo.CurrentCulture.ShouldBe(before);
@@ -266,11 +266,11 @@ public class FirstTemplateTests
     public async Task Render_LargeResume_ShouldRenderEveryItem()
     {
         var description = new string('x', 1000);
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
             Experiences = Enumerable.Range(0, 200)
-                .Select(i => new Experience { JobTitle = $"Last-{i}", Description = description })
+                .Select(i => new ExperienceDocument { JobTitle = $"Last-{i}", Description = description })
                 .ToList()
         };
 
@@ -283,12 +283,12 @@ public class FirstTemplateTests
     public async Task Render_DescriptionMarkup_ShouldBeEmittedAsMarkup()
     {
         const string description = "<p><strong>x</strong></p>";
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
-            Experiences = [new Experience { Description = description }],
-            Educations = [new Education { Description = description }],
-            Courses = [new Course { Description = description }]
+            Experiences = [new ExperienceDocument { Description = description }],
+            Educations = [new EducationDocument { Description = description }],
+            Courses = [new CourseDocument { Description = description }]
         };
 
         var html = await TemplateRenderer.RenderAsync(resume);
@@ -298,10 +298,10 @@ public class FirstTemplateTests
 
     private static async Task<string> RenderProjectUrlAsync(string url)
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
             Localization = "en-us",
-            Projects = [new Project { Name = "P", Url = url }]
+            Projects = [new ProjectDocument { Name = "P", Url = url }]
         };
 
         return await TemplateRenderer.RenderAsync(resume);

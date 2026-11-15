@@ -1,4 +1,4 @@
-using Cvitlo.Resumes.Domain.Entities;
+using Cvitlo.Documents.PublicApi.Resumes;
 
 namespace Cvitlo.Documents.Application.UnitTests.Templates;
 
@@ -7,18 +7,17 @@ internal static class ResumeBuilder
     private static readonly DateOnly Start = new(2020, 1, 15);
     private static readonly DateOnly End = new(2021, 3, 20);
 
-    public static Resume Full()
+    public static ResumeDocument Full()
     {
-        return new Resume
+        return new ResumeDocument
         {
-            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
             Localization = "en-us",
             Summary = "<p>Seasoned engineer</p>",
             Hobbies = "<p>Chess</p>",
             Person = FullPerson(),
-            Links = [new Link { Label = "Portfolio", Uri = "https://portfolio.example" }],
-            Skills = [new Skill { Name = "Mathematics", Level = "Expert" }],
-            Languages = [new Language { Name = "English", Level = "C1" }],
+            Links = [new LinkDocument { Label = "Portfolio", Uri = "https://portfolio.example" }],
+            Skills = [new SkillDocument { Name = "Mathematics" }],
+            Languages = [new LanguageDocument { Name = "English", Level = "C1" }],
             Experiences = [FullExperience()],
             Educations = [FullEducation()],
             Courses = [FullCourse()],
@@ -26,9 +25,9 @@ internal static class ResumeBuilder
         };
     }
 
-    private static Person FullPerson()
+    private static PersonDocument FullPerson()
     {
-        return new Person
+        return new PersonDocument
         {
             Firstname = "Ada",
             Lastname = "Lovelace",
@@ -45,9 +44,9 @@ internal static class ResumeBuilder
         };
     }
 
-    private static Experience FullExperience()
+    private static ExperienceDocument FullExperience()
     {
-        return new Experience
+        return new ExperienceDocument
         {
             JobTitle = "Backend Engineer",
             Employer = "Acme",
@@ -58,9 +57,9 @@ internal static class ResumeBuilder
         };
     }
 
-    private static Education FullEducation()
+    private static EducationDocument FullEducation()
     {
-        return new Education
+        return new EducationDocument
         {
             School = "Polytechnic",
             Degree = "MSc",
@@ -71,9 +70,9 @@ internal static class ResumeBuilder
         };
     }
 
-    private static Course FullCourse()
+    private static CourseDocument FullCourse()
     {
-        return new Course
+        return new CourseDocument
         {
             Name = "Distributed Systems",
             School = "OpenCourse",
@@ -83,9 +82,9 @@ internal static class ResumeBuilder
         };
     }
 
-    private static Project FullProject()
+    private static ProjectDocument FullProject()
     {
-        return new Project
+        return new ProjectDocument
         {
             Name = "Cvitlo",
             Tagline = "Resume builder",

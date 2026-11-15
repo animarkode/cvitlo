@@ -1,6 +1,6 @@
 using ErrorOr;
-using Cvitlo.Documents.Application.Templates;
 using Cvitlo.Documents.PublicApi;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Cvitlo.Resumes.Application.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +15,7 @@ namespace Cvitlo.Resumes.Application.Features.Documents.Shared;
 public class ResumePdfCache(
     IServiceScopeFactory scopeFactory,
     HybridCache cache,
+    IDocumentsModuleApi documentsModuleApi,
     ILogger<ResumePdfCache> logger)
 {
     /// <summary>Gets the cached rendered PDF for a resume, rendering and caching it when missing.</summary>
@@ -25,7 +26,7 @@ public class ResumePdfCache(
     public async Task<ErrorOr<ResumePdf>> GetOrRenderAsync(Guid userId, Guid resumeId, CancellationToken ct)
     {
         var pdf = await cache.GetOrCreateAsync(
-            ResumesCacheKeys.Pdf(userId, resumeId, typeof(FirstTemplate)),
+            ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, documentsModuleApi.TemplateVersion(ResumeTemplate.First)),
             async cacheCt =>
             {
                 // HybridCache runs this factory once for every concurrent caller of the same key and
@@ -46,10 +47,8 @@ public class ResumePdfCache(
                 }
 
                 var resume = result.Value;
-                var parameters = new Dictionary<string, object?>(StringComparer.Ordinal) { { "Resume", resume } };
-
-                var documentsModuleApi = scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>();
-                var stream = await documentsModuleApi.RenderToPdfAsync<FirstTemplate>(parameters, cacheCt);
+                var stream = await scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>().RenderResumeToPdfAsync(
+                    resume.ToDocument(), ResumeTemplate.First, cacheCt);
 
                 await using var _ = stream;
                 using var buffer = new MemoryStream();

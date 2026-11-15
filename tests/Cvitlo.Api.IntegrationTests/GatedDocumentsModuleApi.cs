@@ -1,4 +1,5 @@
 using Cvitlo.Documents.PublicApi;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Microsoft.AspNetCore.Components;
 
 namespace Cvitlo.Api.IntegrationTests;
@@ -22,14 +23,17 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
     public Task Entered => _entered?.Task ?? Task.CompletedTask;
 
     /// <summary>Renders a stub PDF, blocking while a gate from <see cref="Hold"/> is held.</summary>
-    /// <typeparam name="TComponent">The Razor component that would be rendered.</typeparam>
-    /// <param name="parameters">Render parameters — ignored by this double.</param>
-    /// <param name="ct">The request's cancellation token.</param>
-    /// <returns>A stream over a four-byte stub PDF.</returns>
-    public async Task<Stream> RenderToPdfAsync<TComponent>(
-        IReadOnlyDictionary<string, object?> parameters,
-        CancellationToken ct)
-        where TComponent : IComponent
+    public async Task<Stream> RenderResumeToPdfAsync(ResumeDocument resume, ResumeTemplate template, CancellationToken ct)
+    {
+        await PassGateAsync(ct);
+
+        return new MemoryStream(StubPdf);
+    }
+
+    /// <summary>Returns a fixed version, so cache keys built from it are stable across a test run.</summary>
+    public string TemplateVersion(ResumeTemplate template) => "stub";
+
+    private async Task PassGateAsync(CancellationToken ct)
     {
         var release = _release;
 
@@ -39,8 +43,6 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
 
             await release.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
         }
-
-        return new MemoryStream(StubPdf);
     }
 
     /// <summary>

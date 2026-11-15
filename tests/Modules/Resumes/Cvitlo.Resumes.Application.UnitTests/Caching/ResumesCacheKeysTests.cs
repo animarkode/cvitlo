@@ -1,5 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
-using Cvitlo.Documents.Application.Templates;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Cvitlo.Resumes.Application.Caching;
 using Shouldly;
 
@@ -8,35 +7,25 @@ namespace Cvitlo.Resumes.Application.UnitTests.Caching;
 public class ResumesCacheKeysTests
 {
     [Fact]
-    public void Pdf_WithTemplateType_ShouldKebabCaseTemplateSegment()
+    public void Pdf_WithTemplate_ShouldLowercaseTemplateSegmentAndAppendVersion()
     {
         var userId = Guid.NewGuid();
         var resumeId = Guid.NewGuid();
 
-        var key = ResumesCacheKeys.Pdf(userId, resumeId, typeof(FirstTemplate));
+        var key = ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, "v1");
 
-        key.ShouldContain($":pdf:{resumeId}:first-template:");
+        key.ShouldEndWith($":user:{userId}:pdf:{resumeId}:first:v1");
     }
 
     [Fact]
-    public void Pdf_WithAcronymInTemplateName_ShouldKeepAcronymTogether()
+    public void Pdf_WithDifferentTemplateVersion_ShouldProduceDifferentKey()
     {
         var userId = Guid.NewGuid();
         var resumeId = Guid.NewGuid();
 
-        var key = ResumesCacheKeys.Pdf(userId, resumeId, typeof(PdfATSTemplate));
+        var first = ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, "v1");
+        var second = ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, "v2");
 
-        key.ShouldContain($":pdf:{resumeId}:pdf-ats-template:");
+        string.Equals(first, second, StringComparison.Ordinal).ShouldBeFalse();
     }
-
-    // Dummy type used only to exercise ToKebabCase's acronym handling ("ATS") — no real
-    // template with this shape exists yet. The acronym casing is the point of the test, so the
-    // naming rule is suppressed; the type is only ever read through reflection (typeof).
-    [SuppressMessage("Naming", "S101:Types should be named in PascalCase",
-        Justification = "The upper-case acronym is exactly what the test exercises.")]
-    [SuppressMessage("Major Code Smell", "S2094:Classes should not be empty",
-        Justification = "Marker type; only its name is used.")]
-    [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes",
-        Justification = "Marker type; only its name is used.")]
-    private sealed class PdfATSTemplate;
 }

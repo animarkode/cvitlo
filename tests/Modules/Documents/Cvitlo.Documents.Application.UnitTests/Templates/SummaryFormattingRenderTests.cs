@@ -1,12 +1,7 @@
-using Cvitlo.Documents.Application.Templates;
-using Cvitlo.Resumes.Domain.Entities;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Shouldly;
 
-namespace Cvitlo.Resumes.Application.UnitTests.Features.Documents;
+namespace Cvitlo.Documents.Application.UnitTests.Templates;
 
 // Guards the end-to-end render contract: Tiptap formatting stored on the resume
 // must survive Razor rendering (MarkupString + render-time Sanitize) and reach the
@@ -14,28 +9,11 @@ namespace Cvitlo.Resumes.Application.UnitTests.Features.Documents;
 // no browser/Testcontainers needed.
 public class SummaryFormattingRenderTests
 {
-    private static async Task<string> RenderAsync(Resume resume)
-    {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        await using var sp = services.BuildServiceProvider();
-
-        await using var htmlRenderer = new HtmlRenderer(sp, sp.GetRequiredService<ILoggerFactory>());
-
-        return await htmlRenderer.Dispatcher.InvokeAsync(async () =>
-        {
-            var root = await htmlRenderer.RenderComponentAsync<FirstTemplate>(
-                ParameterView.FromDictionary(new Dictionary<string, object?>(StringComparer.Ordinal) { ["Resume"] = resume }));
-            return root.ToHtmlString();
-        });
-    }
-
     [Fact]
     public async Task RenderSummary_FormattingTags_ShouldSurviveIntoPdfHtml()
     {
-        var resume = new Resume
+        var resume = new ResumeDocument
         {
-            Id = Guid.NewGuid(),
             Localization = "en-us",
             Summary = "<p><strong>bold</strong> <em>italic</em> <u>under</u> <s>strike</s></p>"
                       + "<h2>Heading two</h2><h3>Heading three</h3>"
@@ -44,7 +22,7 @@ public class SummaryFormattingRenderTests
                       + "<ol><li><p>first</p></li></ol>",
         };
 
-        var html = await RenderAsync(resume);
+        var html = await TemplateRenderer.RenderAsync(resume);
 
         html.ShouldContain("<strong>bold</strong>");
         html.ShouldContain("<em>italic</em>");

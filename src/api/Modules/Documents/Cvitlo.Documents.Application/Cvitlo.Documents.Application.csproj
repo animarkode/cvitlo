@@ -13,7 +13,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Cvitlo.Documents.PublicApi\Cvitlo.Documents.PublicApi.csproj"/>
-        <ProjectReference Include="..\..\Resumes\Cvitlo.Resumes.Domain\Cvitlo.Resumes.Domain.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

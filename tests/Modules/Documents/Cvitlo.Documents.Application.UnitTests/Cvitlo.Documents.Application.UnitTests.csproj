@@ -23,7 +23,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\..\src\api\Modules\Documents\Cvitlo.Documents.Application\Cvitlo.Documents.Application.csproj"/>
-        <ProjectReference Include="..\..\..\..\src\api\Modules\Resumes\Cvitlo.Resumes.Domain\Cvitlo.Resumes.Domain.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -12,8 +12,7 @@ public class ProjectReferenceTests
             (from, to) => ModuleAssembly.TryParse(from, out var source)
                 && ModuleAssembly.TryParse(to, out var target)
                 && !string.Equals(source.Module, target.Module, StringComparison.Ordinal)
-                && target.Layer != Layer.PublicApi,
-            KnownViolations.ProjectReferences);
+                && target.Layer != Layer.PublicApi);
 
         violations.ShouldBeEmpty();
     }

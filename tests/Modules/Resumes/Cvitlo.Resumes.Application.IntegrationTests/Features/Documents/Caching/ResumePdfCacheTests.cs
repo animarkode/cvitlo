@@ -1,6 +1,6 @@
 using System.Net;
-using Cvitlo.Documents.Application.Templates;
 using Cvitlo.Documents.PublicApi;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Cvitlo.Resumes.Application.Features.Documents.DownloadDocument;
 using Cvitlo.Resumes.Application.Features.Documents.GenerateDocument;
 using Cvitlo.Resumes.Application.Features.Documents.Shared;
@@ -25,6 +25,7 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
     [Fact]
     public async Task DownloadDocument_Twice_ShouldRenderOnce()
     {
+        app.Services.GetRequiredService<IDocumentsModuleApi>().ClearReceivedCalls();
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
@@ -43,12 +44,13 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
             .GETAsync<DownloadDocumentEndpoint, DocumentRequest>(new DocumentRequest(resume.Id));
 
         secondResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        AssertRenderCount(resume.Id, 1);
+        AssertRenderCount(1);
     }
 
     [Fact]
     public async Task GenerateDocument_AfterDownload_ShouldReuseRenderedPdf()
     {
+        app.Services.GetRequiredService<IDocumentsModuleApi>().ClearReceivedCalls();
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
@@ -70,12 +72,13 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
                 new DocumentRequest(resume.Id));
 
         Convert.FromBase64String(generateResponse.Base64Pdf).ShouldBe(downloadedBytes);
-        AssertRenderCount(resume.Id, 1);
+        AssertRenderCount(1);
     }
 
     [Fact]
     public async Task DownloadDocument_AfterPersonUpdate_ShouldRenderAgain()
     {
+        app.Services.GetRequiredService<IDocumentsModuleApi>().ClearReceivedCalls();
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
@@ -115,12 +118,13 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
             .GETAsync<DownloadDocumentEndpoint, DocumentRequest>(new DocumentRequest(resume.Id));
 
         secondResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        AssertRenderCount(resume.Id, 2);
+        AssertRenderCount(2);
     }
 
     [Fact]
     public async Task DownloadDocument_AfterSkillCreate_ShouldRenderAgain()
     {
+        app.Services.GetRequiredService<IDocumentsModuleApi>().ClearReceivedCalls();
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
         var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
@@ -144,15 +148,16 @@ public class ResumePdfCacheTests(WebApp app) : TestBase
             .GETAsync<DownloadDocumentEndpoint, DocumentRequest>(new DocumentRequest(resume.Id));
 
         secondResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        AssertRenderCount(resume.Id, 2);
+        AssertRenderCount(2);
     }
 
-    private void AssertRenderCount(Guid resumeId, int expectedCount)
+    private void AssertRenderCount(int expectedCount)
     {
         var documentsModuleApi = app.Services.GetRequiredService<IDocumentsModuleApi>();
 
-        _ = documentsModuleApi.Received(expectedCount).RenderToPdfAsync<FirstTemplate>(
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => ((Resume)d["Resume"]!).Id == resumeId),
+        _ = documentsModuleApi.Received(expectedCount).RenderResumeToPdfAsync(
+            Arg.Any<ResumeDocument>(),
+            ResumeTemplate.First,
             Arg.Any<CancellationToken>());
     }
 }

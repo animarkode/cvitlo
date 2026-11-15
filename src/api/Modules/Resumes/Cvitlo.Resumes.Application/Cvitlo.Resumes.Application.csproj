@@ -14,7 +14,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Auth\Cvitlo.Auth.PublicApi\Cvitlo.Auth.PublicApi.csproj"/>
         <ProjectReference Include="..\..\..\Common\Cvitlo.Common\Cvitlo.Common.csproj"/>
-        <ProjectReference Include="..\..\Documents\Cvitlo.Documents.Application\Cvitlo.Documents.Application.csproj"/>
+        <ProjectReference Include="..\..\Documents\Cvitlo.Documents.PublicApi\Cvitlo.Documents.PublicApi.csproj"/>
         <ProjectReference Include="..\Cvitlo.Resumes.Domain\Cvitlo.Resumes.Domain.csproj"/>
         <ProjectReference Include="..\Cvitlo.Resumes.Infrastructure\Cvitlo.Resumes.Infrastructure.csproj"/>
         <ProjectReference Include="..\Cvitlo.Resumes.PublicApi\Cvitlo.Resumes.PublicApi.csproj"/>
