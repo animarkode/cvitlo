@@ -1,4 +1,5 @@
 using Cvitlo.Documents.PublicApi;
+using Cvitlo.Documents.PublicApi.Resumes;
 using Microsoft.AspNetCore.Components;
 
 namespace Cvitlo.Api.IntegrationTests;
@@ -31,6 +32,24 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
         CancellationToken ct)
         where TComponent : IComponent
     {
+        await PassGateAsync(ct);
+
+        return new MemoryStream(StubPdf);
+    }
+
+    /// <summary>Renders a stub PDF, blocking while a gate from <see cref="Hold"/> is held.</summary>
+    public async Task<Stream> RenderResumeToPdfAsync(ResumeDocument resume, ResumeTemplate template, CancellationToken ct)
+    {
+        await PassGateAsync(ct);
+
+        return new MemoryStream(StubPdf);
+    }
+
+    /// <summary>Returns a fixed version, so cache keys built from it are stable across a test run.</summary>
+    public string TemplateVersion(ResumeTemplate template) => "stub";
+
+    private async Task PassGateAsync(CancellationToken ct)
+    {
         var release = _release;
 
         if (release is not null)
@@ -39,8 +58,6 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
 
             await release.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
         }
-
-        return new MemoryStream(StubPdf);
     }
 
     /// <summary>

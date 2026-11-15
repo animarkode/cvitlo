@@ -1,7 +1,7 @@
 @using System.Globalization
 @using Cvitlo.Documents.Application.Razor.Extensions
 @using Cvitlo.Documents.Application.Resources
-@using Cvitlo.Resumes.Domain.Entities
+@using Cvitlo.Documents.PublicApi.Resumes
 @{
     var textInfo = CultureInfo.CurrentCulture.TextInfo;
     const string dateIntervalFormat = "MMMM yyyy";
@@ -283,7 +283,7 @@
                 {
                     <a href=@link.Uri>@link.Label</a>
 
-                    if (link != Resume.Links.Last())
+                    if (!ReferenceEquals(link, Resume.Links[^1]))
                     {
                         <div class="white-space-pre">,</div>
                     }
@@ -489,6 +489,6 @@
 @code {
 
     [Parameter]
-    public Resume? Resume { get; set; }
+    public ResumeDocument? Resume { get; set; }
 
 }
