@@ -1,10 +1,5 @@
-/* Frosted-glass language dropdown — glass recipe + refraction rim come from
-   the shared .glass-surface class (styles.css, #371). Placement and motion
-   live here rather than as template class bindings, because `[class.x]`
-   cannot carry the `.` and `/` in `mr-2.5` / `top-1/2` (#425).
-
-   `left` flies out sideways from the desktop action pill; `top` flies up out
-   of the mobile bottom bar. */
+/* Placement and motion live here because `[class.x]` cannot carry the `.` and `/` in
+   `mr-2.5` / `top-1/2`; the glass look comes from the shared .glass-surface class. */
 .lang-menu {
   opacity: 0;
   visibility: hidden;

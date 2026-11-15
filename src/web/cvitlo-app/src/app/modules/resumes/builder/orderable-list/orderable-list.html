@@ -44,20 +44,10 @@
     </cv-accordion>
   }
 
-  <!-- #407 — the two themes are treated separately because --color-primary
-       (78.4%) sits between the light card (98.5%) and the dark card (31%), so
-       one treatment cannot read the same on both. The original /10 measured
-       1.07 in light and 1.21 in dark.
-
-       Light keeps a wash, raised to /38 — that lands on 1.29, the same
-       separation --color-surface has against the card, which is the benchmark
-       for "clearly perceptible" here. Dark takes the solid accent (6.55).
-
-       The label override is dark-only: --color-muted-foreground holds 5.31 on
-       the light wash but collapses to 1.33 on the solid yellow. It becomes
-       --color-primary-foreground there — not --color-foreground, which flips to
-       near-white in dark and measures 1.90 on this fill. Icon follows via
-       currentColor. -->
+  <!-- --color-primary sits between the light and dark card, so the themes differ: light
+       keeps a /38 wash (1.29, as --color-surface on the card), dark takes the solid accent.
+       The dark-only label override is --color-primary-foreground, as --color-muted-foreground
+       drops to 1.33 on the solid yellow. -->
   <button
     type="button"
     class="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-full bg-transparent border-0 cursor-pointer text-sm font-semibold text-muted-foreground transition-colors hover:bg-primary/38 dark:hover:bg-primary dark:hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

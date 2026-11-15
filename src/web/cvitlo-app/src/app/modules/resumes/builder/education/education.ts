@@ -25,9 +25,6 @@ export class Education {
 
   private readonly formMap = new Map<string, ReturnType<typeof this.buildForm>>();
 
-  // Local display state: derived from the live form value so the accordion
-  // title updates immediately while typing, while `ResumesStore` keeps
-  // meaning "what the server confirmed" and the save below stays debounced.
   protected readonly titles = new EntryTitles(this.destroyRef);
 
   protected readonly educationTitle = (item: EducationModel): string =>

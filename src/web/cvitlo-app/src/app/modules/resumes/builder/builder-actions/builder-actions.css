@@ -1,11 +1,6 @@
 /*
- * Save indicator state transitions. During `saving -> saved`, the spinner
- * stays above the incoming success surface while it turns and contracts. The
- * circle then settles, the tick follows, and one quiet halo closes the motion.
- * The overshoot easing matches cv-theme-toggle's icon swap.
- *
- * `saving -> error` deliberately avoids that overshoot pop — a plain
- * decelerating settle-in — so it can never read as a truncated success.
+ * The overshoot easing on `saving -> saved` matches cv-theme-toggle's icon swap.
+ * `saving -> error` uses a plain decelerating settle so it never reads as a truncated success.
  */
 
 @keyframes cv-save-spinner-enter {

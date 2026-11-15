@@ -72,8 +72,7 @@ describe('BuilderActions', () => {
   });
 
   describe('download', () => {
-    // #425 — the button used to be disabled until a preview blob existed, which
-    // is never on a narrow screen. The store now renders one on demand.
+    // The store renders a preview on demand, so the button is enabled without a cached one.
     it('is enabled with no cached preview', () => {
       fixture.detectChanges();
       expect(downloadButton()).toBeTruthy();
@@ -88,7 +87,6 @@ describe('BuilderActions', () => {
 
     it('disables and marks itself busy while a download is in flight', () => {
       fixture.detectChanges();
-      // Not busy: the download icon shows, no spinner.
       expect(downloadButton().querySelector('lucide-icon')).toBeTruthy();
       expect(downloadButton().querySelector('.animate-spin')).toBeFalsy();
 
@@ -96,7 +94,7 @@ describe('BuilderActions', () => {
       fixture.detectChanges();
       expect(downloadButton().disabled).toBe(true);
       expect(downloadButton().getAttribute('aria-busy')).toBe('true');
-      // Busy: the icon is swapped out for the spinner, not layered alongside it.
+      // The icon is swapped for the spinner, not layered with it.
       expect(downloadButton().querySelector('.animate-spin')).toBeTruthy();
       expect(downloadButton().querySelector('lucide-icon')).toBeFalsy();
     });
@@ -122,8 +120,7 @@ describe('BuilderActions', () => {
       fixture.detectChanges();
       const host = fixture.nativeElement as HTMLElement;
       expect(host.classList.contains('flex-row')).toBe(true);
-      // The mobile bottom bar draws the island itself; a nested card would
-      // double the chrome.
+      // The mobile bottom bar draws the island itself; a nested card would double the chrome.
       expect(host.classList.contains('bg-card')).toBe(false);
     });
 
@@ -154,10 +151,8 @@ describe('BuilderActions', () => {
       return region.textContent?.trim() ?? '';
     }
 
-    // Rewritten from the old '[aria-label="Saving"]' query: the visual is now
-    // aria-hidden (semantics moved to the persistent live region below), so
-    // the assertion moves to the decorative save-status-saving branch and
-    // confirms it is the only visual rendered.
+    // The visual is aria-hidden (semantics live in the live region), so assert on the
+    // decorative branch and that it is the only visual rendered.
     it('shows the saving indicator while saving', () => {
       saveStatus.set('saving');
       fixture.detectChanges();
@@ -165,7 +160,6 @@ describe('BuilderActions', () => {
       expect(visualTestIds()).toEqual(['saving']);
     });
 
-    // Rewritten from the old '[aria-label="Saved"]' query for the same reason.
     it('shows the saved indicator when saved', () => {
       saveStatus.set('saved');
       fixture.detectChanges();
@@ -174,7 +168,6 @@ describe('BuilderActions', () => {
       expect(liveRegionText()).toBe('Saved');
     });
 
-    // Rewritten from the old '[aria-label="Save failed"]' query for the same reason.
     it('shows the error indicator when a save fails', () => {
       saveStatus.set('error');
       fixture.detectChanges();
@@ -195,9 +188,7 @@ describe('BuilderActions', () => {
       expect(liveRegionText()).toBe('Sync failed');
     });
 
-    // `idle` now means there is no server-backed resume in the store yet. Keep
-    // it visually neutral so the standalone component also represents that
-    // pre-load state truthfully; a successful load changes the store to saved.
+    // `idle` means no server-backed resume yet, so it stays visually neutral.
     it('renders no green tick and announces nothing before a resume has loaded', () => {
       saveStatus.set('idle');
       fixture.detectChanges();
@@ -207,12 +198,7 @@ describe('BuilderActions', () => {
       expect(liveRegionText()).toBe('');
     });
 
-    // Structural invariant carried over from the original component: the
-    // decorative container keeps one fixed footprint across all four states
-    // so the action island never shifts when a save starts. This already
-    // held before this task (the sizing classes are on a container outside
-    // the switch) — it is not itself a regression guard, kept here as a
-    // guard against a future refactor reintroducing per-branch sizing.
+    // Guards against per-branch sizing: the container keeps one footprint across states.
     it('keeps the same footprint whether idle or saving so the island does not shift', () => {
       saveStatus.set('idle');
       fixture.detectChanges();
@@ -224,17 +210,13 @@ describe('BuilderActions', () => {
       expect(wrapper.className).toBe(idleClasses);
     });
 
-    // The four visuals are mutually exclusive: exactly one data-testid
-    // renders per state (idle's is an empty span, see the test above).
     it.each(SAVE_STATUSES)('renders exactly one save-status visual for "%s"', status => {
       saveStatus.set(status);
       fixture.detectChanges();
       expect(visualTestIds()).toEqual([status]);
     });
 
-    // Exactly one live region exists at all times, with the terminal-state
-    // text only for 'saved'/'error' — this is what actually announces the
-    // save outcome to assistive tech, since the visuals are aria-hidden.
+    // The live region is what announces the outcome, since the visuals are aria-hidden.
     it.each([
       ['idle', ''],
       ['saving', ''],

@@ -18,17 +18,13 @@ import {
 } from 'lucide-angular';
 import { ResumesStore } from '../../resumes-store';
 
-/** One jump target in the builder's section navigation. */
 export interface SectionSheetItem {
   readonly id: string;
   readonly label: string;
   readonly icon: string;
 }
 
-/**
- * The builder's ten sections, in editor order. Shared by the desktop rail and
- * the mobile sheet so the two lists cannot drift apart.
- */
+// Shared by the desktop rail and the mobile sheet so the two lists cannot drift apart.
 export const SECTION_SHEET_ITEMS: readonly SectionSheetItem[] = [
   { id: 'person',     label: 'Personal Details',     icon: 'user' },
   { id: 'summary',    label: 'Professional Summary', icon: 'file-text' },
@@ -42,12 +38,7 @@ export const SECTION_SHEET_ITEMS: readonly SectionSheetItem[] = [
   { id: 'hobby',      label: 'Hobbies',              icon: 'heart' },
 ];
 
-/**
- * Mobile section navigation. The desktop rail is a persistent 60px column —
- * a sixth of a 375px screen spent duplicating what scrolling already does
- * (#425) — so below `md` the same targets live here instead, costing nothing
- * until opened. Focus trap, Escape and the backdrop come from CDK Dialog.
- */
+// Below `md` the rail is replaced by this sheet. Focus trap, Escape and backdrop come from CDK Dialog.
 @Component({
   selector: 'app-section-sheet',
   imports: [LucideAngularModule],

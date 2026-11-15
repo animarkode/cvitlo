@@ -43,8 +43,7 @@ describe('Skill', () => {
 
     for (const form of Array.from(forms)) {
       expect(form.classList.contains('grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]')).toBe(true);
-      // The unprefixed two-column class ignored available width entirely and
-      // squeezed fields on any narrow pane; it must be gone.
+      // The unprefixed two-column class ignores available width and squeezes narrow panes.
       expect(form.classList.contains('grid-cols-2')).toBe(false);
     }
   });

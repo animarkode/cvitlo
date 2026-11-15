@@ -11,18 +11,8 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ResumesStore } from '../../resumes-store';
 import { Localization } from '../localization/localization';
 
-/** Which way the action island stacks its controls. */
 export type ActionsOrientation = 'vertical' | 'horizontal';
 
-/**
- * Save status, localization and Download PDF — the three controls a user needs
- * while editing, regardless of whether a PDF preview is on screen.
- *
- * These lived in the old preview-only toolbar component and were rendered
- * only alongside the desktop preview column, so all three vanished on a
- * phone (#425). The component is now orientation-aware: a vertical pill
- * beside the desktop preview, a horizontal group inside the mobile bottom bar.
- */
 @Component({
   selector: 'app-builder-actions',
   imports: [LucideAngularModule, Localization],
@@ -40,8 +30,7 @@ export class BuilderActions {
 
   readonly orientation = input<ActionsOrientation>('vertical');
 
-  /** The dropdown must open away from the island: leftwards beside the desktop
-   *  preview, upwards out of the mobile bottom bar. */
+  // The dropdown opens away from the island: left beside the preview, up from the bottom bar.
   protected readonly menuPlacement = computed(() =>
     this.orientation() === 'vertical' ? ('left' as const) : ('top' as const),
   );
@@ -52,16 +41,11 @@ export class BuilderActions {
       : 'flex flex-row items-center gap-1 shrink-0',
   );
 
-  // Gates the save-indicator's enter animation until after first render. The
-  // component normally mounts after the resume has loaded, with `saveStatus`
-  // already 'saved'. Without this gate the initial server-backed state would
-  // play the same success animation as a freshly completed edit, even though
-  // no transition happened on screen. This mirrors cv-theme-toggle's guard.
+  // Gates the save animation until after first render, so a resume that mounts already
+  // 'saved' does not play the success animation. Mirrors cv-theme-toggle's guard.
   protected readonly animationsReady = signal(false);
 
-  /** The single, persistent announcement for the save indicator. Empty for
-   *  'idle' and 'saving' so only the terminal state — 'saved' or 'error' — is
-   *  ever read out, and exactly once per transition into it. */
+  // Empty for 'idle' and 'saving' so only the terminal state is announced, once per transition.
   protected readonly saveAnnouncement = computed(() => {
     switch (this.store.saveStatus()) {
       case 'saved':

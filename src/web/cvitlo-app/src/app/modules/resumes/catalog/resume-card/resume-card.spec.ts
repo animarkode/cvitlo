@@ -64,7 +64,7 @@ describe('ResumeCard', () => {
     const cardSpy = vi.fn();
     component.open.subscribe(cardSpy);
     const editBtn = fixture.nativeElement.querySelector('[data-testid="edit-btn"]') as HTMLButtonElement;
-    // Clicking the button emits once (from button handler), not twice
+    // Emits once, not twice.
     editBtn.click();
     expect(cardSpy).toHaveBeenCalledTimes(1);
   });

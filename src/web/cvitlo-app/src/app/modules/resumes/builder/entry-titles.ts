@@ -2,60 +2,31 @@ import { DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup } from '@angular/forms';
 
-/**
- * The two fields a collapsed accordion title is composed from, e.g.
- * `[jobTitle, employer]` for Experience. Order is significant — it is the
- * order the parts are joined in.
- */
+// Order is significant: it is the order the parts are joined in.
 export type TitleParts = readonly [string | null | undefined, string | null | undefined];
 
-/** Formats the two live form values into an accordion title. */
 export type TitleFormatter = (parts: TitleParts) => string;
 
-/** Uses the first populated value, e.g. a Link label before its URI. */
 export const firstNonEmptyTitlePart: TitleFormatter = parts =>
   parts.map(part => part?.trim() ?? '').find(part => part.length > 0) ?? '';
 
-/**
- * Derives collapsed accordion titles from the *live* value of a nested-list
- * entry's form, so the title updates on every keystroke while the actual
- * save to `ResumesStore` stays behind its 2s `debounceTime`. `ResumesStore`
- * only ever reflects what the server confirmed — this class is local display
- * state layered on top of it, never written back into the store.
- *
- * Reused verbatim by Experience, Education, Course and Project: each registers its
- * own two title-field control names and calls `resolve` from the `titleFn`
- * passed to `app-orderable-list`.
- */
+// Live display state layered on the store: titles follow every keystroke while
+// the save stays debounced. Never written back into ResumesStore.
 export class EntryTitles {
   private readonly liveParts = signal<ReadonlyMap<string, TitleParts>>(new Map());
   private readonly focusedIds = signal<ReadonlySet<string>>(new Set());
   private readonly formatters = new Map<string, TitleFormatter>();
 
-  // Plain (non-signal) map, and that is the whole point: `resolve` runs from a
-  // template expression during change detection ([label]="titleFn()(item)")
-  // and writes here, which a signal could not survive — writing a signal
-  // mid-CD trips Angular's "signal write during render" guard. Reading
-  // `liveParts`/`focusedIds` in `resolve` is fine and necessary — that's how
-  // OrderableList's OnPush view picks up the dependency.
-  //
-  // The resolver's write is not redundant with `setLiveParts`: a title can
-  // also come from the store-model fallback (an id with no live form value),
-  // and that title still has to be remembered for the focus latch.
+  // Plain map on purpose: `resolve` runs from a template expression during change
+  // detection and writes here; a signal write there trips the "signal write during
+  // render" guard. `resolve` also records store-fallback titles for the focus latch.
   private readonly lastNonEmpty = new Map<string, string>();
 
   constructor(private readonly destroyRef: DestroyRef) {}
 
-  /**
-   * Registers `form` as the live source of truth for `id`'s title, projecting
-   * `fieldNames` on every (undebounced) value change. `getForm` (and so this
-   * method) runs from inside the template ([formGroup]="getForm(item)"), so
-   * this only ever seeds the plain `lastNonEmpty` map synchronously — writing
-   * `liveParts` (a signal) here would hit Angular's "signal write during
-   * render" guard. Until the first real value change, `resolve` reads the
-   * store-model fallback instead, which is exactly what the form was built
-   * from, so there's nothing to seed for `liveParts` itself.
-   */
+  // Runs from the template (`getForm`), so it only seeds the plain `lastNonEmpty`
+  // map; writing the `liveParts` signal here would trip the render guard. Until the
+  // first value change `resolve` uses the store fallback the form was built from.
   register(
     id: string,
     form: FormGroup,
@@ -87,14 +58,8 @@ export class EntryTitles {
     });
   }
 
-  /**
-   * Resolves the displayed title for `id`. Uses the live form value if `id`
-   * is registered, else falls back to `fallback` (the store model) — items
-   * whose form hasn't been built yet (accordion not opened) have no live
-   * value. An empty result only becomes "Untitled" once `id` isn't focused;
-   * while focused it holds the last non-empty title to avoid a mid-edit
-   * flicker to "Untitled" and back.
-   */
+  // While `id` is focused an empty title holds the last non-empty one, so editing
+  // does not flicker to "Untitled" and back.
   resolve(
     id: string,
     fallback: TitleParts,
@@ -120,13 +85,8 @@ export class EntryTitles {
     });
   }
 
-  /**
-   * Tabbing between the two title fields (e.g. Job title → Employer) fires
-   * focusout on the first then focusin on the second, with a change-detection
-   * pass possibly landing in between — clearing focus here would flash
-   * "Untitled" for that pass. `relatedTarget` is the element gaining focus;
-   * if it's still inside the same wrapper this wasn't a real blur, so ignore it.
-   */
+  // Tabbing between the two title fields fires focusout then focusin with a CD pass
+  // possibly between; focus moving inside the same wrapper is not a real blur.
   onFocusOut(id: string, event: FocusEvent): void {
     const wrapper = event.currentTarget as HTMLElement | null;
     const related = event.relatedTarget as Node | null;
@@ -139,13 +99,9 @@ export class EntryTitles {
       return next;
     });
 
-    // The latch only ever means "the title to hold for the edit in progress",
-    // so it dies with the edit. Keeping it would resurrect a deleted title:
-    // clear both fields, click away (settles to "Untitled"), then click back
-    // in to type something new — `resolve`'s focused branch would hand back
-    // the old text over two empty fields. If the entry still has a title,
-    // the next `resolve` re-records it immediately; if it doesn't, staying
-    // absent is exactly what makes the re-focus read "Untitled".
+    // The latch dies with the edit; keeping it would resurrect a cleared title
+    // when the user refocuses the empty fields. A non-empty title is re-recorded
+    // by the next `resolve`.
     this.lastNonEmpty.delete(id);
   }
 }

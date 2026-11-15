@@ -280,16 +280,14 @@ describe('Builder', () => {
     });
 
     it('keeps the editor mounted but inert while the preview shows', () => {
-      // Accordion open-state lives in the SectionList instance; unmounting the
-      // editor would reset it every time the user peeked at the PDF.
+      // Open state lives in the SectionList instance; unmounting would reset it.
       (fixture.nativeElement.querySelector('[data-testid="toggle-preview"]') as HTMLButtonElement).click();
       fixture.detectChanges();
 
       const pane = fixture.nativeElement.querySelector('[data-testid="editor-pane"]') as HTMLElement;
       expect(pane).toBeTruthy();
       expect(pane.hidden).toBe(true);
-      // jsdom sets the `inert` IDL property but does not reflect it back to the
-      // attribute (unlike a real browser), so assert on the property directly.
+      // jsdom does not reflect `inert` to the attribute, so assert on the property.
       expect(pane.inert).toBe(true);
       expect(fixture.nativeElement.querySelector('app-editor')).toBeTruthy();
     });
@@ -304,13 +302,9 @@ describe('Builder', () => {
     }, 20000);
   });
 
-  describe('section sheet dialog wiring (#425 follow-up)', () => {
-    // `ResumesStore` is provided on the resume route (app.routes.ts), not
-    // root. TestBed's flat module `providers` register at the same near-root
-    // injector `Dialog` resolves through by default, so that setup can't
-    // reproduce the bug this guards: a wrapping host's OWN `providers` array
-    // creates a real ancestor injector, exactly like the route does, that
-    // `Dialog.open()` can't see unless the opener forwards it explicitly.
+  describe('section sheet dialog wiring', () => {
+    // TestBed's flat providers sit at the injector Dialog resolves through, so they cannot
+    // reproduce the bug; a host's own `providers` make a real ancestor injector like the route.
     @Component({
       template: '<app-builder />',
       imports: [Builder],
@@ -349,10 +343,8 @@ describe('Builder', () => {
       const trigger = hostFixture.nativeElement.querySelector('[data-testid="open-sections"]') as HTMLButtonElement;
       expect(trigger).toBeTruthy();
 
-      // Without forwarding its injector, Builder.openSectionSheet() throws
-      // NG0201 the instant SectionSheet tries to inject ResumesStore — the
-      // overlay backdrop is already attached by then, so the user just sees
-      // the screen dim with nothing on top of it.
+      // Without the forwarded injector this throws NG0201 after the backdrop is attached,
+      // leaving a dimmed screen with nothing on it.
       expect(() => trigger.click()).not.toThrow();
 
       await hostFixture.whenStable();

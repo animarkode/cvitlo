@@ -87,7 +87,6 @@ export class Builder implements OnInit {
       : true,
   );
 
-  /** Mobile only: the preview replaces the editor rather than sharing the row. */
   protected readonly isMobilePreviewOpen = signal(false);
 
   constructor() {
@@ -134,12 +133,8 @@ export class Builder implements OnInit {
 
   protected readonly isEditingTitle = signal(false);
 
-  /**
-   * Live mirror of what is typed in the editor. An invisible sizer span renders
-   * this alongside the input in the same grid cell, so the editing box is always
-   * exactly as wide as its own text — which is what keeps the pill from resizing
-   * and keeps the accent underline flush with the title.
-   */
+  // Mirror of the typed text: an invisible sizer span renders it in the same grid cell so
+  // the input is exactly as wide as its text and the pill does not resize.
   protected readonly draftTitle = signal('');
 
   protected startEditingTitle(): void {
@@ -210,12 +205,8 @@ export class Builder implements OnInit {
 
   protected openSectionSheet(): void {
     this.dialog.open(SectionSheet, {
-      // `ResumesStore` is provided on the resume route, not the root injector
-      // (app.routes.ts), and `Dialog.open()` doesn't inherit the caller's
-      // injector by default — it resolves the dialog's content against its
-      // own (root) injector. Without forwarding `injector` here, `SectionSheet`
-      // injecting `ResumesStore` throws NG0201 the moment it's attached,
-      // aborting the panel after the backdrop is already up (#425 follow-up).
+      // ResumesStore is provided on the resume route, and Dialog.open() resolves content
+      // against the root injector; without forwarding this one SectionSheet throws NG0201.
       injector: this.injector,
       panelClass: 'cv-sheet-panel',
       backdropClass: 'cv-dialog-backdrop',

@@ -13,9 +13,7 @@ const ITEMS: Orderly[] = [
   { id: 'b', order: 1 },
 ];
 
-/**
- * Host component that satisfies the required `contentChild(TemplateRef)` of OrderableList.
- */
+// Satisfies the required `contentChild(TemplateRef)` of OrderableList.
 @Component({
   template: `
     <app-orderable-list
@@ -135,25 +133,19 @@ describe('OrderableList', () => {
     }
 
     it('fills with the solid accent in dark mode', () => {
-      // The issue is dark-specific: the wash measures 1.21 there, the solid
-      // accent 6.55. Anchored so a `dark:hover:bg-primary/20` style wash or a
-      // `-soft` derivative cannot satisfy it.
+      // The wash measures 1.21 in dark, the solid accent 6.55. Anchored so a
+      // `dark:hover:bg-primary/20` wash or a `-soft` derivative cannot satisfy it.
       expect(addButton().className).toMatch(/(?:^|\s)dark:hover:bg-primary(?:\s|$)/);
     });
 
     it('keeps a wash in light mode, raised to /38', () => {
-      // Light stays translucent rather than taking the solid fill, but /10 was
-      // too faint to see — /38 measures 1.29, matching the --color-surface
-      // benchmark for a fill sitting on --color-card.
+      // /10 is too faint; /38 measures 1.29, matching the --color-surface benchmark on --color-card.
       expect(addButton().className).toContain('hover:bg-primary/38');
     });
 
     it('overrides the label only in dark mode', () => {
-      // --color-muted-foreground holds 6.39 on the light wash, so light needs
-      // no override at all; it collapses to 1.33 on the solid yellow, so dark
-      // must have one. --color-primary-foreground (9.86) is that token —
-      // --color-foreground would be wrong, it flips near-white in dark and
-      // measures 1.90 on this fill.
+      // --color-muted-foreground holds 6.39 on the light wash but 1.33 on the solid yellow.
+      // --color-primary-foreground (9.86) fixes it; --color-foreground flips near-white (1.90).
       const classes = addButton().className;
       expect(classes).toContain('dark:hover:text-primary-foreground');
       expect(classes).toContain('text-muted-foreground');

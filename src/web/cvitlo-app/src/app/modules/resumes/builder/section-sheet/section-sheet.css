@@ -1,5 +1,4 @@
-/* Layout and colour are Tailwind utilities in the template; only the
-   entry motion lives here — a bottom sheet that slides up from the edge. */
+/* Layout and colour are Tailwind utilities in the template; only the entry motion lives here. */
 :host {
   display: block;
   width: 100%;

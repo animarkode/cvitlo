@@ -3,10 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
 import { EntryTitles, firstNonEmptyTitlePart } from './entry-titles';
 
-// EntryTitles needs a DestroyRef to unsubscribe its valueChanges subscriptions
-// via takeUntilDestroyed. A plain class can't `inject()` on its own, so tests
-// build it the same way the real components do: inside a component's
-// injection context, exposed for assertions.
+// EntryTitles needs a DestroyRef, so tests build it inside a component's injection context.
 @Component({ template: '', standalone: true })
 class HostComponent {
   readonly destroyRef = inject(DestroyRef);
@@ -14,10 +11,7 @@ class HostComponent {
   readonly titles = new EntryTitles(this.destroyRef);
 }
 
-/**
- * A focusout that really leaves the title-field pair: `relatedTarget` is the
- * element gaining focus, and null means it landed outside the wrapper.
- */
+// relatedTarget null means focus landed outside the wrapper.
 function blurEvent(): FocusEvent {
   return {
     currentTarget: document.createElement('div'),
@@ -126,9 +120,7 @@ describe('EntryTitles', () => {
       host.titles.onFocusOut('e1', blurEvent());
       expect(host.titles.resolve('e1', ['', ''])).toBe('Untitled');
 
-      // Clicking back in to type something new must not bring "Developer at
-      // Acme" back over two empty fields — the latch belongs to the finished
-      // edit, not to this one.
+      // The latch belongs to the finished edit, so the old title must not return.
       host.titles.onFocusIn('e1');
       expect(host.titles.resolve('e1', ['', ''])).toBe('Untitled');
     });
