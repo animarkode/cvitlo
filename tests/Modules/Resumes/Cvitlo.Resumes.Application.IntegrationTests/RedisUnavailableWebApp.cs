@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace Cvitlo.Resumes.Application.IntegrationTests;
 
-// Points ConnectionStrings:redis at a closed port instead of the Testcontainers Redis
-// instance, so tests in this fixture prove the API keeps working (uncached) when Redis is
-// unreachable, per the graceful-degradation requirement. The Redis container from
-// WebApp is never built or started for this fixture — see UsesRedis.
+// Redis points at a closed port and no Redis container starts (UsesRedis), so these tests prove
+// the API keeps working, uncached, when Redis is unreachable.
 public class RedisUnavailableWebApp : WebApp
 {
     // A closed local port — connection attempts fail fast instead of resolving to a live server.

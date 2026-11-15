@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Cvitlo.Resumes.Application.Features.Resumes.DeleteUserResumes;
 
 // Singleton handler, so the DbContext comes from a fresh scope. Removal is tracked so the cache
-// interceptor sees the deleted resumes; FK cascade removes the child rows.
+// interceptor sees the deleted resumes; FK cascade removes the child rows. A repeat finds nothing to do.
 public class UserDeletedHandler(
     IServiceScopeFactory scopeFactory,
     ILogger<UserDeletedHandler> logger)
