@@ -5,23 +5,10 @@ namespace Cvitlo.ArchitectureTests;
 // A ProjectReference without type usage never reaches IL, so the type rules cannot see it.
 public class ProjectReferenceTests
 {
-    private static bool IsOuterLayer(ModuleAssembly module) => module.Layer is Layer.Application or Layer.Infrastructure;
-
-    private static List<string> Violations(Func<string, string, bool> isForbidden, IReadOnlyList<KnownProjectReference>? known = null)
-    {
-        known ??= [];
-        return ProjectGraph.Edges
-            .Where(edge => isForbidden(edge.From, edge.To) && !known.Any(k => k.Covers(edge)))
-            .Select(edge => $"{edge.From} -> {edge.To}")
-            .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal)
-            .ToList();
-    }
-
     [Fact]
     public void Modules_ShouldReferenceOtherModulesOnlyThroughPublicApi()
     {
-        var violations = Violations(
+        var violations = DependencyRules.Violations(
             (from, to) => ModuleAssembly.TryParse(from, out var source)
                 && ModuleAssembly.TryParse(to, out var target)
                 && !string.Equals(source.Module, target.Module, StringComparison.Ordinal)
@@ -34,9 +21,9 @@ public class ProjectReferenceTests
     [Fact]
     public void Domain_ShouldNotReferenceApplicationOrInfrastructure()
     {
-        var violations = Violations((from, to) =>
+        var violations = DependencyRules.Violations((from, to) =>
             ModuleAssembly.TryParse(from, out var source) && source.Layer == Layer.Domain
-            && ModuleAssembly.TryParse(to, out var target) && IsOuterLayer(target));
+            && ModuleAssembly.TryParse(to, out var target) && target.IsOuterLayer);
 
         violations.ShouldBeEmpty();
     }
@@ -44,9 +31,9 @@ public class ProjectReferenceTests
     [Fact]
     public void PublicApi_ShouldNotReferenceApplicationOrInfrastructure()
     {
-        var violations = Violations((from, to) =>
+        var violations = DependencyRules.Violations((from, to) =>
             ModuleAssembly.TryParse(from, out var source) && source.Layer == Layer.PublicApi
-            && ModuleAssembly.TryParse(to, out var target) && IsOuterLayer(target));
+            && ModuleAssembly.TryParse(to, out var target) && target.IsOuterLayer);
 
         violations.ShouldBeEmpty();
     }
@@ -54,7 +41,7 @@ public class ProjectReferenceTests
     [Fact]
     public void Common_ShouldNotReferenceAnyModule()
     {
-        var violations = Violations((from, to) =>
+        var violations = DependencyRules.Violations((from, to) =>
             string.Equals(from, CvitloArchitecture.CommonAssembly, StringComparison.Ordinal)
             && ModuleAssembly.TryParse(to, out _));
 
@@ -64,7 +51,7 @@ public class ProjectReferenceTests
     [Fact]
     public void Modules_ShouldNotReferenceHost()
     {
-        var violations = Violations((from, to) =>
+        var violations = DependencyRules.Violations((from, to) =>
             ModuleAssembly.TryParse(from, out _)
             && string.Equals(to, CvitloArchitecture.HostAssembly, StringComparison.Ordinal));
 

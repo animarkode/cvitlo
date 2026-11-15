@@ -18,7 +18,7 @@ internal static class ProjectGraph
     // Only "Cvitlo.*" projects count: stale local directories of the old name are not part of the repo.
     private static IEnumerable<string> ProjectFiles() =>
         Directory.EnumerateFiles(Path.Combine(FindRepositoryRoot(), "src", "api"), "Cvitlo.*.csproj", SearchOption.AllDirectories)
-            .Where(file => !file.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj"));
+            .Where(file => !IsBuildOutput(file));
 
     // Explicit AssemblyName values in a project or any Directory.Build.props above it.
     public static IReadOnlyList<(string Project, string AssemblyName)> AssemblyNameOverrides()
@@ -50,13 +50,45 @@ internal static class ProjectGraph
     private static List<string> LoadProjects() =>
         ProjectFiles().Select(NameOf).Order(StringComparer.Ordinal).ToList();
 
-    private static List<ProjectEdge> LoadEdges() =>
-        ProjectFiles()
-            .SelectMany(file => XDocument.Load(file).Descendants().Where(e => string.Equals(e.Name.LocalName, "ProjectReference", StringComparison.Ordinal))
-                .Select(reference => reference.Attribute("Include")?.Value)
-                .OfType<string>()
-                .Select(include => new ProjectEdge(NameOf(file), NameOf(include))))
-            .ToList();
+    private static List<ProjectEdge> LoadEdges()
+    {
+        var projects = ProjectFiles().ToList();
+        var fromProjects = projects.SelectMany(file => ReferencesIn(file).Select(to => new ProjectEdge(NameOf(file), to)));
+
+        // Over-approximation: a reference in a props/targets file applies to every project at or below it.
+        var fromProps = PropsFiles().SelectMany(props => projects
+            .Where(file => IsBelow(Path.GetDirectoryName(props)!, file))
+            .SelectMany(file => ReferencesIn(props).Select(to => new ProjectEdge(NameOf(file), to))));
+
+        return fromProjects.Concat(fromProps).Distinct().ToList();
+    }
+
+    // Only the file name matters, so the include path needs no resolving against the props directory.
+    private static IEnumerable<string> ReferencesIn(string file) =>
+        XDocument.Load(file).Descendants()
+            .Where(e => string.Equals(e.Name.LocalName, "ProjectReference", StringComparison.Ordinal))
+            .Select(e => e.Attribute("Include")?.Value)
+            .OfType<string>()
+            .Select(NameOf);
+
+    private static bool IsBelow(string directory, string file) =>
+        Path.GetFullPath(file).StartsWith(Path.GetFullPath(directory) + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+
+    private static IEnumerable<string> PropsFiles()
+    {
+        var apiDirectory = Path.Combine(FindRepositoryRoot(), "src", "api");
+        var inherited = new[] { FindRepositoryRoot(), Path.Combine(FindRepositoryRoot(), "src"), apiDirectory }
+            .SelectMany(dir => new[] { "Directory.Build.props", "Directory.Build.targets" }.Select(name => Path.Combine(dir, name)))
+            .Where(File.Exists);
+        var local = new[] { "*.props", "*.targets" }
+            .SelectMany(pattern => Directory.EnumerateFiles(apiDirectory, pattern, SearchOption.AllDirectories))
+            .Where(file => !IsBuildOutput(file));
+
+        return inherited.Concat(local).Distinct(StringComparer.Ordinal);
+    }
+
+    private static bool IsBuildOutput(string file) =>
+        file.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj");
 
     private static string NameOf(string path) => Path.GetFileNameWithoutExtension(path.Replace('\\', '/'));
 

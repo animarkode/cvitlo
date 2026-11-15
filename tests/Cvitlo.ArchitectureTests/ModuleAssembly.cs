@@ -4,6 +4,8 @@ public readonly record struct ModuleAssembly(string Module, Layer Layer)
 {
     private const string Prefix = "Cvitlo.";
 
+    public bool IsOuterLayer => Layer is Layer.Application or Layer.Infrastructure;
+
     // Accepts any "Cvitlo.{Module}.{Layer}" name, so assembly and project names parse alike.
     public static bool TryParse(string? name, out ModuleAssembly result)
     {
