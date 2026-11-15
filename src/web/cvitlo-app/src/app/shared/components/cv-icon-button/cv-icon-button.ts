@@ -13,11 +13,9 @@ const iconButtonVariants = cva(
           'rounded-[9px] bg-transparent text-muted-foreground/70 hover:bg-muted hover:text-foreground',
         surface:
           'rounded-[1.25rem] bg-card text-foreground border-[0.5px] border-line hover:rounded-xl',
-        // Mirrors cv-button's `soft-destructive`: the destructive colours live
-        // inside the variant so callers never layer competing `text-*` classes
-        // on top of `default`'s `text-muted-foreground` (#406). The hover fill
-        // uses the opaque destructive-soft token pair, not an alpha
-        // `destructive/10` fill, which composites to plain gray on dark cards (#370).
+        // Mirrors cv-button's `soft-destructive`: colours live in the variant so callers never layer competing
+        // `text-*` classes on `default`'s text-muted-foreground. The hover fill is an opaque token pair; an alpha
+        // fill composites to plain gray on dark cards.
         destructive:
           'rounded-full bg-transparent text-destructive-text hover:bg-destructive-soft hover:text-destructive-text',
       },

@@ -107,10 +107,8 @@ export class CvRichText implements ControlValueAccessor, Validator, OnDestroy {
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
-  // Find the nearest scrollable ancestor to use as the bubble menu's
-  // offset parent. With strategy:'absolute', the bubble and the editor
-  // content share the same scroll context — they scroll together natively
-  // with zero JS tracking and zero jitter.
+  // Nearest scrollable ancestor is the bubble menu's offset parent (strategy:'absolute'), so bubble and
+  // editor content share one scroll context and move together natively.
   private findScrollParent(el: HTMLElement): HTMLElement {
     let node = el.parentElement;
     while (node && node !== document.body) {
@@ -138,13 +136,9 @@ export class CvRichText implements ControlValueAccessor, Validator, OnDestroy {
             'aria-multiline': 'true',
             'aria-label': this.placeholder() || 'Rich text editor',
           },
-          // On focus / selection change, ProseMirror scrolls the selection into
-          // the nearest scrollable ancestor. This editor has no internal scroll
-          // (it grows with its content), so that only ever scrolls the outer
-          // section-list pane — yanking it to the top when a section near the
-          // bottom (e.g. Hobbies) is edited. Suppress PM's own scroll; the bubble
-          // menu keeps tracking the selection natively, so its scroll-follow UX
-          // is untouched.
+          // The editor has no internal scroll, so ProseMirror's scroll-into-view only yanks the outer section-list
+          // pane (to the top when a section near the bottom is edited). Suppressed; the bubble menu still tracks
+          // the selection natively.
           handleScrollToSelection: () => true,
           handleTextInput: (view, from, to, text) => {
             const availableCharacterCount = this.availableCharacterCount(view.state.doc, from, to);
@@ -202,10 +196,8 @@ export class CvRichText implements ControlValueAccessor, Validator, OnDestroy {
         },
       });
 
-      // Appended to the nearest scrollable ancestor (strategy:'absolute'),
-      // so the bubble lives in the same scroll coordinate space as the editor
-      // content. Native scroll keeps them aligned with no JS tracking or jitter.
-      // The scroll container has position:relative so it becomes the offset parent.
+      // Appended to the nearest scrollable ancestor (strategy:'absolute') so the bubble shares the editor's
+      // scroll coordinate space; that container has position:relative to be the offset parent.
       const scrollParent = this.findScrollParent(this.editorEl().nativeElement);
       this.editor.registerPlugin(
         BubbleMenuPlugin({

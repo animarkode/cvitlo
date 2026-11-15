@@ -1,9 +1,8 @@
 export interface LanguageOption {
-  /** BCP-47 locale, e.g. `en-us`. */
+  // BCP-47 locale, e.g. `en-us`.
   readonly locale: string;
-  /** Display name of the language. */
   readonly name: string;
-  /** ISO country code of the flag asset under `public/flags/{country}.svg`. */
+  // Flag asset at `public/flags/{country}.svg`.
   readonly country: string;
 }
 

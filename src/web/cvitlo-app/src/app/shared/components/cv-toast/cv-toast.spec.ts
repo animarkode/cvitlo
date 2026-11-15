@@ -105,8 +105,6 @@ describe('CvToast', () => {
     expect(container.classList).toContain('bg-destructive/10');
   });
 
-  // --- ARIA role / live region per variant ---
-
   it('should use role="status" and aria-live="polite" for the success variant', () => {
     fixture.componentRef.setInput('message', 'Done');
     fixture.componentRef.setInput('variant', 'success');
@@ -142,8 +140,6 @@ describe('CvToast', () => {
     expect(container.getAttribute('role')).toBe('alert');
     expect(container.getAttribute('aria-live')).toBe('assertive');
   });
-
-  // --- Accessibility ---
 
   it('should have no AXE violations', async () => {
     fixture.componentRef.setInput('message', 'Something went wrong');

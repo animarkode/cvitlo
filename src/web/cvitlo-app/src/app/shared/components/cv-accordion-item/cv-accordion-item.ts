@@ -39,10 +39,8 @@ export class CvAccordionItem implements OnInit, OnDestroy {
   protected readonly bodyId = `cv-ai-b-${Math.random().toString(36).slice(2, 9)}`;
 
   constructor() {
-    // Single source of truth for single-open enforcement: whenever this item
-    // becomes open — via click, [(open)], or an external open.set(true) — ask
-    // the accordion to close its siblings. Writes only OTHER items' open signal,
-    // so it never re-triggers itself; in allowMultiple mode itemOpened no-ops.
+    // Single source of truth for single-open enforcement: any way of opening this item asks the
+    // accordion to close its siblings. It writes only OTHER items, so it never re-triggers itself.
     effect(() => {
       if (this.open()) {
         this.accordion?.itemOpened(this);
@@ -59,19 +57,12 @@ export class CvAccordionItem implements OnInit, OnDestroy {
   }
 
   protected toggle(): void {
-    // Re-enable the open/close animation that collapseForDrag may have suppressed.
     this.body().nativeElement.style.removeProperty('transition');
     this.open.set(!this.open());
-    // Single-open enforcement happens reactively in the constructor effect().
   }
 
-  /**
-   * Collapses the item synchronously as a drag is grabbed (handle pointerdown),
-   * writing the closed state straight to the DOM. CDK measures the drag boundary
-   * on the following pointermove, and zoneless change detection may not have
-   * flushed by then — so the imperative write guarantees the element is already
-   * at its closed height, keeping the vertical constraint correct for open items.
-   */
+  // Collapses synchronously on drag grab: CDK measures the boundary on the next pointermove and zoneless
+  // change detection may not have flushed by then, so the closed state is written straight to the DOM.
   collapseForDrag(): void {
     const el = this.body().nativeElement;
     el.style.transition = 'none';

@@ -67,8 +67,7 @@ describe('CvIconButton', () => {
     });
 
     it('does not fall back to the muted foreground colour', () => {
-      // The bug: `default`'s `text-muted-foreground` competing with a
-      // caller-supplied `text-destructive-text` left the icon washed out.
+      // `default`'s text-muted-foreground competing with a caller-supplied text-destructive-text left the icon washed out.
       expect(classes()).not.toContain('text-muted-foreground');
     });
 

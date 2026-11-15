@@ -66,8 +66,6 @@ describe('CvInput', () => {
     host = hostFixture.componentInstance;
   });
 
-  // --- Rendering ---
-
   it('should create', () => {
     expect(hostFixture.componentInstance).toBeTruthy();
   });
@@ -86,7 +84,6 @@ describe('CvInput', () => {
     expect(label).toBeNull();
   });
 
-  // Component uses .cv-icon class on icon wrapper span
   it('should render icon element when icon input is provided', () => {
     host.icon = 'email';
     hostFixture.detectChanges();
@@ -113,8 +110,6 @@ describe('CvInput', () => {
     expect(input?.className).toContain('max-sm:text-base');
   });
 
-  // --- CVA: value binding ---
-
   it('should display value set via writeValue', async () => {
     host.ctrl.setValue('hello@test.com');
     hostFixture.detectChanges();
@@ -139,8 +134,6 @@ describe('CvInput', () => {
     hostFixture.detectChanges();
     expect(host.ctrl.touched).toBe(true);
   });
-
-  // --- Error states ---
 
   it('should not show error message when untouched', () => {
     hostFixture.detectChanges();
@@ -202,8 +195,6 @@ describe('CvInput', () => {
     expect(wrap?.classList.contains('cv-input-wrap--error')).toBe(true);
   });
 
-  // --- Password toggle ---
-
   it('should not show toggle button when showToggle is false', () => {
     host.type = 'password';
     host.showToggle = false;
@@ -253,7 +244,7 @@ describe('CvInput', () => {
     expect(input.type).toBe('password');
   });
 
-  // --- Focus label (issue #373: no colour change on focus) ---
+  // Focus does not change the label colour.
 
   it('should keep label colour unchanged when focused', () => {
     hostFixture.detectChanges();
@@ -277,8 +268,6 @@ describe('CvInput', () => {
     const label = hostFixture.nativeElement.querySelector('label') as HTMLLabelElement;
     expect(label.classList.contains('text-destructive-text')).toBe(true);
   });
-
-  // --- Accessibility ---
 
   it('should have no AXE violations in error state', async () => {
     host.ctrl.markAsTouched();

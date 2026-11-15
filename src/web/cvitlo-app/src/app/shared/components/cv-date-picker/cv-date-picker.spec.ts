@@ -39,8 +39,6 @@ describe('CvDatePicker', () => {
     // detectChanges() is NOT called here — each test calls it with the right initial state
   });
 
-  // --- Rendering ---
-
   it('should create', () => {
     hostFixture.detectChanges();
     expect(host).toBeTruthy();
@@ -67,8 +65,6 @@ describe('CvDatePicker', () => {
     expect(label.htmlFor).toBe(input.id);
   });
 
-  // --- CVA: value binding ---
-
   it('should display ISO value as month+year in input', async () => {
     host.ctrl.setValue('2023-06-01');
     hostFixture.detectChanges();
@@ -91,8 +87,6 @@ describe('CvDatePicker', () => {
 
     expect(host.ctrl.value).toMatch(/^2024-03-01$/);
   });
-
-  // --- precision ---
 
   it('should display the full day for precision=day', async () => {
     host.precision = 'day';
@@ -134,8 +128,6 @@ describe('CvDatePicker', () => {
 
     expect(host.ctrl.value).toMatch(/^2030-01-01$/);
   });
-
-  // --- allowPresent ---
 
   it('should start in Present state (placeholder + readonly, not disabled) when allowPresent and value is null', async () => {
     // Present must NOT disable the input — that would also disable the calendar toggle,
@@ -192,8 +184,6 @@ describe('CvDatePicker', () => {
     expect(input.readOnly).toBe(false);
   });
 
-  // --- setDisabledState ---
-
   it('should disable the date input when the form control is disabled', async () => {
     host.ctrl.disable();
     hostFixture.detectChanges();
@@ -211,8 +201,6 @@ describe('CvDatePicker', () => {
     const dateInput = nativeEl.querySelector('input:not([type="checkbox"])') as HTMLInputElement;
     expect(dateInput.disabled).toBe(false);
   });
-
-  // --- Error message ---
 
   it('should render error message when control has endBeforeStart error and is touched', async () => {
     hostFixture.detectChanges();

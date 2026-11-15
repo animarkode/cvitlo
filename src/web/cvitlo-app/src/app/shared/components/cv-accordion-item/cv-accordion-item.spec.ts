@@ -5,7 +5,6 @@ import { LUCIDE_ICONS, LucideIconProvider, User } from 'lucide-angular';
 import { vi } from 'vitest';
 import { CvAccordionItem } from './cv-accordion-item';
 
-// Host for content projection tests
 @Component({
   template: `
     <cv-accordion-item label="Projected Section">
@@ -141,9 +140,7 @@ describe('CvAccordionItem', () => {
   });
 
   describe('mobile padding', () => {
-    // A list entry sits inside two accordion bodies, so px-5 was paid twice —
-    // 80px of pure indentation on a 375px phone (#425). Below md each level
-    // drops to px-3, giving the entry form 303px instead of 211px.
+    // A list entry nests two accordion bodies; below md each level drops to px-3 so the entry form keeps 303px, not 211px.
     it('halves the header padding below md', () => {
       fixture.detectChanges();
       const trigger = fixture.nativeElement.querySelector('button[aria-expanded]') as HTMLElement;

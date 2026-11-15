@@ -9,11 +9,7 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 
-/**
- * Sliding on/off switch. Works two ways:
- * - as a reactive-forms control via `formControlName` / `[formControl]` (ControlValueAccessor), or
- * - as a controlled element via `[checked]` + `(checkedChange)` when no form control is attached.
- */
+// Reactive-forms control (ControlValueAccessor), or controlled via `[checked]` + `(checkedChange)` without a form control.
 @Component({
   selector: 'cv-switch',
   templateUrl: './cv-switch.html',
@@ -34,7 +30,7 @@ export class CvSwitch implements ControlValueAccessor {
 
   private readonly ngControl = inject(NgControl, { self: true, optional: true });
 
-  /** Form-bound instances follow the control's value; controlled instances follow the input. */
+  // Form-bound instances follow the control; controlled instances follow the input.
   protected readonly displayChecked = computed(() =>
     this.ngControl ? this.modelChecked() : this.checked(),
   );
