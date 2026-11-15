@@ -8,6 +8,9 @@ namespace Cvitlo.Documents.Application;
 
 public class DocumentsModuleApi(IRender render) : IDocumentsModuleApi
 {
+    // Every template is compiled into this assembly, so its build id changes whenever any template does.
+    private static readonly string TemplatesBuild = typeof(DocumentsModuleApi).Assembly.ManifestModule.ModuleVersionId.ToString();
+
     public async Task<Stream> RenderResumeToPdfAsync(
         ResumeDocument resume,
         ResumeTemplate template,
@@ -20,7 +23,12 @@ public class DocumentsModuleApi(IRender render) : IDocumentsModuleApi
 
     public string TemplateVersion(ResumeTemplate template)
     {
-        return TemplateComponent(template).Assembly.ManifestModule.ModuleVersionId.ToString();
+        if (!Enum.IsDefined(template))
+        {
+            throw new ArgumentOutOfRangeException(nameof(template), template, null);
+        }
+
+        return TemplatesBuild;
     }
 
     public async Task<string> RenderToHtmlAsync<TComponent>(
@@ -38,15 +46,6 @@ public class DocumentsModuleApi(IRender render) : IDocumentsModuleApi
         return template switch
         {
             ResumeTemplate.First => render.RazorToHtmlAsync<FirstTemplate>(parameters, ct),
-            _ => throw new ArgumentOutOfRangeException(nameof(template), template, null)
-        };
-    }
-
-    private static Type TemplateComponent(ResumeTemplate template)
-    {
-        return template switch
-        {
-            ResumeTemplate.First => typeof(FirstTemplate),
             _ => throw new ArgumentOutOfRangeException(nameof(template), template, null)
         };
     }
