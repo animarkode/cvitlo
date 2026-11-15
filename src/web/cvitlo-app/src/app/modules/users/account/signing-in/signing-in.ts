@@ -46,7 +46,7 @@ export class SigningIn {
     return item.userLabel || this.typeName(group);
   }
 
-  /** A password has nothing to tell apart from another one, so it shows when it changed instead of a list row. */
+  // A password has nothing to tell apart from another one, so it shows when it changed instead of a list row.
   protected isPassword(group: CredentialGroup): boolean {
     return group.type === 'password';
   }

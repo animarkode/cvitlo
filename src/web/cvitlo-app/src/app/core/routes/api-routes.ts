@@ -12,12 +12,10 @@ function subResource(entity: string) {
 
 export const API_ROUTES = {
   auth: {
-    /** Who is signed in (the session cookie identifies the browser). */
     user: `${base}/auth/user`,
     logout: `${base}/auth/logout`,
-    /** A page navigation, not a fetch: the API sends the browser on to Keycloak's sign-in page. */
+    // A page navigation, not a fetch: the API sends the browser on to Keycloak's sign-in page.
     login: (returnUrl = '/') => `${base}/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`,
-    /** A page navigation to Keycloak's registration page. */
     register: `${base}/auth/register`,
     account: {
       profile: `${base}/auth/account/profile`,
@@ -28,7 +26,7 @@ export const API_ROUTES = {
       linkedAccount: (alias: string) => `${base}/auth/account/linked-accounts/${encodeURIComponent(alias)}`,
       session: (id: string) => `${base}/auth/account/sessions/${encodeURIComponent(id)}`,
       otherSessions: `${base}/auth/account/sessions/others`,
-      /** A page navigation, not a fetch: the API sends the browser on to Keycloak to perform the action. */
+      // A page navigation, not a fetch: the API sends the browser on to Keycloak to perform the action.
       self: `${base}/auth/account`,
       action: (name: string) => `${base}/auth/account-action/${encodeURIComponent(name)}`,
     },

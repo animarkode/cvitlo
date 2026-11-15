@@ -1,11 +1,8 @@
 import { DOCUMENT, inject, Injectable } from '@angular/core';
 import { API_ROUTES } from '../routes/api-routes';
 
-/**
- * Leaves the app for Keycloak. Signing in and registering are full-page navigations through the API,
- * never fetches: Keycloak's pages are where credentials are typed, and the browser must carry the
- * redirects and cookies of that flow itself.
- */
+// Full-page navigations, never fetches: Keycloak's pages take the credentials, and the browser must
+// carry that flow's redirects and cookies itself.
 @Injectable({
   providedIn: 'root',
 })

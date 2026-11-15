@@ -10,7 +10,6 @@
         <span class="self-center font-display text-foreground text-2xl font-semibold whitespace-nowrap">{{ title() }}</span>
       </a>
 
-      <!-- Desktop nav links -->
       <ul class="hidden md:flex md:items-center md:space-x-4 rtl:space-x-reverse">
         <li><a [routerLink]="routes.home" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: true}" class="mobile-nav-link main-menu-link inline-flex items-center font-medium min-h-10 text-foreground/80 px-5 rounded-full"><span class="mobile-nav-link__label">Home</span></a></li>
         <li><a [routerLink]="routes.about" routerLinkActive="nav-active" class="mobile-nav-link main-menu-link inline-flex items-center font-medium min-h-10 text-foreground/80 px-5 rounded-full"><span class="mobile-nav-link__label">About</span></a></li>
@@ -48,7 +47,6 @@
     </div>
   </nav>
 
-  <!-- Mobile dropdown menu -->
   <div [class.open]="isDrawerOpen()" class="mobile-menu">
     <ul class="max-w-screen-xl mx-auto flex flex-col px-4 py-3 space-y-2">
       <li><a [routerLink]="routes.home" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: true}" class="mobile-nav-link flex items-center justify-center w-full font-medium min-h-10 text-foreground/80 px-5 rounded-full"><span class="mobile-nav-link__label">Home</span></a></li>

@@ -1,7 +1,5 @@
-/**
- * A one-time pass to the account-deleted page. The account page sets it right before leaving; the page's guard
- * spends it. A refresh, a bookmark or a link someone sent cannot show "your account was deleted" on their own.
- */
+// A one-time pass: the account page sets it right before leaving and the page's guard spends it, so a
+// refresh, bookmark or shared link cannot show "your account was deleted".
 const KEY = 'cvitlo.accountDeleted';
 
 export function rememberAccountDeleted(storage: Storage | undefined): void {

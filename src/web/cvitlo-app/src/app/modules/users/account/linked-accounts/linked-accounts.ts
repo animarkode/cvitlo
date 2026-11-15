@@ -33,7 +33,6 @@ export class LinkedAccounts {
   protected readonly accounts = this.client.linkedAccountsResource();
   protected readonly error = signal<string | null>(null);
 
-  /** Brand mark under `public/providers/`, or null for a provider we ship no mark for. */
   protected providerIcon(account: LinkedAccount): string | null {
     return PROVIDER_ICONS.has(account.providerAlias) ? `/providers/${account.providerAlias}.svg` : null;
   }

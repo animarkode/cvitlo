@@ -49,7 +49,7 @@ export class PersonalInfo {
   protected readonly deleteError = signal<string | null>(null);
   protected readonly serverErrors = signal<Record<string, string[]>>({});
 
-  /** The profile as last read or saved, kept apart from the resource so a save can replace it locally. */
+  // Kept apart from the resource so a save can replace the profile locally.
   private readonly current = signal<AccountProfile | null>(null);
   protected readonly account = computed(() => this.current() ?? this.profile.value() ?? null);
 

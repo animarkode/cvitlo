@@ -3,11 +3,8 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 
 type Theme = 'dark' | 'light';
 
-/**
- * Light or dark theme, kept in the `cvitlo-theme` cookie so the Keycloak login pages, served on the
- * same host, read the same choice. The cookie is host-only: cookies are not port-scoped, so in dev
- * localhost:4200 and Keycloak on localhost:8080 share it too.
- */
+// The `cvitlo-theme` cookie is host-only so the Keycloak login pages on the same host read the same choice.
+// Cookies are not port-scoped, so in dev localhost:4200 and Keycloak on localhost:8080 share it too.
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
@@ -50,8 +47,7 @@ export class ThemeService {
     }
   }
 
-  // Before the cookie, the choice lived in localStorage, which the login pages cannot read.
-  // Move it over once so those users see their theme there too.
+  // Migrates the old localStorage choice once; the Keycloak login pages cannot read localStorage.
   private migrateFromStorage(): Theme | null {
     try {
       const stored = this.asTheme(localStorage.getItem(this.key));
@@ -71,7 +67,7 @@ export class ThemeService {
       if (this.document.location.protocol === 'https:') cookie += '; Secure';
       this.document.cookie = cookie;
     } catch {
-      // cookies unavailable
+      // Private mode can block cookies; the theme then just is not remembered.
     }
   }
 

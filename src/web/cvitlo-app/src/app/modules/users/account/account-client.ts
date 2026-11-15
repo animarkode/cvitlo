@@ -13,11 +13,8 @@ import {
   UpdateProfileRequest,
 } from './account-contracts';
 
-/**
- * The account settings the API manages on the person's behalf in Keycloak. Reads are resources (create them
- * in an injection context); changes are observables; actions that need Keycloak's own pages are full-page
- * navigations, never fetches, as sign-in is.
- */
+// Reads are resources (create them in an injection context); actions that need Keycloak's own pages
+// are full-page navigations, never fetches, as sign-in is.
 @Injectable({ providedIn: 'root' })
 export class AccountClient {
   private readonly http = inject(HttpClient);
@@ -59,24 +56,21 @@ export class AccountClient {
     return this.http.delete<void>(API_ROUTES.auth.account.otherSessions);
   }
 
-  /** Deletes the account and every resume of the person; the API ends the session too. */
   deleteAccount(): Observable<void> {
     return this.http.delete<void>(API_ROUTES.auth.account.self);
   }
 
-  /** A full navigation, not a router one: the in-memory signed-in state must reset. */
+  // A full navigation, not a router one: the in-memory signed-in state must reset.
   leaveDeletedAccount(): void {
     rememberAccountDeleted(this.document.defaultView?.sessionStorage);
     this.document.location.assign(APP_ROUTES.accountDeleted);
   }
 
-  /** Leaves the app for the Keycloak flow behind the action. */
   startAction(action: AccountAction): void {
     this.document.location.assign(API_ROUTES.auth.account.action(action));
   }
 }
 
-/** The machine-readable `code` extension of a failed account call's problem details, if any. */
 export function problemCode(error: unknown): string | null {
   if (error instanceof HttpErrorResponse) {
     const code = (error.error as { code?: unknown } | null)?.code;
@@ -85,7 +79,6 @@ export function problemCode(error: unknown): string | null {
   return null;
 }
 
-/** The human message of a failed account call: the problem's `detail` when the API gave one. */
 export function problemDetail(error: unknown, fallback: string): string {
   if (error instanceof HttpErrorResponse) {
     const detail = (error.error as { detail?: unknown } | null)?.detail;

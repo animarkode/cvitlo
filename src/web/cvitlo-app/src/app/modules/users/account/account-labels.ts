@@ -10,7 +10,6 @@ const KNOWN_LABELS: Record<string, string> = {
   'webauthn-passwordless': 'Passkey',
 };
 
-/** Help for each credential type, keyed by the type Keycloak names in its `{type}-help-text` message key. */
 const KNOWN_HELP: Record<string, string> = {
   password: 'Sign in with your e-mail and password.',
   otp: 'Enter a code from an authenticator app when you sign in.',
@@ -27,10 +26,6 @@ function bareKey(key: string | null | undefined): string {
   return (key ?? '').trim().replace(/^\$\{(.*)\}$/, '$1').trim();
 }
 
-/**
- * Turns a Keycloak label — a message key like `${firstName}` or `password-display-name`, or an identifier like
- * `webauthn-passwordless` — into text a person can read.
- */
 export function humanize(key: string | null | undefined): string {
   const bare = bareKey(key).replace(DISPLAY_NAME_SUFFIX, '');
   if (!bare) return '';
@@ -44,10 +39,6 @@ export function humanize(key: string | null | undefined): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-/**
- * Turns a credential type's help into a sentence: a `{type}-help-text` key becomes the known help for that type,
- * a key with no known help is dropped rather than shown raw, and text that is already a sentence is kept.
- */
 export function helpText(key: string | null | undefined): string | null {
   const bare = bareKey(key);
   if (!bare) return null;
