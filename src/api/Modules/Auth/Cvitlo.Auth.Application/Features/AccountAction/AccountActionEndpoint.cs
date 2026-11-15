@@ -11,12 +11,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.AccountAction;
 
-/// <summary>
-/// Starts a Keycloak Application Initiated Action (change password, add a passkey, delete the account, ...)
-/// for the signed-in user; the browser navigates here, it does not fetch. The route value picks an entry of
-/// <see cref="AccountActions"/>; nothing else reaches Keycloak. Keycloak performs the action on its own page
-/// and the callback brings the browser back to the account page with the outcome.
-/// </summary>
+// A navigation, not a fetch: Keycloak's own page takes over the browser.
 public class AccountActionEndpoint : EndpointWithoutRequest<Results<ChallengeHttpResult, NotFound>>
 {
     public override void Configure()

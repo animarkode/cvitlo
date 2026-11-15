@@ -22,24 +22,20 @@ public static class RateLimitingTestConstants
     // the global baseline.
     public const int AuthenticatedPermitLimit = 30;
 
-    // Must match the WebApp fixture's RateLimiting:AuthExternal:PermitLimit setting.
-    // Deliberately below AnonymousPermitLimit so a 429 on request AuthExternalPermitLimit + 1
-    // proves the auth-external endpoint policy (not the global baseline) rejected it.
+    // Must match the WebApp fixture's RateLimiting:AuthExternal:PermitLimit. Below AnonymousPermitLimit so a 429
+    // at limit + 1 proves the endpoint policy, not the global baseline.
     public const int AuthExternalPermitLimit = 2;
 
-    // Must match the WebApp fixture's RateLimiting:AuthSession:PermitLimit setting.
-    // Deliberately below AnonymousPermitLimit so a 429 on request AuthSessionPermitLimit + 1
-    // proves the auth-session endpoint policy (not the global baseline) rejected it.
+    // Must match the WebApp fixture's RateLimiting:AuthSession:PermitLimit. Below AnonymousPermitLimit so a 429
+    // at limit + 1 proves the endpoint policy, not the global baseline.
     public const int AuthSessionPermitLimit = 2;
 
     // Must match the WebApp fixture's RateLimiting:GlobalAnonymous/GlobalAuthenticated WindowSeconds/SegmentsPerWindow settings.
     public const int TestWindowSeconds = 60;
     public const int TestSegmentsPerWindow = 1;
 
-    // Must match the WebApp fixture's RateLimiting:AuthenticatedDefault:PermitLimit setting.
-    // Deliberately far below AuthenticatedPermitLimit so a 429 on request
-    // AuthenticatedDefaultPermitLimit + 1 proves the authenticated-default endpoint policy
-    // (not the global baseline) rejected it.
+    // Must match the WebApp fixture's RateLimiting:AuthenticatedDefault:PermitLimit. Far below
+    // AuthenticatedPermitLimit so a 429 at limit + 1 proves the endpoint policy, not the global baseline.
     public const int AuthenticatedDefaultPermitLimit = 2;
 
     public const string ResumesUri = "api/v1/resumes";

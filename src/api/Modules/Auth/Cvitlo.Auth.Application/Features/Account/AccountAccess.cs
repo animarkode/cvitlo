@@ -8,13 +8,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account;
 
-/// <summary>What every account endpoint shares: getting the user's own access token and answering errors.</summary>
 public static class AccountAccess
 {
-    /// <summary>
-    /// The access token of the web session, which <c>SessionRefresher</c> keeps fresh. It never leaves the
-    /// server. A request without a session (a bearer call, for instance) has none and gets an error.
-    /// </summary>
     public static async Task<ErrorOr<string>> GetAccessTokenAsync(this HttpContext context)
     {
         var token = await context.GetTokenAsync(AuthSchemes.Session, "access_token");
@@ -24,7 +19,6 @@ public static class AccountAccess
             : token;
     }
 
-    /// <summary>The user's <c>sub</c> claim, which keys the per-user lock; a principal without one gets an error.</summary>
     public static ErrorOr<string> GetSubject(this ClaimsPrincipal user)
     {
         var subject = user.FindFirst(JwtClaimTypes.Registered.Sub)?.Value;
@@ -34,10 +28,7 @@ public static class AccountAccess
             : subject;
     }
 
-    /// <summary>
-    /// A ProblemDetails answer for an error: Keycloak's field errors become a validation problem, so the
-    /// form can show each message beside its field.
-    /// </summary>
+    // Keycloak's field errors become a validation problem, so the form can show each beside its field.
     public static ProblemHttpResult ToProblem(this Error error)
     {
         return error.Type switch
@@ -51,7 +42,6 @@ public static class AccountAccess
         };
     }
 
-    /// <summary>The error's code travels as the <c>code</c> extension, so a client can tell apart errors of one status.</summary>
     private static ProblemHttpResult ToProblem(Error error, int statusCode)
     {
         return TypedResults.Problem(

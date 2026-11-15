@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.GetDevices;
 
-/// <summary>Where the user is signed in: every Keycloak session, flattened, the current one flagged.</summary>
 public class GetDevicesEndpoint(KeycloakAccountClient keycloak)
     : EndpointWithoutRequest<Results<Ok<GetDevicesResponse[]>, ProblemHttpResult>>
 {

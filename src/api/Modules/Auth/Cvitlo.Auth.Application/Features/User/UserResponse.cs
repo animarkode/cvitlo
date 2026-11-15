@@ -1,6 +1,6 @@
 namespace Cvitlo.Auth.Application.Features.User;
 
-/// <summary>Who is signed in. Contains no token: the browser never needs one.</summary>
+// No token: the browser never needs one.
 public record UserResponse(
     string Id,
     string? Email,

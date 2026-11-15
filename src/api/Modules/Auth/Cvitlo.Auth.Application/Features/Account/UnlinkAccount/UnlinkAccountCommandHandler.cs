@@ -4,7 +4,6 @@ using FastEndpoints;
 
 namespace Cvitlo.Auth.Application.Features.Account.UnlinkAccount;
 
-/// <summary>Unlinks a provider, unless it is the user's last way to sign in.</summary>
 public class UnlinkAccountCommandHandler(
     AccountSignInMethodsLock signInMethods,
     KeycloakAccountClient keycloak)

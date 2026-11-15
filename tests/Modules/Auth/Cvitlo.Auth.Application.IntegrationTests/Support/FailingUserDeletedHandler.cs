@@ -6,15 +6,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Support;
 
-/// <summary>
-/// Stands in for the Resumes module's <see cref="UserDeletedHandler"/> at the module boundary. It behaves like the
-/// real handler, except that it throws for the subjects a test lists in <see cref="FailFor"/>, so no other test is
-/// affected.
-/// </summary>
+// Stands in for the Resumes module's UserDeletedHandler at the module boundary. It behaves like the
+// real handler, except that it throws for the subjects a test lists in FailFor, so no other test is
+// affected.
 public sealed class FailingUserDeletedHandler(IServiceScopeFactory scopes, ILogger<UserDeletedHandler> logger)
     : IEventHandler<UserDeleted>
 {
-    /// <summary>The subjects whose erasure fails.</summary>
     public static HashSet<string> FailFor { get; } = new(StringComparer.Ordinal);
 
     public Task HandleAsync(UserDeleted eventModel, CancellationToken ct)

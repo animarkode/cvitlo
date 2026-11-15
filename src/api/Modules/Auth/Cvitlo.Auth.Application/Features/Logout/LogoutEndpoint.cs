@@ -8,10 +8,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Logout;
 
-/// <summary>
-/// Signs the browser out: ends the Keycloak session, then deletes the server-side session and the cookie.
-/// The web session is deleted even when Keycloak cannot be reached, so the cookie is dead either way.
-/// </summary>
+// The web session is deleted even when Keycloak cannot be reached, so the cookie is dead either way.
 public class LogoutEndpoint : EndpointWithoutRequest<NoContent>
 {
     public override void Configure()

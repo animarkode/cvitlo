@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.UnlinkAccount;
 
-/// <summary>Unlinks a provider (Google, GitHub) from the signed-in user, unless it is their last way to sign in.</summary>
 public class UnlinkAccountEndpoint : Endpoint<UnlinkAccountRequest, Results<NoContent, ProblemHttpResult>>
 {
     public override void Configure()

@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>Keycloak's Account REST API representation of the signed-in user (<c>GET /account</c>).</summary>
 public sealed record KeycloakAccount(
     string? Username,
     string? Email,

@@ -12,13 +12,9 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 [Collection<CollectionRateLimiting>]
 public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
 {
-    // IP octets 160-169 reserved for this class.
-    //
-    // Every test signs in a fresh account: an exhausted authenticated-default budget stays
-    // exhausted for the whole 60-second window, so each needs a user with an untouched budget.
-    //
-    // AuthenticatedDefaultPermitLimit (2) sits far below AuthenticatedPermitLimit (30): a 429 on the
-    // 3rd request can only have come from authenticated-default, never from the global baseline.
+    // IP octets 160-169 reserved for this class. Every test signs in a fresh account: an exhausted
+    // authenticated-default budget stays exhausted for the 60-second window. Its limit (2) is far below the
+    // global one (30), so a 429 on the 3rd request can only come from authenticated-default.
 
     private HttpClient CreateClientWithIp(string ip)
     {
@@ -69,7 +65,6 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
         json.RootElement.GetProperty("detail").GetString().ShouldBe(ExpectedDetail);
         json.RootElement.GetProperty("status").GetInt32().ShouldBe(429);
 
-        // No information leakage: partition keys, IP and limit values must never be echoed back.
         body.ShouldNotContain(clientIp);
         body.ShouldNotContain("PermitLimit");
         body.ShouldNotContain("ip:");
@@ -105,10 +100,9 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
         var rejected = await ExhaustAuthenticatedDefaultBudgetAsync(client);
         rejected.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
 
-        // A named policy is one limiter shared by every endpoint that opts in, so rotating from the
-        // resume list to a nested collection must not buy a second allowance. The resume id is
-        // deliberately unowned: without the limiter this call answers 403 from ResumeOwnerPolicy,
-        // and the rate limiter runs before UseAuthorization, so a 429 here can only be the limiter.
+        // A named policy is one limiter shared by every opted-in endpoint, so moving to a nested collection buys no
+        // second allowance. The resume id is unowned: the limiter runs before UseAuthorization, so a 429 here
+        // can only be the limiter (otherwise ResumeOwnerPolicy answers 403).
         var nested = await client.GetAsync(
             string.Format(CultureInfo.InvariantCulture, ResumeEducationsUriFormat, Guid.NewGuid()),
             TestContext.Current.CancellationToken);

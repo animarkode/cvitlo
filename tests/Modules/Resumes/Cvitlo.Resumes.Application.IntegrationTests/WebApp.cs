@@ -10,15 +10,12 @@ namespace Cvitlo.Resumes.Application.IntegrationTests;
 
 public class WebApp : CvitloWebApp
 {
-    /// <summary>The first two users get the <c>premium</c> realm role.</summary>
     private const int PremiumUsers = 2;
 
     public CollectingLoggerProvider Logs { get; } = new();
 
-    /// <summary>
-    /// When false, no Redis container is built or started, so a fixture that never exercises Redis
-    /// against a real instance (e.g. <see cref="RedisUnavailableWebApp"/>) doesn't pay for one.
-    /// </summary>
+    // When false, no Redis container is built or started, so a fixture that never exercises Redis
+    // against a real instance (e.g. RedisUnavailableWebApp) doesn't pay for one.
     protected override bool UsesRedis => true;
 
     protected override async Task SeedUsersAsync(CancellationToken ct)

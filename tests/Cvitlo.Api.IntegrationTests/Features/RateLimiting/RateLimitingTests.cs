@@ -21,11 +21,9 @@ public class RateLimitingTests(WebApp app) : TestBase
         return client;
     }
 
-    // Global-anonymous probe. `user` carries no named rate limiting policy — epic #331 designated its
-    // predecessor `me` as baseline-only — so these tests exercise the global anonymous limiter itself.
-    // Without a session or bearer token there is no `sub` claim, so the request lands on the IP partition, and a deterministic 401 comes back:
-    // UseCvitloRateLimiting runs before UseAuthorization, so an exhausted budget still yields 429
-    // rather than 401.
+    // Global-anonymous probe: `user` carries no named policy. With no session or bearer token the request lands on
+    // the IP partition and answers 401; UseCvitloRateLimiting runs before UseAuthorization, so an exhausted
+    // budget yields 429 instead.
     private static async Task<HttpResponseMessage> GetAnonymousProbeAsync(
         HttpClient client,
         string? forwardedFor = null)
@@ -67,7 +65,6 @@ public class RateLimitingTests(WebApp app) : TestBase
         json.RootElement.GetProperty("detail").GetString().ShouldBe(ExpectedDetail);
         json.RootElement.GetProperty("status").GetInt32().ShouldBe(429);
 
-        // No information leakage: partition key, IP and limit values must not appear.
         body.ShouldNotContain(clientIp);
         body.ShouldNotContain("PermitLimit");
         body.ShouldNotContain("ip:");
@@ -145,7 +142,6 @@ public class RateLimitingTests(WebApp app) : TestBase
         var rejected = await firstClient.GetAsync(UserUri, TestContext.Current.CancellationToken);
         rejected.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
 
-        // Same IP, different user id => separate partition, still allowed.
         var secondUserResponse = await secondClient.GetAsync(UserUri, TestContext.Current.CancellationToken);
         secondUserResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }

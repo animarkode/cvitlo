@@ -2,10 +2,7 @@ using System.Collections.Frozen;
 
 namespace Cvitlo.Auth.Application.Features.AccountAction;
 
-/// <summary>
-/// The only account actions the app can start, each mapped to the Keycloak <c>kc_action</c> it triggers.
-/// Nothing from the request is ever forwarded to Keycloak: the route value is a key into this list.
-/// </summary>
+// Nothing from the request is forwarded to Keycloak: the route value is only a key into this list.
 public static class AccountActions
 {
     public const string StatusSuccess = "success";
@@ -22,19 +19,14 @@ public static class AccountActions
         ["link-github"] = "idp_link:github"
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
-    /// <summary>
-    /// Asks Keycloak to sign the person in again (<c>prompt=login</c>) without running a required action, so the
-    /// session's <c>auth_time</c> becomes fresh. It has no <c>kc_action</c>, hence no entry in the maps below.
-    /// </summary>
+    // prompt=login without a required action, so auth_time becomes fresh. No kc_action, hence no entry in the maps below.
     public const string Reauthenticate = "reauthenticate";
 
-    /// <summary>Whether the name is on the allow-list, with or without a <c>kc_action</c>.</summary>
     public static bool IsAllowed(string? name)
     {
         return string.Equals(name, Reauthenticate, StringComparison.Ordinal) || (name is not null && KcActions.ContainsKey(name));
     }
 
-    /// <summary>The Keycloak <c>kc_action</c> for an allow-listed action name; <see langword="false"/> for anything else.</summary>
     public static bool TryGetKcAction(string? name, out string kcAction)
     {
         kcAction = string.Empty;
@@ -44,13 +36,11 @@ public static class AccountActions
     private static readonly FrozenDictionary<string, string> Names =
         KcActions.ToFrozenDictionary(pair => pair.Value, pair => pair.Key, StringComparer.Ordinal);
 
-    /// <summary>The app action name for a Keycloak <c>kc_action</c>; <see langword="null"/> when it is not on the allow-list.</summary>
     public static string? FindName(string? kcAction)
     {
         return kcAction is not null && Names.TryGetValue(kcAction, out var name) ? name : null;
     }
 
-    /// <summary>Keycloak's <c>kc_action_status</c> reduced to the three values the app knows; anything else is an error.</summary>
     public static string NormalizeStatus(string? kcActionStatus)
     {
         return kcActionStatus switch
@@ -63,7 +53,6 @@ public static class AccountActions
 
     private const string PersonalInfoSection = "personal-info";
 
-    /// <summary>The account page section each action belongs to, so the browser returns where the person started it.</summary>
     private static readonly FrozenDictionary<string, string> Sections = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["password"] = "signing-in",
@@ -74,7 +63,6 @@ public static class AccountActions
         ["link-github"] = "linked-accounts"
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
-    /// <summary>Where the browser lands after an account action: the action's section of the account page, with the outcome.</summary>
     public static string ReturnPath(string action, string status)
     {
         var section = Sections.GetValueOrDefault(action, PersonalInfoSection);

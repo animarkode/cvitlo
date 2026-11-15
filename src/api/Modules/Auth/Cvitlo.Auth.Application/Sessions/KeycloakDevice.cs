@@ -1,6 +1,5 @@
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>A device with its sessions (<c>GET /account/sessions/devices</c>).</summary>
 public sealed record KeycloakDevice(
     string? Device,
     string? Os,

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.GetLinkedAccounts;
 
-/// <summary>The identity providers (Google, GitHub) and whether the user has linked each.</summary>
 public class GetLinkedAccountsEndpoint(KeycloakAccountClient keycloak)
     : EndpointWithoutRequest<Results<Ok<GetLinkedAccountsResponse[]>, ProblemHttpResult>>
 {

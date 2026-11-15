@@ -10,13 +10,9 @@ using Shouldly;
 
 namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
-// A structural guard rather than a behavioural one: it reads the built route table instead of
-// issuing requests, so it burns no rate-limit budget and claims no client-IP octet range from the
-// behavioural suites sharing this fixture.
-//
-// The check has to run against the *built* route table. `Options(x => x.RequireRateLimiting(...))`
-// is a RouteHandlerBuilder callback that FastEndpoints defers until route-mapping time, so neither
-// the endpoint source text nor a pre-build EndpointDefinition can prove a policy was attached.
+// A structural guard: reads the built route table, so it spends no rate-limit budget and claims no client-IP
+// octets. It must read the built table: FastEndpoints defers Options(x => x.RequireRateLimiting(...)) to
+// route-mapping time, so neither source text nor a pre-build EndpointDefinition can prove a policy attached.
 [Collection<CollectionRateLimiting>]
 public class ResumesRateLimitingCoverageTests(WebApp app) : TestBase
 {
@@ -31,8 +27,7 @@ public class ResumesRateLimitingCoverageTests(WebApp app) : TestBase
     [Fact]
     public void EveryResumesEndpointType_ShouldAppearInTheRouteTable()
     {
-        // Without this, a broken assembly filter would make the two policy assertions below pass
-        // vacuously over an empty set — the classic silent death of a reflection-based guard.
+        // Guards the assembly filter: an empty set would make the two policy assertions below pass vacuously.
         var declared = ResumesAssembly
             .GetTypes()
             .Where(type => type is { IsAbstract: false, IsInterface: false } && typeof(IEndpoint).IsAssignableFrom(type))

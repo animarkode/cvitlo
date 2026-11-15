@@ -3,22 +3,16 @@ using System.Diagnostics.Metrics;
 namespace Cvitlo.Common.RateLimiting;
 
 /// <summary>
-/// The single OpenTelemetry counter for rate limiting rejections, shared by the Api middleware and by
-/// any module-level limiter that sits below HTTP and must record its own rejections. It lives in Common.PublicApi rather than Cvitlo.Api because a module may not
-/// reference the API host, and splitting the meter per caller would scatter one question — "how much
-/// are we throttling, and where?" — across several dashboard queries.
+/// The single rejection counter, shared by the Api middleware and module-level limiters below HTTP.
+/// It lives in Common because a module may not reference the API host, and one meter keeps
+/// "how much are we throttling, and where?" a single dashboard query.
 /// </summary>
 public static class RateLimitingMetrics
 {
-    /// <summary>
-    /// Name of the meter; must match the meter registered in Cvitlo.ServiceDefaults.
-    /// </summary>
+    /// <summary>Must match the meter registered in Cvitlo.ServiceDefaults.</summary>
     public const string MeterName = "Cvitlo.Api.RateLimiting";
 
-    /// <summary>
-    /// Name of the rejection counter instrument. Exposed so tests can subscribe with a
-    /// <see cref="System.Diagnostics.Metrics.MeterListener"/> without duplicating the string.
-    /// </summary>
+    /// <summary>Exposed so tests can subscribe with a <see cref="System.Diagnostics.Metrics.MeterListener"/> without duplicating the string.</summary>
     public const string RejectionsCounterName = "cvitlo.api.rate_limiting.rejections";
 
     private static readonly Meter Meter = new(MeterName);
@@ -28,7 +22,6 @@ public static class RateLimitingMetrics
         description: "Number of requests rejected by the rate limiter.");
 
     /// <summary>Records a single rejection for the given policy or limiter name ("global" for the global limiter).</summary>
-    /// <param name="policy">The policy or limiter name recorded as the <c>policy</c> metric tag.</param>
     public static void RecordRejection(string policy)
     {
         Rejections.Add(1, new KeyValuePair<string, object?>("policy", policy));

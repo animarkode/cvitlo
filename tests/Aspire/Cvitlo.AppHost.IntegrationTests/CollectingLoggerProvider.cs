@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.AppHost.IntegrationTests;
 
-/// <summary>Keeps every message logged at warning level or above, for assertions.</summary>
 internal sealed class CollectingLoggerProvider : ILoggerProvider
 {
     private readonly ConcurrentQueue<string> _warnings = new();

@@ -19,12 +19,8 @@ public class GetAllResumesCommandHandler(
             ResumesCacheKeys.List(command.UserId),
             async cacheCt =>
             {
-                // HybridCache runs this factory once for every concurrent caller of the same key and
-                // only cancels it once all callers have cancelled. If the factory closed over the first
-                // caller's request-scoped DbContext, that caller's scope disposing (e.g. on request
-                // abort) would dispose the DbContext out from under every other caller still waiting on
-                // the shared factory. Owning a dedicated scope keeps the factory alive independent of
-                // any single caller's request lifetime.
+                // HybridCache shares this factory across concurrent callers, so it must own its scope:
+                // the first caller's request-scoped DbContext can be disposed under the others.
                 await using var scope = scopeFactory.CreateAsyncScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<ResumesDbContext>();
 

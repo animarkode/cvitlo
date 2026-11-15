@@ -5,11 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace Cvitlo.Api.IntegrationTests;
 
-/// <summary>
-/// TestServer connections have no <c>RemoteIpAddress</c>. This filter runs before the app's own
-/// middleware (including ForwardedHeaders) and sets the connection IP from the X-Test-Client-Ip
-/// header, letting tests simulate distinct clients and proxies.
-/// </summary>
+// TestServer connections have no RemoteIpAddress. This filter runs before the app's own
+// middleware (including ForwardedHeaders) and sets the connection IP from the X-Test-Client-Ip
+// header, letting tests simulate distinct clients and proxies.
 public class TestClientIpStartupFilter : IStartupFilter
 {
     public const string HeaderName = "X-Test-Client-Ip";

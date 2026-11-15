@@ -8,35 +8,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Documents.Shared;
 
-/// <summary>
-/// Renders a resume to PDF, caching the result so <c>download</c> and <c>generate</c> share a
-/// single render per resume/template/user until the resume's cache tag is invalidated.
-/// </summary>
 public class ResumePdfCache(
     IServiceScopeFactory scopeFactory,
     HybridCache cache,
     IDocumentsModuleApi documentsModuleApi,
     ILogger<ResumePdfCache> logger)
 {
-    /// <summary>Gets the cached rendered PDF for a resume, rendering and caching it when missing.</summary>
-    /// <param name="userId">The id of the user who owns the resume.</param>
-    /// <param name="resumeId">The id of the resume to render.</param>
-    /// <param name="ct">The cancellation token.</param>
-    /// <returns>The rendered PDF, or a <c>Resume.NotFound</c> error when the resume does not exist or is not owned by the user.</returns>
     public async Task<ErrorOr<ResumePdf>> GetOrRenderAsync(Guid userId, Guid resumeId, CancellationToken ct)
     {
         var pdf = await cache.GetOrCreateAsync(
             ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, documentsModuleApi.TemplateVersion(ResumeTemplate.First)),
             async cacheCt =>
             {
-                // HybridCache runs this factory once for every concurrent caller of the same key and
-                // only cancels it once all callers have cancelled. If the factory closed over the first
-                // caller's request-scoped services (DbContext, module API), that caller's scope
-                // disposing (e.g. on request abort) would dispose them out from under every other
-                // caller still waiting on the shared factory. Owning a dedicated scope — and running
-                // DocumentCommandHandler directly instead of the FastEndpoints command bus, which
-                // resolves from the current request's services — keeps the factory alive independent
-                // of any single caller's request lifetime.
+                // HybridCache shares this factory across concurrent callers, so it owns its scope and calls
+                // DocumentCommandHandler directly: the command bus resolves from the first caller's request.
                 await using var scope = scopeFactory.CreateAsyncScope();
                 var handler = ActivatorUtilities.CreateInstance<DocumentCommandHandler>(scope.ServiceProvider);
                 var result = await handler.ExecuteAsync(new DocumentCommand(resumeId, userId), cacheCt);

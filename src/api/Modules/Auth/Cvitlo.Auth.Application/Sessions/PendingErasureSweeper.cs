@@ -6,11 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>
-/// Finishes account deletions that did not complete: a failed <see cref="UserDeleted"/> publish or a crash after
-/// Keycloak deleted the user. A row is only touched once it is older than <see cref="MinAge"/>, so the sweep never
-/// races a request that is still running.
-/// </summary>
+// Only rows older than MinAge are touched, so the sweep never races a request that is still running.
 public sealed class PendingErasureSweeper(
     AuthDbContext db,
     KeycloakAdminClient keycloak,
@@ -18,15 +14,9 @@ public sealed class PendingErasureSweeper(
     TimeProvider time,
     ILogger<PendingErasureSweeper> logger)
 {
-    /// <summary>How old a pending erasure must be before the sweep takes it over.</summary>
     public static readonly TimeSpan MinAge = TimeSpan.FromMinutes(10);
 
-    /// <summary>
-    /// If Keycloak still knows the user the deletion never happened and the row is dropped. If the user is gone,
-    /// sessions end, <see cref="UserDeleted"/> is published and the row is dropped. Any failure keeps the row for
-    /// the next run.
-    /// </summary>
-    /// <returns>The number of rows resolved.</returns>
+    // A user Keycloak still knows means the deletion never happened, so the row is dropped. Any failure keeps it for the next run.
     public async Task<int> SweepAsync(CancellationToken ct)
     {
         var cutoff = time.GetUtcNow() - MinAge;

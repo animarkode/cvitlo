@@ -16,11 +16,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Cvitlo.Auth.Application.Authentication;
 
-/// <summary>
-/// Three schemes behind one default. A browser signs in through Keycloak's hosted login
-/// (<see cref="AuthSchemes.Keycloak"/>) and then holds only the session cookie (<see cref="AuthSchemes.Session"/>);
-/// other clients send Keycloak access tokens (<see cref="AuthSchemes.Bearer"/>).
-/// </summary>
 internal static class AuthenticationRegistration
 {
     public static IServiceCollection AddCvitloAuthentication(this IServiceCollection services)
@@ -137,10 +132,7 @@ internal static class AuthenticationRegistration
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// After an account action the callback signs the user in again. The session it replaces is removed
-    /// (not the Keycloak session, which the new tokens share), so one browser keeps exactly one app session.
-    /// </summary>
+    // The replaced session is removed, not the Keycloak session (the new tokens share it), so one browser keeps one app session.
     private static async Task OnTicketReceivedAsync(TicketReceivedContext context)
     {
         var properties = context.Properties;

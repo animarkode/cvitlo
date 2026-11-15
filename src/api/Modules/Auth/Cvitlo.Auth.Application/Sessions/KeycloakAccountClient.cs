@@ -9,11 +9,6 @@ using Microsoft.Extensions.Options;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>
-/// Keycloak's Account REST API, called with the signed-in user's own access token: the user can only ever
-/// read and change their own account, and the API holds no admin credential. Failures come back as errors,
-/// never as exceptions.
-/// </summary>
 public sealed class KeycloakAccountClient(
     HttpClient http,
     IOptions<KeycloakOptions> options,
@@ -160,10 +155,8 @@ public sealed class KeycloakAccountClient(
         }
     }
 
-    /// <summary>
-    /// Keycloak answers a refused profile update with <c>{"errors":[{"field","errorMessage"}]}</c>, and other
-    /// refusals with <c>{"errorMessage"}</c> or <c>{"error"}</c>. Fields and messages are kept as metadata.
-    /// </summary>
+    // Keycloak answers a refused profile update with {"errors":[{"field","errorMessage"}]}, other refusals with
+    // {"errorMessage"} or {"error"}. Fields and messages are kept as metadata.
     private static async Task<Error> ReadValidationErrorAsync(HttpResponseMessage response, CancellationToken ct)
     {
         var fields = new Dictionary<string, object>(StringComparer.Ordinal);

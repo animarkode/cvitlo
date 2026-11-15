@@ -8,15 +8,8 @@ using Microsoft.Extensions.Options;
 
 namespace Cvitlo.Api.RateLimiting;
 
-/// <summary>
-/// Wires the ASP.NET Core rate limiter: a global user-or-IP partitioned baseline plus one policy class
-/// per name in <see cref="RateLimitPolicies"/>, all rejecting through <see cref="RateLimitRejectionHandler"/>.
-/// </summary>
 public static class RateLimitingExtensions
 {
-    /// <summary>Registers rate limiting options and the partitioned rate limiter with its named policies.</summary>
-    /// <param name="services">The service collection to add rate limiting to.</param>
-    /// <returns>The same service collection so calls can be chained.</returns>
     public static IServiceCollection AddCvitloRateLimiting(this IServiceCollection services)
     {
         services.ConfigureOptions<RateLimitingOptionsSetup>();
@@ -45,14 +38,8 @@ public static class RateLimitingExtensions
         return services;
     }
 
-    /// <summary>
-    /// Limits the OIDC callback per client IP with the <c>auth-external</c> tuning, unless
-    /// <c>RateLimiting:Enabled</c> is false. The OIDC handler answers the callback inside
-    /// <c>UseAuthentication</c>, so <see cref="UseCvitloRateLimiting"/>, which has to run after
-    /// authentication to know the user, never sees it. Call this before <c>UseAuthentication</c>.
-    /// </summary>
-    /// <param name="app">The web application to add the callback limiter to.</param>
-    /// <returns>The same web application so calls can be chained.</returns>
+    // The OIDC handler answers the callback inside UseAuthentication, so the general limiter, which
+    // runs after authentication to know the user, never sees it. Call this before UseAuthentication.
     public static WebApplication UseCvitloCallbackRateLimiting(this WebApplication app)
     {
         var options = app.Services.GetRequiredService<IOptions<RateLimitingOptions>>().Value;
@@ -79,9 +66,6 @@ public static class RateLimitingExtensions
         return app;
     }
 
-    /// <summary>Adds the rate limiting middleware unless <c>RateLimiting:Enabled</c> is false.</summary>
-    /// <param name="app">The web application to add the rate limiting middleware to.</param>
-    /// <returns>The same web application so calls can be chained.</returns>
     public static WebApplication UseCvitloRateLimiting(this WebApplication app)
     {
         var options = app.Services.GetRequiredService<IOptions<RateLimitingOptions>>().Value;

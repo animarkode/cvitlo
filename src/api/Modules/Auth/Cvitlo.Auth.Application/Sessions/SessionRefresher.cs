@@ -10,16 +10,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>
-/// Refreshes a web session's access token on the server shortly before it expires.
-/// </summary>
-/// <remarks>
-/// Keycloak hands out each refresh token once (<c>refreshTokenMaxReuse=0</c>). Two requests from the same
-/// browser that both decide to refresh would spend it twice, and the second would end the session. So the
-/// refresh runs under a row lock on the session: the first request refreshes and saves; the others wait, read
-/// the saved tokens and carry on. A refresh Keycloak refuses means the Keycloak session is gone (signed out,
-/// expired, revoked), so the web session is deleted too.
-/// </remarks>
+// Keycloak hands out each refresh token once (refreshTokenMaxReuse=0), so two requests refreshing at once would end the session.
+// The refresh runs under a row lock: the first request refreshes and saves, the others wait and reuse the saved tokens.
+// A refresh Keycloak refuses means the Keycloak session is gone, so the web session is deleted too.
 public sealed class SessionRefresher(
     AuthDbContext db,
     PostgresTicketStore store,
@@ -85,12 +78,7 @@ public sealed class SessionRefresher(
         Adopt(context, principal, stored.Properties);
     }
 
-    /// <summary>
-    /// Refreshes the signed-in session's tokens now, whether or not they are about to expire, so that claims
-    /// Keycloak changed (the name after a profile update) reach the stored ticket. It takes the same row lock as
-    /// <see cref="ValidateAsync"/>, so it cannot spend a refresh token a concurrent request is using.
-    /// </summary>
-    /// <returns>Whether the session now holds fresh tokens; a failure leaves the session as it was.</returns>
+    // Takes the same row lock as ValidateAsync, so it cannot spend a refresh token a concurrent request is using.
     public async Task<bool> RefreshNowAsync(HttpContext http, CancellationToken ct)
     {
         var authenticated = await http.AuthenticateAsync(AuthSchemes.Session);

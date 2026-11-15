@@ -15,26 +15,20 @@ namespace Cvitlo.Auth.Application.IntegrationTests;
 
 public class WebApp : CvitloWebApp
 {
-    /// <summary>
-    /// The origin the "browser" uses for the API. It is HTTPS so that the client keeps and sends the
-    /// <c>Secure</c> <c>__Host-</c> session cookie, exactly as a browser would.
-    /// </summary>
+    // The origin the "browser" uses for the API. It is HTTPS so that the client keeps and sends the
+    // Secure __Host- session cookie, exactly as a browser would.
     public static readonly Uri AppOrigin = new("https://localhost");
 
     public BackchannelLogoutRelay Relay { get; } = new();
 
-    /// <summary>The clock the API reads; tests move it forward to make access tokens look expired.</summary>
     public RealignableClock Clock { get; } = new(DateTimeOffset.UtcNow);
 
-    /// <summary>Lets a test make Keycloak's token endpoint misbehave for the API's back-channel calls.</summary>
     public TokenEndpointInterceptor KeycloakBackChannel { get; } = new();
 
     public TokenEndpointInterceptor KeycloakAccountBackChannel { get; } = new();
 
-    /// <summary>The same for the Admin API client, which deletes accounts.</summary>
     public TokenEndpointInterceptor KeycloakAdminBackChannel { get; } = new();
 
-    /// <summary>A second realm in the same Keycloak that plays Google or GitHub.</summary>
     public static readonly StandInIdentityProvider StandIn = new(
         Alias: "standin",
         Realm: "standin",
@@ -46,7 +40,6 @@ public class WebApp : CvitloWebApp
         FirstName: "Stan",
         LastName: "Din");
 
-    /// <summary>A client that behaves like a browser tab on the web app: cookies on, redirects off.</summary>
     public HttpClient CreateBrowserClient()
     {
         var client = CreateClient(new ClientOptions
@@ -60,7 +53,6 @@ public class WebApp : CvitloWebApp
         return client;
     }
 
-    /// <summary>Signs a user in through Keycloak's login page and returns the signed-in browser client.</summary>
     public async Task<(HttpClient Client, HttpResponseMessage Callback)> SignInAsync(
         TestUser user,
         bool rememberMe = false,

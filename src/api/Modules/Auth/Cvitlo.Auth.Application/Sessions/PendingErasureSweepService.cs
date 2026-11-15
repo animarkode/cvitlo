@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Auth.Application.Sessions;
 
-/// <summary>Runs <see cref="PendingErasureSweeper"/> once an hour.</summary>
 public sealed class PendingErasureSweepService(
     IServiceScopeFactory scopes,
     ILogger<PendingErasureSweepService> logger) : BackgroundService

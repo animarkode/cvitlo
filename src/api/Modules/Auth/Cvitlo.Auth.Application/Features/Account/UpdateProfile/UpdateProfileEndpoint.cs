@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.Account.UpdateProfile;
 
-/// <summary>Changes the signed-in user's names and other editable profile fields; never the e-mail.</summary>
 public class UpdateProfileEndpoint(SessionRefresher sessions) : Endpoint<UpdateProfileRequest, Results<Ok<GetProfileResponse>, ProblemHttpResult>>
 {
     public override void Configure()

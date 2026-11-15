@@ -1,10 +1,6 @@
 namespace Cvitlo.Api.Http;
 
-/// <summary>
-/// Response headers that keep API responses inert in a browser: never sniffed into another content type, never
-/// framed, never leaking the URL as a referrer, and never allowed to load anything. The Development API
-/// reference pages (Scalar, Swagger) need scripts, so they keep the browser defaults.
-/// </summary>
+// The Development API reference pages (Scalar, Swagger) need scripts, so they keep the browser defaults.
 public static class SecurityHeadersExtensions
 {
     private static readonly string[] DevelopmentDocumentationPaths = ["/scalar", "/swagger", "/openapi"];

@@ -7,10 +7,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Features.BackchannelLogout;
 
-/// <summary>
-/// Keycloak calls this when one of its sessions ends (sign-out elsewhere, "sign out everywhere" in the account
-/// console, an admin action), so the matching web session ends at the same moment.
-/// </summary>
 public class BackchannelLogoutEndpoint : Endpoint<BackchannelLogoutRequest, Results<Ok, BadRequest>>
 {
     public override void Configure()
