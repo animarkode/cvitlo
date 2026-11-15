@@ -28,7 +28,7 @@ public class GenerateDocumentTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task GenerateDocument_ShouldReturnBase64Pdf()
+    public async Task GenerateDocument_ResumeWithPerson_ShouldReturnBase64Pdf()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

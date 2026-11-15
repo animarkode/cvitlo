@@ -30,7 +30,7 @@ public class DownloadDocumentTests(WebApp app) : TestBase
 
     [Fact]
     [Priority(1)]
-    public async Task DownloadDocument_ShouldReturnPdfStream()
+    public async Task DownloadDocument_ResumeWithPerson_ShouldReturnPdfStream()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);

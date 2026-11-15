@@ -44,7 +44,7 @@ public class RedisUnavailableTests(RedisUnavailableWebApp app) : TestBase
     /// for the Redis L2 store is deterministic instead.
     /// </summary>
     [Fact]
-    public void RedisCacheOptions_ShouldFailFastWhenRedisIsDown()
+    public void RedisCacheOptions_RedisDown_ShouldFailFast()
     {
         var redisCacheOptions = app.Services.GetRequiredService<IOptions<RedisCacheOptions>>().Value;
         var configurationOptions = redisCacheOptions.ConfigurationOptions;

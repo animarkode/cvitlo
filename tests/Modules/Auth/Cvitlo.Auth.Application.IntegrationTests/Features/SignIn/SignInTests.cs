@@ -117,7 +117,7 @@ public class SignInTests(WebApp app)
     }
 
     [Fact]
-    public async Task SignIn_ShouldReturnToTheRequestedLocalPage()
+    public async Task SignIn_LocalReturnUrl_ShouldReturnToTheRequestedPage()
     {
         var (client, callback) = await app.SignInAsync(app.Users[0], returnUrl: "/resumes/42", ct: TestContext.Current.CancellationToken);
         using var _ = client;
