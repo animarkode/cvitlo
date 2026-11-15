@@ -91,7 +91,7 @@ public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task Login_IpBudgetSpentThenBearerTokenAdded_ShouldReturn429()
     {
-        var token = await app.SignInNewUserAsync(7021, TestContext.Current.CancellationToken);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
         using var client = CreateClientWithIp("203.0.113.183");
 
         for (var i = 0; i < AuthExternalPermitLimit; i++)
@@ -108,7 +108,7 @@ public class AuthEndpointsRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task Logout_IpBudgetSpentThenBearerTokenAdded_ShouldReturn429()
     {
-        var token = await app.SignInNewUserAsync(7022, TestContext.Current.CancellationToken);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
         using var client = CreateClientWithIp("203.0.113.184");
 
         for (var i = 0; i < AuthSessionPermitLimit; i++)

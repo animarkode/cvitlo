@@ -28,11 +28,6 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
         return client;
     }
 
-    private Task<string> SignInAsync(int seed)
-    {
-        return app.SignInNewUserAsync(seed, TestContext.Current.CancellationToken);
-    }
-
     // Listing resumes is the cheapest authenticated Resumes call: it carries no ResumeOwnerPolicy,
     // so a signed-in caller always gets a deterministic 200 and the measurement isolates the limiter.
     private static Task<HttpResponseMessage> ListResumesAsync(HttpClient client)
@@ -54,7 +49,7 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task ListResumes_BeyondAuthenticatedDefaultLimit_ShouldReturn429WithRetryAfterAndGenericBody()
     {
-        var token = await SignInAsync(7031);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         const string clientIp = "203.0.113.161";
         using var client = CreateClientWithIp(clientIp).WithAuthToken(token);
@@ -84,8 +79,8 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task ListResumes_DifferentUserOnSameIp_ShouldUseItsOwnPartition()
     {
-        var firstToken = await SignInAsync(7032);
-        var secondToken = await SignInAsync(7033);
+        var firstToken = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
+        var secondToken = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         const string sharedIp = "203.0.113.164";
         using var firstClient = CreateClientWithIp(sharedIp).WithAuthToken(firstToken);
@@ -103,7 +98,7 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task GetEducations_ResumeListBudgetSpent_ShouldReturn429()
     {
-        var token = await SignInAsync(7034);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         using var client = CreateClientWithIp("203.0.113.166").WithAuthToken(token);
 

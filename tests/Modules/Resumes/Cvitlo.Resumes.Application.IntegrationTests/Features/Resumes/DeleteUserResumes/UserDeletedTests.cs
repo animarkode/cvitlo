@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Cvitlo.Auth.PublicApi.Events;
-using Cvitlo.Common.Testing.Data;
 using Cvitlo.Resumes.Application.Features.Experiences.CreateExperience;
 using Cvitlo.Resumes.Application.Features.Resumes.GetAllResumes;
 using Cvitlo.Resumes.Application.IntegrationTests.Features.Shared.Data;
@@ -23,8 +22,8 @@ public class UserDeletedTests(WebApp app) : TestBase
     public async Task UserDeleted_UserWithResumes_ShouldRemoveOnlyThatUsersData()
     {
         var ct = TestContext.Current.CancellationToken;
-        var (tokenA, subA) = await SignInNewUserAsync(9501, ct);
-        var (tokenB, _) = await SignInNewUserAsync(9502, ct);
+        var (tokenA, subA) = await SignInNewUserAsync(ct);
+        var (tokenB, _) = await SignInNewUserAsync(ct);
         var resumeA1 = await SeedResumeWithExperienceAsync(tokenA, ct);
         var resumeA2 = await SeedResumeWithExperienceAsync(tokenA, ct);
         var resumeB = await SeedResumeWithExperienceAsync(tokenB, ct);
@@ -46,8 +45,8 @@ public class UserDeletedTests(WebApp app) : TestBase
     public async Task UserDeleted_PublishedTwice_ShouldNotThrowAndKeepSameState()
     {
         var ct = TestContext.Current.CancellationToken;
-        var (tokenA, subA) = await SignInNewUserAsync(9511, ct);
-        var (tokenB, _) = await SignInNewUserAsync(9512, ct);
+        var (tokenA, subA) = await SignInNewUserAsync(ct);
+        var (tokenB, _) = await SignInNewUserAsync(ct);
         await SeedResumeWithExperienceAsync(tokenA, ct);
         var resumeB = await SeedResumeWithExperienceAsync(tokenB, ct);
 
@@ -64,7 +63,7 @@ public class UserDeletedTests(WebApp app) : TestBase
     public async Task UserDeleted_AfterCachedList_ShouldEmptyTheList()
     {
         var ct = TestContext.Current.CancellationToken;
-        var (tokenA, subA) = await SignInNewUserAsync(9521, ct);
+        var (tokenA, subA) = await SignInNewUserAsync(ct);
         await SeedResumeWithExperienceAsync(tokenA, ct);
 
         var (warmResponse, warm) = await app.Client
@@ -86,7 +85,7 @@ public class UserDeletedTests(WebApp app) : TestBase
     public async Task UserDeleted_NonGuidSubject_ShouldBeNoOp()
     {
         var ct = TestContext.Current.CancellationToken;
-        var (tokenA, _) = await SignInNewUserAsync(9531, ct);
+        var (tokenA, _) = await SignInNewUserAsync(ct);
         var resumeId = await SeedResumeWithExperienceAsync(tokenA, ct);
 
         await Should.NotThrowAsync(() => new UserDeleted("not-a-guid").PublishAsync(Mode.WaitForAll, ct));
@@ -97,11 +96,9 @@ public class UserDeletedTests(WebApp app) : TestBase
     }
 
     // A fresh user per test: deleting its data cannot affect any other test.
-    private async Task<(string Token, string Subject)> SignInNewUserAsync(int seed, CancellationToken ct)
+    private async Task<(string Token, string Subject)> SignInNewUserAsync(CancellationToken ct)
     {
-        var user = new TestUserFaker(seed).Generate();
-        await app.Keycloak.Admin.CreateUserAsync(user, ct: ct);
-        var token = await app.GetAccessTokenAsync(user, ct);
+        var token = await app.SignInNewUserAsync(ct);
         var subject = new JwtSecurityTokenHandler().ReadJwtToken(token).Subject;
 
         return (token, subject);

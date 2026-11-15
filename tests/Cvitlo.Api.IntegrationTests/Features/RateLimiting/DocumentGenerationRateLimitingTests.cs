@@ -33,11 +33,6 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 
     private GatedDocumentsModuleApi Documents => app.Services.GetRequiredService<GatedDocumentsModuleApi>();
 
-    private Task<string> SignInAsync(int seed)
-    {
-        return app.SignInNewUserAsync(seed, TestContext.Current.CancellationToken);
-    }
-
     private static async Task<Guid> CreateResumeAsync(HttpClient client)
     {
         var response = await client.PostAsJsonAsync(
@@ -78,7 +73,7 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task GenerateDocument_AnotherRenderInProgress_ShouldReturn429WithRetryAfterAndGenericBody()
     {
-        var token = await SignInAsync(7041);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         const string clientIp = "203.0.113.171";
         using var client = CreateClientWithIp(clientIp).WithAuthToken(token);
@@ -124,7 +119,7 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task DownloadDocument_RenderInProgress_ShouldReturn429()
     {
-        var token = await SignInAsync(7042);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         using var client = CreateClientWithIp("203.0.113.173").WithAuthToken(token);
 
@@ -151,7 +146,7 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task GenerateDocument_AuthenticatedDefaultBudgetSpent_ShouldReturnOk()
     {
-        var token = await SignInAsync(7043);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         using var crudClient = CreateClientWithIp("203.0.113.175").WithAuthToken(token);
 

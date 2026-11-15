@@ -13,7 +13,7 @@ public class HttpClientAuthExtensionsTests(WebApp app) : TestBase
     [Fact]
     public async Task WithAuthToken_SharedClient_ShouldLeaveTheSharedClientAnonymous()
     {
-        var token = await app.SignInNewUserAsync(7011, TestContext.Current.CancellationToken);
+        var token = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         using var shared = app.CreateClient();
         shared.DefaultRequestHeaders.Add(TestClientIpStartupFilter.HeaderName, "203.0.113.190");

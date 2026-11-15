@@ -130,8 +130,8 @@ public class RateLimitingTests(WebApp app) : TestBase
     [Fact]
     public async Task AuthenticatedRequest_DifferentUserOnSameIp_ShouldUseItsOwnPartition()
     {
-        var firstToken = await app.SignInNewUserAsync(7001, TestContext.Current.CancellationToken);
-        var secondToken = await app.SignInNewUserAsync(7002, TestContext.Current.CancellationToken);
+        var firstToken = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
+        var secondToken = await app.SignInNewUserAsync(TestContext.Current.CancellationToken);
 
         using var firstClient = CreateClientWithIp("203.0.113.32").WithAuthToken(firstToken);
         using var secondClient = CreateClientWithIp("203.0.113.32").WithAuthToken(secondToken);
