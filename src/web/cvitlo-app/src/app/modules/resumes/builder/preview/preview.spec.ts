@@ -618,6 +618,7 @@ describe('Preview', () => {
 
       // The render promotes the other canvas, so largeFrameCanvas is now demoted; it must be snapped to the new 200px
       // size, or it would stick out past #frame and inflate #paper's scroll extent.
+      expect(largeFrameCanvas.classList.contains('cv-preview-buffer-front')).toBe(false);
       expect(parseFloat(largeFrameCanvas.style.width)).toBeCloseTo(200, 0);
 
       const frameEl = (
