@@ -8,18 +8,8 @@ using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Cvitlo.Api.Http;
 
-/// <summary>
-/// Configures explicit trust for forwarded client IPs and schemes. Only peers listed in
-/// <c>ForwardedHeaders:KnownProxies</c> or <c>ForwardedHeaders:KnownNetworks</c> may forward headers;
-/// empty lists disable forwarding, including for loopback peers.
-/// </summary>
 public static class ForwardedHeadersExtensions
 {
-    /// <summary>Configures and validates proxy IPs and CIDR networks at application startup.</summary>
-    /// <param name="services">The service collection to add the configuration to.</param>
-    /// <param name="configuration">The application configuration containing the trust lists.</param>
-    /// <returns>The same service collection so calls can be chained.</returns>
-    /// <exception cref="OptionsValidationException">A configured trust entry is invalid when the options are initialized.</exception>
     public static IServiceCollection AddCvitloForwardedHeaders(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<ForwardedHeadersOptions>().Configure(options =>
