@@ -5,11 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cvitlo.Resumes.Application.Features.Resumes.Shared;
 
-/// <summary>
-/// Shared, transactional reordering for resume section collections. The server owns
-/// <see cref="IOrderable.Order"/>: the supplied id list must match the resume's items
-/// exactly, after which each item's <c>Order</c> is normalised to its index (0..n-1).
-/// </summary>
+// The server owns Order: the id list must match the resume's items exactly, then Order is set to 0..n-1.
 public static class SectionReorder
 {
     public static async Task<ErrorOr<bool>> ApplyAsync<T>(

@@ -8,28 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Caching;
 
-/// <summary>
-/// Invalidates <see cref="HybridCache"/> entries tagged by resume/user whenever a
-/// <see cref="Resume"/> or one of its <see cref="ResumeSection"/> descendants is written through
-/// EF Core's <c>SaveChanges</c>, so the ~40 write handlers across the Resumes module never need to
-/// invalidate the cache themselves.
-/// </summary>
-/// <remarks>
-/// Affected tags are collected from the <see cref="Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker"/>
-/// before the write commits (so a deleted <see cref="ResumeSection"/> can still be resolved back to
-/// its owning <see cref="Resume"/>'s user), then removed from the cache after the write succeeds.
-/// Cache invalidation failures are logged and swallowed — a committed database write must never
-/// turn into a failed HTTP response because Redis is unavailable.
-/// </remarks>
-/// <param name="cache">The hybrid cache whose tagged entries are removed after a successful write.</param>
-/// <param name="logger">Used to log a warning when cache invalidation fails.</param>
+// Tags are collected before the write commits and removed after it; see docs/decisions/caching.md.
 public class ResumesCacheInvalidationInterceptor(
     HybridCache cache,
     ILogger<ResumesCacheInvalidationInterceptor> logger) : SaveChangesInterceptor
 {
     private HashSet<string>? _pendingTags;
 
-    /// <inheritdoc/>
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         _pendingTags = CollectPendingTags(eventData.Context);
@@ -37,7 +22,6 @@ public class ResumesCacheInvalidationInterceptor(
         return base.SavingChanges(eventData, result);
     }
 
-    /// <inheritdoc/>
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
@@ -48,7 +32,6 @@ public class ResumesCacheInvalidationInterceptor(
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    /// <inheritdoc/>
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
         InvalidatePendingTags();
@@ -56,7 +39,6 @@ public class ResumesCacheInvalidationInterceptor(
         return base.SavedChanges(eventData, result);
     }
 
-    /// <inheritdoc/>
     public override async ValueTask<int> SavedChangesAsync(
         SaveChangesCompletedEventData eventData,
         int result,
@@ -67,7 +49,6 @@ public class ResumesCacheInvalidationInterceptor(
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
 
-    /// <inheritdoc/>
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
         _pendingTags = null;
@@ -75,7 +56,6 @@ public class ResumesCacheInvalidationInterceptor(
         base.SaveChangesFailed(eventData);
     }
 
-    /// <inheritdoc/>
     public override Task SaveChangesFailedAsync(DbContextErrorEventData eventData, CancellationToken cancellationToken = default)
     {
         _pendingTags = null;
@@ -143,13 +123,6 @@ public class ResumesCacheInvalidationInterceptor(
         return tags;
     }
 
-    /// <summary>
-    /// Adds tags for every Added/Modified/Deleted <see cref="Resume"/> or <see cref="ResumeSection"/>
-    /// tracked by <paramref name="context"/>, directly for <see cref="Resume"/> entries.
-    /// </summary>
-    /// <param name="context">The context whose change tracker is inspected.</param>
-    /// <param name="tags">The tag set to add resolvable tags to.</param>
-    /// <returns>The ids of resumes owning a changed <see cref="ResumeSection"/> whose user id is not yet known.</returns>
     private static HashSet<Guid> CollectDirectTags(DbContext context, HashSet<string> tags)
     {
         var resumeUserIds = new Dictionary<Guid, Guid>();

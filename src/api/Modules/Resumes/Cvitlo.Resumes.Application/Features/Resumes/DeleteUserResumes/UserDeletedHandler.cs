@@ -7,20 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Cvitlo.Resumes.Application.Features.Resumes.DeleteUserResumes;
 
-/// <summary>
-/// Hard-deletes every resume owned by a user whose account was deleted.
-/// </summary>
-/// <remarks>
-/// Event handlers are singletons, so the <see cref="ResumesDbContext"/> is resolved from a fresh scope.
-/// Removal is tracked on purpose: database foreign keys cascade to the child rows and the cache
-/// invalidation interceptor sees the deleted resumes. Running it again finds nothing and does nothing.
-/// </remarks>
+// Singleton handler, so the DbContext comes from a fresh scope. Removal is tracked so the cache
+// interceptor sees the deleted resumes; FK cascade removes the child rows.
 public class UserDeletedHandler(
     IServiceScopeFactory scopeFactory,
     ILogger<UserDeletedHandler> logger)
     : IEventHandler<UserDeleted>
 {
-    /// <inheritdoc />
     public async Task HandleAsync(UserDeleted eventModel, CancellationToken ct)
     {
         if (!Guid.TryParse(eventModel.Subject, out var userId))

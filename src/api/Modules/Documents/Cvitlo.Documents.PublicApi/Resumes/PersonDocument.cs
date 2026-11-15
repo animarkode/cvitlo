@@ -1,6 +1,5 @@
 namespace Cvitlo.Documents.PublicApi.Resumes;
 
-/// <summary>The personal details and contacts shown in a resume header.</summary>
 public record PersonDocument
 {
     public string? JobTitle { get; init; }
