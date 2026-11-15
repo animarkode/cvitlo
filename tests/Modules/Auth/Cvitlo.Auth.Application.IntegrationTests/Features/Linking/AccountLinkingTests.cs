@@ -6,11 +6,6 @@ using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Linking;
 
-/// <summary>
-/// Signing in through a provider (here a stand-in OIDC realm) against the real first-broker-login flow:
-/// a new e-mail creates an account, an existing e-mail is linked only after the person proves they own
-/// the existing account, and an e-mail the provider has not verified is refused.
-/// </summary>
 [Collection<CollectionAuth>]
 public class AccountLinkingTests(WebApp app)
 {
@@ -172,7 +167,6 @@ public class AccountLinkingTests(WebApp app)
         return await driver.FollowAsync(submitted, Ct);
     }
 
-    /// <summary>A password account in Cvitlo plus a provider account with the same, verified e-mail.</summary>
     private async Task<(TestUser User, string UserId, string ProviderUsername, string ProviderPassword)>
         CreateOwnerWithProviderAccountAsync(string name)
     {

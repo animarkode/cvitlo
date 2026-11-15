@@ -192,7 +192,7 @@ public class AccountRemovalTests(WebApp app)
         return problem?["code"]?.GetValue<string>();
     }
 
-    /// <summary>A user of its own, so that sessions and credentials are not shared with other tests.</summary>
+    // A user of its own, so that sessions and credentials are not shared with other tests.
     private async Task<TestUser> CreateUserAsync(int seed)
     {
         var user = new TestUserFaker(seed).Generate();
@@ -222,7 +222,7 @@ public class AccountRemovalTests(WebApp app)
             .ToList();
     }
 
-    /// <summary>Keycloak delivers the back-channel logout asynchronously, so the client polls briefly.</summary>
+    // Keycloak delivers the back-channel logout asynchronously, so the client polls briefly.
     private static async Task<HttpStatusCode> WaitUntilSignedOutAsync(HttpClient client)
     {
         var status = HttpStatusCode.OK;

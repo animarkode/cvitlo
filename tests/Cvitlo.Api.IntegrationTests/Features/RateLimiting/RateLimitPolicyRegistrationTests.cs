@@ -9,12 +9,8 @@ using Shouldly;
 
 namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
-// The mirror image of ResumesRateLimitingCoverageTests: that suite proves every routed endpoint's
-// policy name is a declared RateLimitPolicies constant; this one proves every declared constant is
-// actually registered with a policy class by AddCvitloRateLimiting. Without it, adding a constant
-// without the matching limiter.AddPolicy<string, TPolicy>(...) call compiles clean, an endpoint can
-// opt into it via RequireRateLimiting, and the app only discovers the gap at request time in
-// production instead of in CI.
+// Proves every declared RateLimitPolicies constant is registered by AddCvitloRateLimiting; otherwise a missing
+// AddPolicy call compiles clean and the gap shows up at request time in production.
 [Collection<CollectionRateLimiting>]
 public class RateLimitPolicyRegistrationTests(WebApp app) : TestBase
 {
@@ -41,10 +37,9 @@ public class RateLimitPolicyRegistrationTests(WebApp app) : TestBase
             + string.Join(Environment.NewLine, unregistered));
     }
 
-    // RateLimiterOptions exposes no public way to enumerate registered policy names: AddPolicy<string, TPolicy>
-    // stores a factory in the internal UnactivatedPolicyMap, which migrates into the also-internal PolicyMap
-    // only once a request actually resolves that policy. Reading both via reflection is the only way to see
-    // the full registered set without issuing a request per policy, which the shared budget fixture forbids.
+    // RateLimiterOptions exposes no way to list policy names: AddPolicy stores factories in internal maps,
+    // the second filled only once a request resolves the policy. Reflection avoids one request per policy,
+    // which the shared budget fixture forbids.
     private HashSet<string> RegisteredPolicyNames()
     {
         var options = app.Services.GetRequiredService<IOptions<RateLimiterOptions>>().Value;

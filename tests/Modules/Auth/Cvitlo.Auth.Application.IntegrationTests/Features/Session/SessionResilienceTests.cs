@@ -14,10 +14,6 @@ using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Session;
 
-/// <summary>
-/// How the server-side session survives the ways production goes wrong: a browser that leaves mid-refresh,
-/// a slow or misconfigured Keycloak, a database that leaks, and sessions nobody ends.
-/// </summary>
 [Collection<CollectionAuth>]
 public class SessionResilienceTests(WebApp app)
 {

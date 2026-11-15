@@ -14,14 +14,9 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 [Collection<CollectionRateLimiting>]
 public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 {
-    // IP octets 170-179 reserved for this class; each test signs in a fresh account and
-    // creates its own resume (ResumeLimits:Limits:Regular
-    // is pinned to 1 in the fixture, so one account owns at most one resume).
-    //
-    // The fixture pins expensive-resource to one permit and a zero queue, and swaps the Playwright
-    // renderer for GatedDocumentsModuleApi. Holding the gate parks a render inside the handler with
-    // the single permit taken, so the next document request is refused deterministically instead of
-    // racing against real render time.
+    // IP octets 170-179 reserved for this class; each test signs in a fresh account (one resume at most).
+    // The fixture pins expensive-resource to one permit and no queue; holding the gate parks a render in the
+    // handler with that permit taken, so the next document request is refused deterministically.
 
     private HttpClient CreateClientWithIp(string ip)
     {
@@ -50,11 +45,8 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
         return created.Id;
     }
 
-    // An empty JSON object mirrors what the real Angular client sends (resumes-client.ts calls
-    // `.post(url, {})`): ResumeId is bound from the route, but the request still needs a
-    // Content-Type of application/json or FastEndpoints rejects it with 415 before the handler
-    // — and thus the renderer — is ever reached. A literal `null` body has no Content-Type at
-    // all, which silently starves `Documents.Entered` instead of failing the request.
+    // Empty JSON object like the Angular client: without a JSON Content-Type FastEndpoints answers 415,
+    // and a literal `null` body has none, which silently starves Documents.Entered.
     private static Task<HttpResponseMessage> GenerateAsync(HttpClient client, Guid resumeId)
     {
         return client.PostAsJsonAsync(
@@ -83,12 +75,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
         using var gate = Documents.Hold();
 
         var parked = GenerateAsync(client, resumeId);
-        // Bounded: if the parked request never reaches the renderer (e.g. it fails before the
-        // handler runs), this fails loudly after 30s instead of hanging the suite forever.
+        // Bounded so a request that never reaches the renderer fails after 30s instead of hanging the suite.
         await Documents.Entered.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
 
-        // The single expensive-resource permit is now held by the parked render and the queue is
-        // empty, so this second render is refused rather than piling more work onto the CPU.
         var rejected = await GenerateAsync(client, resumeId);
 
         rejected.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
@@ -104,7 +93,6 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
         json.RootElement.GetProperty("detail").GetString().ShouldBe(ExpectedDetail);
         json.RootElement.GetProperty("status").GetInt32().ShouldBe(429);
 
-        // Same no-leak contract as every other rejection: no partition keys, address or limit values.
         body.ShouldNotContain(clientIp);
         body.ShouldNotContain("PermitLimit");
         body.ShouldNotContain("ip:");
@@ -128,8 +116,7 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
         using var gate = Documents.Hold();
 
         var parked = GenerateAsync(client, resumeId);
-        // Bounded: if the parked request never reaches the renderer (e.g. it fails before the
-        // handler runs), this fails loudly after 30s instead of hanging the suite forever.
+        // Bounded so a request that never reaches the renderer fails after 30s instead of hanging the suite.
         await Documents.Entered.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
 
         // Generate and download run the same renderer, so they must draw on one budget — switching

@@ -4,7 +4,7 @@ using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Bearer;
 
-/// <summary>The path a future mobile client takes: a Keycloak access token in the Authorization header.</summary>
+// The path a future mobile client takes: a Keycloak access token in the Authorization header.
 [Collection<CollectionAuth>]
 public class BearerTests(WebApp app)
 {

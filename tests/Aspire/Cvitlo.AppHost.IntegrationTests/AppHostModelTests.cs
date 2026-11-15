@@ -85,8 +85,8 @@ public class AppHostModelTests
         environment["KC_DB_SCHEMA"].ShouldBe("keycloak");
         environment["CVITLO_APP_URL"].ShouldBe("http://localhost:4200");
         // Keycloak must use the database the migration service created its schema in. Asserted by
-        // database name rather than the full JDBC URL, which the public-snapshot secret scan flags
-        // and has reviewed once, in Program.cs.
+        // database name rather than the full JDBC URL: the public-snapshot secret scan flags that URL,
+        // and its one reviewed occurrence is in Program.cs.
         var cvitloDb = builder.Resources.OfType<PostgresDatabaseResource>().Single();
         environment["KC_DB_URL"].ShouldEndWith($"/{cvitloDb.DatabaseName}");
     }

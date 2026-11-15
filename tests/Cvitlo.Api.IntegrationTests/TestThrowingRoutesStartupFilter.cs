@@ -7,11 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cvitlo.Api.IntegrationTests;
 
-/// <summary>
-/// Adds routes that throw, so tests can observe how the API's exception handlers answer. The
-/// middleware is added after the app's own pipeline: it runs only when no endpoint matched, and
-/// inside <c>UseExceptionHandler</c>, which is where a failing endpoint would throw.
-/// </summary>
+// Adds routes that throw, so tests can observe how the API's exception handlers answer. The
+// middleware is added after the app's own pipeline: it runs only when no endpoint matched, and
+// inside UseExceptionHandler, which is where a failing endpoint would throw.
 public class TestThrowingRoutesStartupFilter : IStartupFilter
 {
     public const string PathPrefix = "/__test/throw";

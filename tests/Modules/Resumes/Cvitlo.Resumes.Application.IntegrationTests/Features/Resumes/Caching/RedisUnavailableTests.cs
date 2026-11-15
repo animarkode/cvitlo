@@ -36,12 +36,10 @@ public class RedisUnavailableTests(RedisUnavailableWebApp app) : TestBase
         getResponse.Id.ShouldBe(resume.Id);
     }
 
-    /// <summary>
-    /// Timing-based assertions can't catch a partial regression (e.g. removing only
-    /// <see cref="BacklogPolicy.FailFast"/> or only a timeout) reliably — a slow CI box can still
-    /// clear a generous bound. Asserting the actual <see cref="ConfigurationOptions"/> registered
-    /// for the Redis L2 store is deterministic instead.
-    /// </summary>
+    // Timing-based assertions can't catch a partial regression (e.g. removing only
+    // BacklogPolicy.FailFast or only a timeout) reliably — a slow CI box can still
+    // clear a generous bound. Asserting the actual ConfigurationOptions registered
+    // for the Redis L2 store is deterministic instead.
     [Fact]
     public void RedisCacheOptions_RedisDown_ShouldFailFast()
     {

@@ -63,11 +63,10 @@ public sealed class CvitloKeycloak : IAsyncDisposable
 
     public string Issuer => $"{BaseAddress}realms/{Realm}";
 
-    /// <summary>Starts Keycloak and applies the realm configuration.</summary>
-    /// <param name="network">The network the config-cli container reaches Keycloak on.</param>
-    /// <param name="appUrl">The web app's origin as the browser sees it (the API callback lives under it).</param>
-    /// <param name="backchannelLogoutUrl">Where Keycloak posts logout tokens, as seen from inside the container.</param>
-    /// <param name="ct">A token to cancel the operation.</param>
+    /// <summary>
+    /// Starts Keycloak and applies the realm configuration. <c>appUrl</c> is the web app's origin as the browser sees it
+    /// (the API callback lives under it); <c>backchannelLogoutUrl</c> is where Keycloak posts logout tokens, as seen from inside the container.
+    /// </summary>
     public static async Task<CvitloKeycloak> StartAsync(
         INetwork network,
         string appUrl,

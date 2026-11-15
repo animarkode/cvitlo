@@ -4,13 +4,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Cvitlo.Api.IntegrationTests;
 
-/// <summary>
-/// Replaces the Playwright-backed PDF renderer in the rate limiting fixture. Renders return a stub
-/// PDF instantly by default; a test calls <see cref="Hold"/> to make every subsequent render block
-/// until the returned handle is disposed. That gate is what makes the <c>expensive-resource</c>
-/// concurrency limiter observable deterministically — a request can be parked *inside* the renderer,
-/// holding its permit, while the next request is sent — instead of racing on wall-clock render time.
-/// </summary>
+// Replaces the Playwright PDF renderer in the rate limiting fixture. Hold() blocks every later render, so a
+// request can be parked inside the renderer holding its expensive-resource permit while the next is sent,
+// instead of racing on wall-clock render time.
 public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
 {
     private static readonly byte[] StubPdf = [0x25, 0x50, 0x44, 0x46];
@@ -19,10 +15,8 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
     private TaskCompletionSource? _entered;
     private TaskCompletionSource? _release;
 
-    /// <summary>Completes as soon as a render has entered the renderer while the gate is held.</summary>
     public Task Entered => _entered?.Task ?? Task.CompletedTask;
 
-    /// <summary>Renders a stub PDF, blocking while a gate from <see cref="Hold"/> is held.</summary>
     public async Task<Stream> RenderResumeToPdfAsync(ResumeDocument resume, ResumeTemplate template, CancellationToken ct)
     {
         await PassGateAsync(ct);
@@ -30,7 +24,6 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
         return new MemoryStream(StubPdf);
     }
 
-    /// <summary>Returns a fixed version, so cache keys built from it are stable across a test run.</summary>
     public string TemplateVersion(ResumeTemplate template) => "stub";
 
     private async Task PassGateAsync(CancellationToken ct)
@@ -45,23 +38,14 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
         }
     }
 
-    /// <summary>
-    /// Renders stub markup instantly. Deliberately ungated: the gate exists to park a request inside
-    /// the <c>expensive-resource</c> concurrency limiter, which only guards PDF generation, while this
-    /// overload also serves email bodies — blocking it would stall flows unrelated to the limiter.
-    /// </summary>
-    /// <typeparam name="TComponent">The Razor component that would be rendered.</typeparam>
-    /// <param name="parameters">Render parameters — ignored by this double.</param>
-    /// <param name="ct">The request's cancellation token.</param>
-    /// <returns>A fixed stub HTML fragment.</returns>
+    // Deliberately ungated: the gate parks a request in the expensive-resource limiter, which guards only PDF
+    // generation, while this overload also serves email bodies.
     public Task<string> RenderToHtmlAsync<TComponent>(
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct)
         where TComponent : IComponent
         => Task.FromResult(StubHtml);
 
-    /// <summary>Blocks every subsequent render until the returned handle is disposed.</summary>
-    /// <returns>A handle that releases all parked renders when disposed.</returns>
     public Gate Hold()
     {
         _entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -70,11 +54,8 @@ public sealed class GatedDocumentsModuleApi : IDocumentsModuleApi
         return new Gate(this);
     }
 
-    /// <summary>Releases the renders parked by <see cref="Hold"/> when disposed.</summary>
-    /// <param name="api">The double whose gate this handle controls.</param>
     public sealed class Gate(GatedDocumentsModuleApi api) : IDisposable
     {
-        /// <summary>Unblocks every parked render and stops gating new ones.</summary>
         public void Dispose()
         {
             api._release?.TrySetResult();

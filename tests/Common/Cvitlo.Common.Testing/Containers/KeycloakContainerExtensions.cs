@@ -23,11 +23,6 @@ public static class KeycloakContainerExtensions
     private const string InternalBaseAddress = "http://localhost:8080";
 
     /// <summary>Sets <c>sslRequired</c> to <c>NONE</c> for the given realms.</summary>
-    /// <param name="container">A started Keycloak container whose realms are already imported.</param>
-    /// <param name="adminUsername">The bootstrap admin username of the <c>master</c> realm.</param>
-    /// <param name="adminPassword">The bootstrap admin password of the <c>master</c> realm.</param>
-    /// <param name="realms">The realms to relax.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="InvalidOperationException">A <c>kcadm.sh</c> command fails.</exception>
     public static async Task DisableSslRequirementAsync(
         this KeycloakContainer container,
@@ -68,12 +63,6 @@ public static class KeycloakContainerExtensions
     /// the other host. The broker realm reads the user's profile from the ID token instead.
     /// </para>
     /// </remarks>
-    /// <param name="container">A started Keycloak container whose realms are already imported.</param>
-    /// <param name="adminUsername">The bootstrap admin username of the <c>master</c> realm.</param>
-    /// <param name="adminPassword">The bootstrap admin password of the <c>master</c> realm.</param>
-    /// <param name="brokerRealm">The realm that brokers sign-in to the stand-in provider.</param>
-    /// <param name="provider">The stand-in realm, its client and its user.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="InvalidOperationException">A <c>kcadm.sh</c> command fails.</exception>
     public static async Task AddStandInIdentityProviderAsync(
         this KeycloakContainer container,
@@ -129,13 +118,6 @@ public static class KeycloakContainerExtensions
     /// stand-in realm, with the same settings, so one stand-in
     /// user can be brokered through two different providers.
     /// </summary>
-    /// <param name="container">A started Keycloak container that already hosts the stand-in realm.</param>
-    /// <param name="adminUsername">The bootstrap admin username of the <c>master</c> realm.</param>
-    /// <param name="adminPassword">The bootstrap admin password of the <c>master</c> realm.</param>
-    /// <param name="brokerRealm">The realm that brokers sign-in to the stand-in provider.</param>
-    /// <param name="provider">The stand-in realm, as passed to <see cref="AddStandInIdentityProviderAsync"/>.</param>
-    /// <param name="alias">The alias of the additional identity provider.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="InvalidOperationException">A <c>kcadm.sh</c> command fails.</exception>
     public static async Task AddStandInIdentityProviderAliasAsync(
         this KeycloakContainer container,
@@ -155,15 +137,6 @@ public static class KeycloakContainerExtensions
     /// Creates an additional enabled user with a password in the stand-in realm, so a test can sign in as a
     /// provider user whose e-mail is verified, unverified or missing.
     /// </summary>
-    /// <param name="container">A started Keycloak container that already hosts the stand-in realm.</param>
-    /// <param name="adminUsername">The bootstrap admin username of the <c>master</c> realm.</param>
-    /// <param name="adminPassword">The bootstrap admin password of the <c>master</c> realm.</param>
-    /// <param name="provider">The stand-in realm the user is created in.</param>
-    /// <param name="username">The new user's username.</param>
-    /// <param name="password">The new user's password.</param>
-    /// <param name="email">The new user's e-mail, or <see langword="null"/> for a user without one.</param>
-    /// <param name="emailVerified">Whether the stand-in realm reports the e-mail as verified.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="InvalidOperationException">A <c>kcadm.sh</c> command fails.</exception>
     public static async Task AddStandInUserAsync(
         this KeycloakContainer container,
@@ -200,13 +173,6 @@ public static class KeycloakContainerExtensions
     }
 
     /// <summary>Changes whether the stand-in realm reports an existing user's e-mail as verified.</summary>
-    /// <param name="container">A started Keycloak container that already hosts the stand-in realm.</param>
-    /// <param name="adminUsername">The bootstrap admin username of the <c>master</c> realm.</param>
-    /// <param name="adminPassword">The bootstrap admin password of the <c>master</c> realm.</param>
-    /// <param name="provider">The stand-in realm the user lives in.</param>
-    /// <param name="username">The stand-in user's username.</param>
-    /// <param name="emailVerified">The new value.</param>
-    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="InvalidOperationException">A <c>kcadm.sh</c> command fails or the user is not found.</exception>
     public static async Task SetStandInUserEmailVerifiedAsync(
         this KeycloakContainer container,

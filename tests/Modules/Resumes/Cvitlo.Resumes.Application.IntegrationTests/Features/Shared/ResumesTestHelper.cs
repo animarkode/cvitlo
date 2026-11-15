@@ -11,10 +11,8 @@ public static class ResumesTestHelper
         return SignInAsUserAsync(app, 0, ct);
     }
 
-    /// <summary>
-    /// Gets a Keycloak access token for one of the fixture's users. Resume endpoints are exercised as a bearer
-    /// client (the path a mobile client takes); the browser session path is covered by the Auth tests.
-    /// </summary>
+    // Gets a Keycloak access token for one of the fixture's users. Resume endpoints are exercised as a bearer
+    // client (the path a mobile client takes); the browser session path is covered by the Auth tests.
     public static Task<string> SignInAsUserAsync(WebApp app, int userIndex, CancellationToken ct = default)
     {
         return app.GetAccessTokenAsync(app.Users[userIndex], ct);

@@ -3,10 +3,8 @@ using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Realm;
 
-/// <summary>
-/// keycloak-config-cli drops the passkey fields on import, so <c>infra/keycloak/passkeys.sh</c> sets them
-/// afterwards. These tests prove it did, and that its kcadm update left the imported realm alone.
-/// </summary>
+// keycloak-config-cli drops the passkey fields on import, so infra/keycloak/passkeys.sh sets them
+// afterwards. These tests prove it did, and that its kcadm update left the imported realm alone.
 [Collection<CollectionAuth>]
 public class RealmPasskeysTests(WebApp app)
 {

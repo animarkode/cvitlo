@@ -7,10 +7,6 @@ using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Realm;
 
-/// <summary>
-/// Pins the security settings of the realm as applied from <c>infra/keycloak/config/cvitlo.json</c>, so a
-/// config change that weakens one of them fails here rather than in production.
-/// </summary>
 [Collection<CollectionAuth>]
 public class RealmSecurityTests(WebApp app)
 {
