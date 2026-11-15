@@ -12,8 +12,7 @@ public class ModuleBoundaryTests
             (source, target) => CvitloArchitecture.IsModuleType(source, out var from)
                 && CvitloArchitecture.IsModuleType(target, out var to)
                 && !string.Equals(from.Module, to.Module, StringComparison.Ordinal)
-                && to.Layer != Layer.PublicApi,
-            KnownViolations.ModuleBoundary);
+                && to.Layer != Layer.PublicApi);
 
         violations.ShouldBeEmpty();
     }

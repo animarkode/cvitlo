@@ -7,36 +7,24 @@ internal static class DependencyRules
 {
     public static IReadOnlyList<string> Violations(
         IEnumerable<IType> sources,
-        Func<IType, IType, bool> isForbidden,
-        IReadOnlyList<KnownViolation>? known = null)
-    {
-        known ??= [];
-        return Violations(
+        Func<IType, IType, bool> isForbidden) =>
+        Violations(
             sources.SelectMany(source => source.GetTypeDependencies().Select(dependency => (Source: source, Target: dependency))),
             type => type.FullName,
-            isForbidden,
-            (source, target) => known.Any(k => k.Covers(source, target)));
-    }
+            isForbidden);
 
-    public static IReadOnlyList<string> Violations(
-        Func<string, string, bool> isForbidden,
-        IReadOnlyList<KnownProjectReference>? known = null)
-    {
-        known ??= [];
-        return Violations(
+    public static IReadOnlyList<string> Violations(Func<string, string, bool> isForbidden) =>
+        Violations(
             ProjectGraph.Edges.Select(edge => (Source: edge.From, Target: edge.To)),
             name => name,
-            isForbidden,
-            (source, target) => known.Any(k => k.Covers(new ProjectEdge(source, target))));
-    }
+            isForbidden);
 
     private static List<string> Violations<TNode>(
         IEnumerable<(TNode Source, TNode Target)> edges,
         Func<TNode, string> describe,
-        Func<TNode, TNode, bool> isForbidden,
-        Func<TNode, TNode, bool> isKnown) =>
+        Func<TNode, TNode, bool> isForbidden) =>
         edges
-            .Where(edge => isForbidden(edge.Source, edge.Target) && !isKnown(edge.Source, edge.Target))
+            .Where(edge => isForbidden(edge.Source, edge.Target))
             .Select(edge => $"{describe(edge.Source)} -> {describe(edge.Target)}")
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
