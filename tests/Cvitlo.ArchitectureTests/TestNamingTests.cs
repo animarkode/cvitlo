@@ -14,10 +14,10 @@ public partial class TestNamingTests
         "RateLimitPolicyRegistrationTests", "TemplateStringsTests", "SecurityHeadersTests", "TestNamingTests",
     };
 
-    [GeneratedRegex(@"^[A-Z]\w*_([A-Z]\w*_)?Should[A-Z]\w*$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex(@"^[A-Z][A-Za-z0-9]*_([A-Z0-9][A-Za-z0-9]*_)?Should[A-Z][A-Za-z0-9]*$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
     private static partial Regex ConventionName();
 
-    [GeneratedRegex(@"^[A-Z][A-Za-z0-9]*_Should[A-Z]\w*$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex(@"^[A-Z][A-Za-z0-9]*_Should[A-Z][A-Za-z0-9]*$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
     private static partial Regex TwoPartName();
 
     [Fact]
