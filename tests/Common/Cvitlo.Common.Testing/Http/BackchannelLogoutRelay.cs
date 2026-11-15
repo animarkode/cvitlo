@@ -20,6 +20,9 @@ public sealed class BackchannelLogoutRelay : IAsyncDisposable
     {
         Port = FreePort();
         _listener.Prefixes.Add($"http://*:{Port}/");
+
+        // Bound now so the port stays ours while the containers start; requests queue until Start.
+        _listener.Start();
     }
 
     public int Port { get; }
@@ -29,7 +32,6 @@ public sealed class BackchannelLogoutRelay : IAsyncDisposable
 
     public void Start(Func<HttpClient> createApiClient)
     {
-        _listener.Start();
         _loop = Task.Run(() => RelayAsync(createApiClient, _stopping.Token), _stopping.Token);
     }
 

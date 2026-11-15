@@ -52,12 +52,19 @@ public abstract class CvitloWebApp : AppFixture<Program>
     /// </summary>
     public async Task<HttpClient> CreateBearerClientAsync(TestUser user, CancellationToken ct = default)
     {
-        var tokens = await Keycloak.GetTokensAsync(user.Email, user.Password, ct);
+        var accessToken = await GetAccessTokenAsync(user, ct);
         var client = CreateClient();
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", tokens["access_token"]!.GetValue<string>());
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         return client;
+    }
+
+    /// <summary>Signs <paramref name="user"/> in with Keycloak's password grant.</summary>
+    public async Task<string> GetAccessTokenAsync(TestUser user, CancellationToken ct = default)
+    {
+        var tokens = await Keycloak.GetTokensAsync(user.Email, user.Password, ct);
+
+        return tokens["access_token"]!.GetValue<string>();
     }
 
     /// <summary>Runs after Keycloak starts and before the schemas are migrated and users seeded.</summary>
@@ -73,43 +80,56 @@ public abstract class CvitloWebApp : AppFixture<Program>
 
     protected override async ValueTask PreSetupAsync()
     {
+        var ct = TestContext.Current.CancellationToken;
+
         _network = new NetworkBuilder().WithName($"cvitlo-test-network-{Guid.NewGuid()}").Build();
-        await _network.CreateAsync();
+        await _network.CreateAsync(ct);
 
         _postgres = new PostgreSqlBuilder("postgres:17.6").WithNetwork(_network).Build();
         _redis = UsesRedis ? new RedisBuilder("redis:7.4").WithNetwork(_network).Build() : null;
 
-        var startTasks = new List<Task> { _postgres.StartAsync() };
+        // Keycloak needs only the network, so it starts alongside the data stores.
+        var keycloak = CvitloKeycloak.StartAsync(_network, WebOrigin.TrimEnd('/'), BackchannelLogoutUrl, ct);
+        var startTasks = new List<Task> { keycloak, _postgres.StartAsync(ct) };
         if (_redis is not null)
         {
-            startTasks.Add(_redis.StartAsync());
+            startTasks.Add(_redis.StartAsync(ct));
         }
 
         await Task.WhenAll(startTasks);
-        _keycloak = await CvitloKeycloak.StartAsync(_network, WebOrigin.TrimEnd('/'), BackchannelLogoutUrl);
+        _keycloak = await keycloak;
 
-        await OnKeycloakStartedAsync(CancellationToken.None);
+        await OnKeycloakStartedAsync(ct);
 
         // Before the API starts: Data Protection reads its key table on first use.
-        await using (var auth = new AuthDbContext(new DbContextOptionsBuilder<AuthDbContext>()
-                         .UseNpgsql(PostgresConnectionString, o => o.MigrationsHistoryTable(
-                             AuthDbConstants.MigrationsHistoryTableName, AuthDbConstants.SchemaName))
-                         .UseSnakeCaseNamingConvention()
-                         .Options))
-        {
-            await auth.Database.MigrateAsync();
-        }
+        await MigrateAsync<AuthDbContext>(
+            options => new AuthDbContext(options),
+            AuthDbConstants.MigrationsHistoryTableName,
+            AuthDbConstants.SchemaName,
+            ct);
+        await MigrateAsync<ResumesDbContext>(
+            options => new ResumesDbContext(options),
+            ResumesDbConstants.MigrationsHistoryTableName,
+            ResumesDbConstants.SchemaName,
+            ct);
 
-        await using (var resumes = new ResumesDbContext(new DbContextOptionsBuilder<ResumesDbContext>()
-                         .UseNpgsql(PostgresConnectionString, o => o.MigrationsHistoryTable(
-                             ResumesDbConstants.MigrationsHistoryTableName, ResumesDbConstants.SchemaName))
-                         .UseSnakeCaseNamingConvention()
-                         .Options))
-        {
-            await resumes.Database.MigrateAsync();
-        }
+        await SeedUsersAsync(ct);
+    }
 
-        await SeedUsersAsync(CancellationToken.None);
+    private async Task MigrateAsync<TContext>(
+        Func<DbContextOptions<TContext>, TContext> create,
+        string historyTable,
+        string schema,
+        CancellationToken ct)
+        where TContext : DbContext
+    {
+        var options = new DbContextOptionsBuilder<TContext>()
+            .UseNpgsql(PostgresConnectionString, o => o.MigrationsHistoryTable(historyTable, schema))
+            .UseSnakeCaseNamingConvention()
+            .Options;
+
+        await using var context = create(options);
+        await context.Database.MigrateAsync(ct);
     }
 
     protected override void ConfigureApp(IWebHostBuilder builder)

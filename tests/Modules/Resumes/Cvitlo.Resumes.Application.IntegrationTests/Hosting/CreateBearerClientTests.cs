@@ -26,9 +26,11 @@ public class CreateBearerClientTests(WebApp app) : TestBase
     public async Task CreateBearerClient_ValidUser_ShouldNotChangeSharedClient()
     {
         var ct = TestContext.Current.CancellationToken;
+        var before = app.Client.DefaultRequestHeaders.ToString();
 
         using var client = await app.CreateBearerClientAsync(app.Users[0], ct);
 
-        app.Client.DefaultRequestHeaders.Authorization.ShouldBeNull();
+        app.Client.DefaultRequestHeaders.ToString().ShouldBe(before);
+        client.DefaultRequestHeaders.Authorization.ShouldNotBeNull();
     }
 }
