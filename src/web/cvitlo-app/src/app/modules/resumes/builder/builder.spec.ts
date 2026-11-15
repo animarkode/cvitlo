@@ -302,7 +302,7 @@ describe('Builder', () => {
     }, 20000);
   });
 
-  describe('section sheet dialog wiring', () => {
+  describe('section sheet dialog wiring (#425 follow-up)', () => {
     // TestBed's flat providers sit at the injector Dialog resolves through, so they cannot
     // reproduce the bug; a host's own `providers` make a real ancestor injector like the route.
     @Component({

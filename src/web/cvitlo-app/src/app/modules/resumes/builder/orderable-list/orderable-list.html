@@ -44,10 +44,8 @@
     </cv-accordion>
   }
 
-  <!-- --color-primary sits between the light and dark card, so the themes differ: light
-       keeps a /38 wash (1.29, as --color-surface on the card), dark takes the solid accent.
-       The dark-only label override is --color-primary-foreground, as --color-muted-foreground
-       drops to 1.33 on the solid yellow. -->
+  <!-- --color-primary sits between the light and dark card, so light keeps a /38 wash and dark
+       takes the solid accent with --color-primary-foreground labels; contrast.spec.ts holds the ratios. -->
   <button
     type="button"
     class="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-full bg-transparent border-0 cursor-pointer text-sm font-semibold text-muted-foreground transition-colors hover:bg-primary/38 dark:hover:bg-primary dark:hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

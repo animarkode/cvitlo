@@ -202,15 +202,8 @@ body {
   }
 }
 
-/*
- * The date-picker overlay needs the same glass recipe but CANNOT join the
- * layered rule above: Angular Material injects unlayered styles for
- * .mat-datepicker-content (background-color, box-shadow), and unlayered CSS
- * always beats @layer components. This unlayered twin out-specifies Material
- * instead. Material owns the element (panelClass lands on the inner
- * mat-calendar), so it can't carry the .glass-surface class itself.
- * Keep these declarations in lockstep with .glass-surface above.
- */
+/* Unlayered twin of .glass-surface: Material's unlayered .mat-datepicker-content styles beat
+   @layer components, and Material owns the element, so it cannot take the class. Keep in lockstep. */
 .mat-datepicker-content:has(.cv-date-picker-panel) {
   position: relative;
   background: var(--color-glass);
@@ -279,11 +272,8 @@ body {
   background: rgb(0 0 0 / 0.4);
 }
 
-/* Bottom-sheet panel for the builder's mobile section navigation (#425).
-   `.cdk-global-overlay-wrapper` is a row-direction flex container, so
-   `align-self` controls the vertical edge: `flex-end` overrides the dialog's
-   default centring and pins the sheet to the bottom with no custom position
-   strategy. */
+/* `.cdk-global-overlay-wrapper` is a row flex container, so `align-self: flex-end` pins the mobile
+   section sheet to the bottom without a custom position strategy. */
 .cv-sheet-panel {
   outline: none;
   width: 100%;

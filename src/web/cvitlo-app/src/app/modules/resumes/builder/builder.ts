@@ -162,10 +162,8 @@ export class Builder implements OnInit {
     this.registerOutsideClickListener();
   }
 
-  // Capture phase runs document → target before any bubble-phase
-  // stopPropagation (e.g. the Material datepicker toggle, which lives inside
-  // the builder), so a click outside the menu is detected even when the
-  // target swallows it on the way up.
+  // Capture phase runs before any bubble-phase stopPropagation (e.g. the Material datepicker
+  // toggle), so an outside click is seen even when its target swallows it.
   private registerOutsideClickListener(): void {
     const handler = (event: MouseEvent): void => this.handleOutsideClick(event);
     this.document.addEventListener('click', handler, { capture: true });

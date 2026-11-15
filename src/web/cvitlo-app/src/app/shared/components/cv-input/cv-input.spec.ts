@@ -244,8 +244,6 @@ describe('CvInput', () => {
     expect(input.type).toBe('password');
   });
 
-  // Focus does not change the label colour.
-
   it('should keep label colour unchanged when focused', () => {
     hostFixture.detectChanges();
     const input = hostFixture.nativeElement.querySelector('input') as HTMLInputElement;
