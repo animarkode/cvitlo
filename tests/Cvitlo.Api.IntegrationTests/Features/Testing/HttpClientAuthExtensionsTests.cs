@@ -1,5 +1,4 @@
 using System.Net;
-using Cvitlo.Common.Testing.Data;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints.Testing;
 using Shouldly;
@@ -7,17 +6,14 @@ using static Cvitlo.Api.IntegrationTests.Features.RateLimiting.RateLimitingTestC
 
 namespace Cvitlo.Api.IntegrationTests.Features.Testing;
 
-// IP octet 190 and RegisteredUsersData index 2 are reserved for this class.
+// IP octet 190 is reserved for this class.
 [Collection<CollectionRateLimiting>]
-[Priority(18)]
 public class HttpClientAuthExtensionsTests(WebApp app) : TestBase
 {
     [Fact]
     public async Task WithAuthToken_SharedClient_ShouldLeaveTheSharedClientAnonymous()
     {
-        var user = RegisteredUsersData.Generate()[2];
-        var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
-        var token = tokens["access_token"]!.GetValue<string>();
+        var token = await app.SignInNewUserAsync(7011, TestContext.Current.CancellationToken);
 
         using var shared = app.CreateClient();
         shared.DefaultRequestHeaders.Add(TestClientIpStartupFilter.HeaderName, "203.0.113.190");

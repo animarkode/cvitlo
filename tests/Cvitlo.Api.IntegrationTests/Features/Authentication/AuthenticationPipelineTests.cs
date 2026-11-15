@@ -8,7 +8,6 @@ namespace Cvitlo.Api.IntegrationTests.Features.Authentication;
 
 // IP octet 191 reserved for this class.
 [Collection<CollectionRateLimiting>]
-[Priority(20)]
 public class AuthenticationPipelineTests(WebApp app) : TestBase
 {
     [Theory]

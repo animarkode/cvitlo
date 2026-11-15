@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Cvitlo.Api.IntegrationTests.Features.RateLimiting.Data;
 using Cvitlo.Resumes.Application.Features.Resumes.CreateResume;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints.Testing;
@@ -13,11 +12,10 @@ using static Cvitlo.Api.IntegrationTests.Features.RateLimiting.RateLimitingTestC
 namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
 [Collection<CollectionRateLimiting>]
-[Priority(13)]
 public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 {
-    // IP octets 170-179 reserved for this class; accounts are RateLimitingUsersData indices 9-11,
-    // which no other suite touches. Each test creates its own resume (ResumeLimits:Limits:Regular
+    // IP octets 170-179 reserved for this class; each test signs in a fresh account and
+    // creates its own resume (ResumeLimits:Limits:Regular
     // is pinned to 1 in the fixture, so one account owns at most one resume).
     //
     // The fixture pins expensive-resource to one permit and a zero queue, and swaps the Playwright
@@ -35,12 +33,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
 
     private GatedDocumentsModuleApi Documents => app.Services.GetRequiredService<GatedDocumentsModuleApi>();
 
-    private async Task<string> SignInAsync(int userIndex)
+    private Task<string> SignInAsync(int seed)
     {
-        var user = RateLimitingUsersData.Generate()[userIndex];
-        var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
-
-        return tokens["access_token"]!.GetValue<string>();
+        return app.SignInNewUserAsync(seed, TestContext.Current.CancellationToken);
     }
 
     private static async Task<Guid> CreateResumeAsync(HttpClient client)
@@ -81,10 +76,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task GenerateDocument_AnotherRenderInProgress_ShouldReturn429WithRetryAfterAndGenericBody()
     {
-        var token = await SignInAsync(9);
+        var token = await SignInAsync(7041);
 
         const string clientIp = "203.0.113.171";
         using var client = CreateClientWithIp(clientIp).WithAuthToken(token);
@@ -128,10 +122,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task DownloadDocument_RenderInProgress_ShouldReturn429()
     {
-        var token = await SignInAsync(10);
+        var token = await SignInAsync(7042);
 
         using var client = CreateClientWithIp("203.0.113.173").WithAuthToken(token);
 
@@ -156,10 +149,9 @@ public class DocumentGenerationRateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GenerateDocument_AuthenticatedDefaultBudgetSpent_ShouldReturnOk()
     {
-        var token = await SignInAsync(11);
+        var token = await SignInAsync(7043);
 
         using var crudClient = CreateClientWithIp("203.0.113.175").WithAuthToken(token);
 

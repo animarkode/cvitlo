@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Cvitlo.Common.Testing.Data;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints.Testing;
 using Shouldly;
@@ -10,7 +9,6 @@ using static Cvitlo.Api.IntegrationTests.Features.RateLimiting.RateLimitingTestC
 namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
 [Collection<CollectionRateLimiting>]
-[Priority(1)]
 public class RateLimitingTests(WebApp app) : TestBase
 {
     // Each test uses its own unique fake client IPs so partitions never interfere across tests.
@@ -42,15 +40,7 @@ public class RateLimitingTests(WebApp app) : TestBase
         return await client.SendAsync(request, TestContext.Current.CancellationToken);
     }
 
-    private async Task<string> SignInAsync(TestUser user)
-    {
-        var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
-
-        return tokens["access_token"]!.GetValue<string>();
-    }
-
     [Fact]
-    [Priority(2)]
     public async Task AnonymousRequest_BeyondGlobalLimit_ShouldReturn429WithRetryAfterAndGenericBody()
     {
         const string clientIp = "203.0.113.10";
@@ -84,7 +74,6 @@ public class RateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task AnonymousRequest_DifferentClientIp_ShouldUseItsOwnPartition()
     {
         using var exhaustedClient = CreateClientWithIp("203.0.113.20");
@@ -104,7 +93,6 @@ public class RateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(4)]
     public async Task AnonymousRequest_ForwardedForFromTrustedProxy_ShouldPartitionByForwardedClientIp()
     {
         using var client = CreateClientWithIp(TrustedProxyIp);
@@ -123,7 +111,6 @@ public class RateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(5)]
     public async Task AnonymousRequest_ForwardedForFromUntrustedProxy_ShouldPartitionByProxyIp()
     {
         using var client = CreateClientWithIp(UntrustedProxyIp);
@@ -141,13 +128,10 @@ public class RateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(6)]
     public async Task AuthenticatedRequest_DifferentUserOnSameIp_ShouldUseItsOwnPartition()
     {
-        var users = RegisteredUsersData.Generate();
-
-        var firstToken = await SignInAsync(users[0]);
-        var secondToken = await SignInAsync(users[1]);
+        var firstToken = await app.SignInNewUserAsync(7001, TestContext.Current.CancellationToken);
+        var secondToken = await app.SignInNewUserAsync(7002, TestContext.Current.CancellationToken);
 
         using var firstClient = CreateClientWithIp("203.0.113.32").WithAuthToken(firstToken);
         using var secondClient = CreateClientWithIp("203.0.113.32").WithAuthToken(secondToken);

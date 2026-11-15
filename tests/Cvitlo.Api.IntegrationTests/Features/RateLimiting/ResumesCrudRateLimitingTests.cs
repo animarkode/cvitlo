@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Cvitlo.Api.IntegrationTests.Features.RateLimiting.Data;
 using Cvitlo.Common.Testing.Http;
 using FastEndpoints.Testing;
 using Shouldly;
@@ -11,14 +10,12 @@ using static Cvitlo.Api.IntegrationTests.Features.RateLimiting.RateLimitingTestC
 namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
 [Collection<CollectionRateLimiting>]
-[Priority(12)]
 public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
 {
     // IP octets 160-169 reserved for this class.
     //
-    // Accounts come from RateLimitingUsersData indices 5-8, which no other suite touches: an
-    // exhausted authenticated-default budget stays exhausted for the whole 60-second window, so
-    // every test here needs a user with a completely untouched budget.
+    // Every test signs in a fresh account: an exhausted authenticated-default budget stays
+    // exhausted for the whole 60-second window, so each needs a user with an untouched budget.
     //
     // AuthenticatedDefaultPermitLimit (2) sits far below AuthenticatedPermitLimit (30): a 429 on the
     // 3rd request can only have come from authenticated-default, never from the global baseline.
@@ -31,12 +28,9 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
         return client;
     }
 
-    private async Task<string> SignInAsync(int userIndex)
+    private Task<string> SignInAsync(int seed)
     {
-        var user = RateLimitingUsersData.Generate()[userIndex];
-        var tokens = await app.Keycloak.GetTokensAsync(user.Email, user.Password, TestContext.Current.CancellationToken);
-
-        return tokens["access_token"]!.GetValue<string>();
+        return app.SignInNewUserAsync(seed, TestContext.Current.CancellationToken);
     }
 
     // Listing resumes is the cheapest authenticated Resumes call: it carries no ResumeOwnerPolicy,
@@ -58,10 +52,9 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(1)]
     public async Task ListResumes_BeyondAuthenticatedDefaultLimit_ShouldReturn429WithRetryAfterAndGenericBody()
     {
-        var token = await SignInAsync(5);
+        var token = await SignInAsync(7031);
 
         const string clientIp = "203.0.113.161";
         using var client = CreateClientWithIp(clientIp).WithAuthToken(token);
@@ -89,11 +82,10 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public async Task ListResumes_DifferentUserOnSameIp_ShouldUseItsOwnPartition()
     {
-        var firstToken = await SignInAsync(6);
-        var secondToken = await SignInAsync(7);
+        var firstToken = await SignInAsync(7032);
+        var secondToken = await SignInAsync(7033);
 
         const string sharedIp = "203.0.113.164";
         using var firstClient = CreateClientWithIp(sharedIp).WithAuthToken(firstToken);
@@ -109,10 +101,9 @@ public class ResumesCrudRateLimitingTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public async Task GetEducations_ResumeListBudgetSpent_ShouldReturn429()
     {
-        var token = await SignInAsync(8);
+        var token = await SignInAsync(7034);
 
         using var client = CreateClientWithIp("203.0.113.166").WithAuthToken(token);
 

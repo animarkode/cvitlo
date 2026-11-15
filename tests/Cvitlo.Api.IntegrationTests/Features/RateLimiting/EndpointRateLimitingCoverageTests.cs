@@ -13,7 +13,6 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 // Structural guards over every module's routes; like ResumesRateLimitingCoverageTests they read
 // the built route table and spend no rate-limit budget.
 [Collection<CollectionRateLimiting>]
-[Priority(16)]
 public class EndpointRateLimitingCoverageTests(WebApp app) : TestBase
 {
     // A per-user policy on an anonymous endpoint lets a caller switch partitions by adding or

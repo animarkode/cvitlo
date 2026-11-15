@@ -18,7 +18,6 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 // is a RouteHandlerBuilder callback that FastEndpoints defers until route-mapping time, so neither
 // the endpoint source text nor a pre-build EndpointDefinition can prove a policy was attached.
 [Collection<CollectionRateLimiting>]
-[Priority(14)]
 public class ResumesRateLimitingCoverageTests(WebApp app) : TestBase
 {
     private static readonly Assembly ResumesAssembly = typeof(ResumesGroup).Assembly;
@@ -30,7 +29,6 @@ public class ResumesRateLimitingCoverageTests(WebApp app) : TestBase
         .ToHashSet(StringComparer.Ordinal);
 
     [Fact]
-    [Priority(1)]
     public void EveryResumesEndpointType_ShouldAppearInTheRouteTable()
     {
         // Without this, a broken assembly filter would make the two policy assertions below pass
@@ -56,7 +54,6 @@ public class ResumesRateLimitingCoverageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(2)]
     public void EveryResumesEndpoint_ShouldAttachARateLimitingPolicy()
     {
         var unprotected = ResumesRoutes()
@@ -75,7 +72,6 @@ public class ResumesRateLimitingCoverageTests(WebApp app) : TestBase
     }
 
     [Fact]
-    [Priority(3)]
     public void EveryResumesEndpoint_ShouldUseAKnownRateLimitPolicyName()
     {
         // A typo'd policy name is worse than a missing one: RequireRateLimiting happily attaches it

@@ -12,7 +12,9 @@ public class SignOutTests(WebApp app)
     [Fact]
     public async Task Logout_SignedIn_ShouldEndTheWebSessionAndTheKeycloakSession()
     {
-        var user = app.Users[4];
+        // A fresh user: the empty-sessions assertion fails if another test left a session on a shared one.
+        var user = new TestUserFaker(5601).Generate();
+        await app.Keycloak.Admin.CreateUserAsync(user, ct: TestContext.Current.CancellationToken);
         var (client, _) = await app.SignInAsync(user, ct: TestContext.Current.CancellationToken);
         using var _client = client;
         var userId = (await app.Keycloak.Admin.FindUserIdAsync(user.Email, TestContext.Current.CancellationToken))!;

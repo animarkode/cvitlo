@@ -112,7 +112,9 @@ public class AccountActionTests(WebApp app)
     [Fact]
     public async Task AccountAction_CancelledOnKeycloak_ShouldReturnToTheAccountPageWithOneSession()
     {
-        var user = app.Users[4];
+        // A fresh user: the session count fails if another test left a session on a shared one.
+        var user = new TestUserFaker(5602).Generate();
+        await app.Keycloak.Admin.CreateUserAsync(user, ct: Ct);
         var subject = await app.Keycloak.Admin.FindUserIdAsync(user.Email, Ct);
         using var client = app.CreateBrowserClient();
 

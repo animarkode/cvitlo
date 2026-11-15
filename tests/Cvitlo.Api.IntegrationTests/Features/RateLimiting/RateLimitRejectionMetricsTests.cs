@@ -10,7 +10,6 @@ namespace Cvitlo.Api.IntegrationTests.Features.RateLimiting;
 
 // IP octets 192-193 reserved for this class.
 [Collection<CollectionRateLimiting>]
-[Priority(22)]
 public class RateLimitRejectionMetricsTests(WebApp app) : TestBase
 {
     [Fact]

@@ -9,7 +9,6 @@ using Shouldly;
 namespace Cvitlo.Api.IntegrationTests.Features.Health;
 
 [Collection<CollectionRateLimiting>]
-[Priority(21)]
 public class KeycloakHealthCheckTests(WebApp app) : TestBase
 {
     [Fact]
