@@ -7,7 +7,7 @@ namespace Cvitlo.Resumes.Application.UnitTests.Caching;
 public class ResumesCacheKeysTests
 {
     [Fact]
-    public void Pdf_WithTemplate_ShouldKebabCaseTemplateSegmentAndAppendVersion()
+    public void Pdf_WithTemplate_ShouldLowercaseTemplateSegmentAndAppendVersion()
     {
         var userId = Guid.NewGuid();
         var resumeId = Guid.NewGuid();

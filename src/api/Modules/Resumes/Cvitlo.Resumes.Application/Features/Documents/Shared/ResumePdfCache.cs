@@ -15,6 +15,7 @@ namespace Cvitlo.Resumes.Application.Features.Documents.Shared;
 public class ResumePdfCache(
     IServiceScopeFactory scopeFactory,
     HybridCache cache,
+    IDocumentsModuleApi documentsModuleApi,
     ILogger<ResumePdfCache> logger)
 {
     /// <summary>Gets the cached rendered PDF for a resume, rendering and caching it when missing.</summary>
@@ -24,10 +25,8 @@ public class ResumePdfCache(
     /// <returns>The rendered PDF, or a <c>Resume.NotFound</c> error when the resume does not exist or is not owned by the user.</returns>
     public async Task<ErrorOr<ResumePdf>> GetOrRenderAsync(Guid userId, Guid resumeId, CancellationToken ct)
     {
-        var templateVersion = ResolveTemplateVersion(ResumeTemplate.First);
-
         var pdf = await cache.GetOrCreateAsync(
-            ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, templateVersion),
+            ResumesCacheKeys.Pdf(userId, resumeId, ResumeTemplate.First, documentsModuleApi.TemplateVersion(ResumeTemplate.First)),
             async cacheCt =>
             {
                 // HybridCache runs this factory once for every concurrent caller of the same key and
@@ -48,8 +47,7 @@ public class ResumePdfCache(
                 }
 
                 var resume = result.Value;
-                var documentsModuleApi = scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>();
-                var stream = await documentsModuleApi.RenderResumeToPdfAsync(
+                var stream = await scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>().RenderResumeToPdfAsync(
                     resume.ToDocument(), ResumeTemplate.First, cacheCt);
 
                 await using var _ = stream;
@@ -69,12 +67,5 @@ public class ResumePdfCache(
         }
 
         return pdf;
-    }
-
-    private string ResolveTemplateVersion(ResumeTemplate template)
-    {
-        using var scope = scopeFactory.CreateScope();
-
-        return scope.ServiceProvider.GetRequiredService<IDocumentsModuleApi>().TemplateVersion(template);
     }
 }

@@ -3,7 +3,7 @@ using Cvitlo.Documents.PublicApi.Resumes;
 namespace Cvitlo.Resumes.Application.Caching;
 
 /// <summary>
-/// Builds the cache keys and tags used to cache resume reads (and, eventually, rendered PDFs) in
+/// Builds the cache keys and tags used to cache resume reads and rendered PDFs in
 /// <see cref="Microsoft.Extensions.Caching.Hybrid.HybridCache"/>.
 /// </summary>
 /// <remarks>
@@ -41,8 +41,15 @@ public static class ResumesCacheKeys
     /// <returns>The cache key for the rendered PDF.</returns>
     public static string Pdf(Guid userId, Guid resumeId, ResumeTemplate template, string templateVersion)
     {
-        return $"resumes:{Build}:user:{userId}:pdf:{resumeId}:{ToKebabCase(template.ToString())}:{templateVersion}";
+        return $"resumes:{Build}:user:{userId}:pdf:{resumeId}:{TemplateSegment(template)}:{templateVersion}";
     }
+
+    // Spelled out instead of derived from the enum name, so renaming a member does not move its cache keys.
+    private static string TemplateSegment(ResumeTemplate template) => template switch
+    {
+        ResumeTemplate.First => "first",
+        _ => throw new ArgumentOutOfRangeException(nameof(template), template, null)
+    };
 
     /// <summary>Builds the cache tag shared by every cache entry derived from a single resume.</summary>
     /// <param name="resumeId">The id of the resume the tag scopes cache invalidation to.</param>
@@ -58,43 +65,5 @@ public static class ResumesCacheKeys
     public static string UserResumesTag(Guid userId)
     {
         return $"user:{userId}:resumes";
-    }
-
-    /// <summary>
-    /// Converts a PascalCase type name to kebab-case so the template segment matches the
-    /// all-lowercase, hyphen/colon shape of the rest of the cache key (e.g. "FirstTemplate"
-    /// becomes "first-template"). Runs of consecutive capitals, such as an acronym, are kept
-    /// together instead of being hyphenated letter by letter (e.g. "PdfATSTemplate" becomes
-    /// "pdf-ats-template", not "pdf-a-t-s-template"). Because casing inside an acronym run is
-    /// discarded, two type names that differ only there (e.g. "PdfAts" vs "PdfATS") normalise to
-    /// the same segment and would collide in a single cache key.
-    /// </summary>
-    /// <param name="name">The PascalCase type name to convert.</param>
-    /// <returns>The kebab-case equivalent of <paramref name="name"/>.</returns>
-    private static string ToKebabCase(string name)
-    {
-        if (name.Length == 0)
-        {
-            return name;
-        }
-
-        Span<char> buffer = stackalloc char[(name.Length * 2) - 1];
-        var position = 0;
-
-        for (var i = 0; i < name.Length; i++)
-        {
-            var current = name[i];
-            var isNewWord = char.IsUpper(current) && i > 0 &&
-                (char.IsLower(name[i - 1]) || (i + 1 < name.Length && char.IsLower(name[i + 1])));
-
-            if (isNewWord)
-            {
-                buffer[position++] = '-';
-            }
-
-            buffer[position++] = char.ToLowerInvariant(current);
-        }
-
-        return new string(buffer[..position]);
     }
 }
