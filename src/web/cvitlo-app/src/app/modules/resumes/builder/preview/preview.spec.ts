@@ -84,7 +84,6 @@ const pdfjsMock = {
   getDocument: getDocumentMock,
 };
 
-/** The mocked document from the most recent `getDocument()` call. */
 async function lastMockedDoc() {
   const calls = getDocumentMock.mock.results;
   return calls[calls.length - 1].value.promise;
@@ -242,13 +241,8 @@ describe('Preview', () => {
     }, 20_000);
 
     it('keeps the live region in the DOM before it gains its announcement text', () => {
-      // A screen reader only announces a live region's content changing while
-      // that region is already in the document — a region that instead enters
-      // the DOM already containing its text (an `@if`-scoped span, as this used
-      // to be) is never observed being added in the first place, so nothing is
-      // announced. Capture the exact node reference while empty, then assert
-      // that same node — not a freshly inserted one — is what later gains the
-      // text.
+      // A live region is only announced when its text changes while it is already in the DOM, so the same node must
+      // gain the text.
       fixture.detectChanges();
       const liveRegion = fixture.nativeElement.querySelector(
         '[role="status"][aria-live="polite"]',
@@ -285,14 +279,8 @@ describe('Preview', () => {
   });
 
   describe('standalone pane (#425)', () => {
-    // `renderPdf`/`renderCurrentPage` is an async chain (dynamic import, blob
-    // read, pdfjs promises) that isn't tracked by Angular's zoneless
-    // scheduler, so `fixture.whenStable()` can resolve before `lockCardWidth`
-    // ever runs — and jsdom's `clientHeight` is always 0, so if the stub is
-    // queried too late the height guard silently no-ops. Stubbing on the
-    // prototype *before* the render starts means every element — including
-    // the `#paper` div, which doesn't exist until `store.preview()` flips the
-    // `@else if` — reports a realistic height from the moment it's created.
+    // The render chain is not tracked by the zoneless scheduler and jsdom's clientHeight is 0, so stub on the
+    // prototype before rendering; otherwise the height guard silently no-ops.
     let originalClientHeight: PropertyDescriptor | undefined;
 
     beforeEach(() => {
@@ -321,10 +309,8 @@ describe('Preview', () => {
       preview.set(new Blob(['pdf-bytes'], { type: 'application/pdf' }));
       fixture.detectChanges();
 
-      // 600px at the pdfjs mock's A4 aspect (595 / 842) is the exact figure
-      // the issue cites as too wide for a 375px phone viewport:
-      // Math.round(600 * (595 / 842)) = 424. Poll instead of racing a single
-      // `whenStable()` — the render chain settles on its own timeline.
+      // 600px at the mock's A4 aspect (595 / 842): Math.round(600 * (595 / 842)) = 424, too wide for a 375px
+      // viewport. Poll: the render chain settles on its own timeline.
       await vi.waitFor(() => expect(host.style.minWidth).toBe('424px'));
       expect(fixture.componentInstance.scrollable()).toBe(false);
     });
@@ -335,34 +321,23 @@ describe('Preview', () => {
       preview.set(new Blob(['pdf-bytes'], { type: 'application/pdf' }));
       fixture.detectChanges();
 
-      // Let it lock for real first (lockWidth defaults to true). Both the
-      // locked and unlocked outcomes leave `minWidth` at its initial '' when
-      // lockCardWidth never runs at all, so asserting '' from a cold start
-      // proves nothing — deleting the guard block entirely would still pass.
-      // Observing a genuine 424px -> '' transition is what actually depends
-      // on the guard.
+      // Lock first: both outcomes leave minWidth '' if lockCardWidth never runs, so only a real 424px -> ''
+      // transition depends on the guard.
       await vi.waitFor(() => expect(host.style.minWidth).toBe('424px'));
 
       fixture.componentRef.setInput('lockWidth', false);
-      // A distinct Blob reference is required, not just the same content —
-      // the `store.preview()` effect keys off signal identity, and reusing
-      // the first blob would never re-trigger lockCardWidth at all.
+      // A distinct Blob reference is needed: the store.preview() effect keys off signal identity.
       preview.set(new Blob(['pdf-bytes-2'], { type: 'application/pdf' }));
       fixture.detectChanges();
 
-      // Same 600px-tall card as above — without the guard this would
-      // recompute the same 424px min-width and force horizontal overflow on
-      // a 375px screen, which acceptance forbids.
+      // Same 600px card: without the guard this would force horizontal overflow on a 375px screen.
       await vi.waitFor(() => expect(host.style.minWidth).toBe(''));
       expect(fixture.componentInstance.scrollable()).toBe(true);
     });
   });
 
   describe('double buffering, page and scroll preservation (#456 §2)', () => {
-    // Same reasoning as the "standalone pane" and "ngOnDestroy" blocks above:
-    // jsdom reports 0 for both client dimensions, and `renderCurrentPage`
-    // bails on `width <= 0` before it ever touches a canvas. Stub both up
-    // front so every render in this block actually runs.
+    // jsdom reports 0 for both client dimensions and renderCurrentPage bails on width <= 0, so stub both up front.
     let originalClientHeight: PropertyDescriptor | undefined;
     let originalClientWidth: PropertyDescriptor | undefined;
 
@@ -371,10 +346,7 @@ describe('Preview', () => {
       originalClientWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientWidth');
       Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, get: () => 600 });
       Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, get: () => 800 });
-      // jsdom does not implement `Element.scrollTo` — only `Window.scrollTo` —
-      // and `prev()`/`next()` call it on `#paper`, which is a real element in
-      // these tests (unlike the plain "page navigation" spec above, which
-      // never renders a preview at all).
+      // jsdom lacks Element.scrollTo, which prev()/next() call on #paper.
       if (typeof HTMLElement.prototype.scrollTo !== 'function') {
         (HTMLElement.prototype as unknown as { scrollTo: () => void }).scrollTo = () => {};
       }
@@ -423,13 +395,11 @@ describe('Preview', () => {
 
       component.next();
 
-      // The back buffer receives its new pixel dimensions synchronously,
-      // before `page.render()`'s promise ever settles.
+      // The back buffer is resized synchronously, before page.render() settles.
       await vi.waitFor(() => expect(backBefore.width).toBe(595));
       expect(backBefore.height).toBe(842);
 
-      // The on-screen (front) canvas must not have been resized or cleared
-      // while the render is still in flight.
+      // The front canvas must not be resized or cleared mid-render.
       expect(widthSetSpy).not.toHaveBeenCalled();
       expect(heightSetSpy).not.toHaveBeenCalled();
       expect(frontBefore.classList.contains('cv-preview-buffer-front')).toBe(true);
@@ -473,17 +443,16 @@ describe('Preview', () => {
         }),
       );
 
-      // A manual refresh replaces the PDF without changing the persisted
-      // resume revision, so document identity must disambiguate the frames.
+      // A manual refresh replaces the PDF without changing the resume revision, so document identity must
+      // disambiguate.
       previewRevision.set(1);
       previewGeneration.set(2);
       preview.set(new Blob(['pdf-bytes-2'], { type: 'application/pdf' }));
       fixture.detectChanges();
       await vi.waitFor(() => expect(getDocumentMock.mock.calls.length).toBe(2));
 
-      // A resize or page turn can still repaint the old document while PDF.js
-      // parses the replacement. Equal revision numbers do not make that old
-      // frame proof that the refreshed document is visible.
+      // A resize or page turn can repaint the old document while the replacement parses; equal revisions do not prove
+      // the refreshed one is visible.
       await (component as unknown as { renderCurrentPage(): Promise<void> }).renderCurrentPage();
       expect(confirmPreviewRendered).not.toHaveBeenCalled();
 
@@ -502,12 +471,8 @@ describe('Preview', () => {
     });
 
     it('keeps the outgoing canvas fully opaque throughout the crossfade (branch review: no concurrent fade-out)', async () => {
-      // A crossfade that fades BOTH canvases at once (outgoing 1 -> 0 while
-      // incoming 0 -> 1 on the same base class) dips composite alpha to
-      // roughly 0.75 mid-swap, letting `--color-card` bleed through what
-      // should read as an opaque PDF page — the exact darkening #456 §2
-      // exists to remove. Assert on the applied inline styles/classes rather
-      // than sampling rendered pixels, which jsdom cannot do.
+      // Fading both canvases at once dips composite alpha and bleeds --color-card through (#456 §2). Assert on inline
+      // styles/classes; jsdom cannot sample pixels.
       preview.set(new Blob(['pdf-bytes-1'], { type: 'application/pdf' }));
       fixture.detectChanges();
       await vi.waitFor(() => expect(component.totalPages()).toBe(3));
@@ -535,10 +500,7 @@ describe('Preview', () => {
       component.next();
       await vi.waitFor(() => expect(backBefore.width).toBe(595));
 
-      // Mid-render: the on-screen (front) canvas must never have its own
-      // opacity touched — no inline override at all, i.e. still at the CSS
-      // resting value of 1. The hidden (back) canvas is prepared for its own
-      // future fade-in by being reset to 0.
+      // Mid-render: the front canvas has no inline opacity override; the back canvas is reset to 0 for its fade-in.
       expect(frontBefore.style.opacity).toBe('');
       expect(backBefore.style.opacity).toBe('0');
 
@@ -547,10 +509,7 @@ describe('Preview', () => {
         expect(backBefore.classList.contains('cv-preview-buffer-front')).toBe(true),
       );
 
-      // After promotion: the newly promoted canvas has its inline override
-      // cleared so it fades in via CSS to the resting opacity of 1; the
-      // demoted canvas — the one that used to be on screen — was never
-      // touched and so was never faced with fading out at all.
+      // After promotion: the promoted canvas has its inline override cleared; the demoted one was never touched.
       expect(backBefore.style.opacity).toBe('');
       expect(frontBefore.style.opacity).toBe('');
     });
@@ -587,10 +546,7 @@ describe('Preview', () => {
       component.next();
       await vi.waitFor(() => expect(component.currentPage()).toBe(3));
 
-      // Two pages, not one: clamping to the new last page (2) must be
-      // distinguishable from the old "always reset to page 1" behaviour,
-      // which would coincidentally also land on 1 if the replacement had
-      // only a single page.
+      // Two pages, so clamping to page 2 differs from resetting to page 1.
       getDocumentMock.mockImplementationOnce(
         () =>
           ({
@@ -623,12 +579,7 @@ describe('Preview', () => {
         component as unknown as { paper: () => { nativeElement: HTMLDivElement } | undefined }
       ).paper()!.nativeElement;
       paperEl.scrollTop = 120;
-      // jsdom neither lays out content nor clamps `scrollTop`, so it can't
-      // reproduce the browser's "shrinking scrollHeight resets scrollTop"
-      // failure mode on its own; asserting the setter was actively invoked
-      // to restore 120 is what distinguishes the fix (which captures and
-      // reapplies the offset around the wrapper resize) from the old
-      // implementation, which never touches `scrollTop` at all.
+      // jsdom does not clamp scrollTop, so assert the setter restored 120 instead of observing the browser reset.
       const scrollTopSetSpy = vi.spyOn(paperEl, 'scrollTop', 'set');
 
       preview.set(new Blob(['pdf-bytes-2'], { type: 'application/pdf' }));
@@ -640,15 +591,8 @@ describe('Preview', () => {
     });
 
     it('shrinks the demoted canvas geometry after a resize to a smaller frame, so it cannot contribute a stale bigger frame (branch review Finding 1)', async () => {
-      // `a0f2932b` fixed the crossfade darkening by leaving the outgoing canvas at
-      // resting opacity 1 for the whole transition on the premise that it is always
-      // "already completely covered by the (same-sized, fully opaque) incoming
-      // canvas" — true for a page turn or regeneration, but not for a resize down to
-      // a SMALLER frame: without a fix, the demoted canvas keeps its old, bigger CSS
-      // width/height, so it sticks out past the new, smaller `#frame` on both axes.
-      // Stub `clientWidth` as a mutable value (unlike the block-level static 600/800
-      // stub) so it can actually shrink between two renders, the way a real window
-      // resize would.
+      // A resize down to a smaller frame must snap the demoted canvas to the new size, or its stale larger geometry
+      // sticks out past #frame. clientWidth is stubbed as a mutable value so it can shrink between renders.
       let widthValue = 800;
       Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
         configurable: true,
@@ -665,20 +609,15 @@ describe('Preview', () => {
       // natural.width (595) * fit (800 / 595) == 800 — the page fills the 800px card.
       expect(parseFloat(largeFrameCanvas.style.width)).toBeCloseTo(800, 0);
 
-      // Shrink the frame and re-render, exactly as the `ResizeObserver` callback
-      // would on a real window resize.
+      // Shrink the frame and re-render, as the ResizeObserver would.
       widthValue = 200;
       const renderCurrentPage = (component as unknown as { renderCurrentPage(): Promise<void> })
         .renderCurrentPage.bind(component);
       await renderCurrentPage();
       fixture.detectChanges();
 
-      // The render always targets the OTHER canvas and promotes it on completion, so
-      // `largeFrameCanvas` — on screen a moment ago at 800px — is now the demoted one.
-      expect(largeFrameCanvas.classList.contains('cv-preview-buffer-front')).toBe(false);
-      // It must have been snapped down to the new, smaller frame size — not left at
-      // its stale 800px width, which would stick out past the new 200px `#frame` and
-      // inflate `#paper`'s scroll extent with nothing visible ever needing it.
+      // The render promotes the other canvas, so largeFrameCanvas is now demoted; it must be snapped to the new 200px
+      // size, or it would stick out past #frame and inflate #paper's scroll extent.
       expect(parseFloat(largeFrameCanvas.style.width)).toBeCloseTo(200, 0);
 
       const frameEl = (
@@ -719,12 +658,8 @@ describe('Preview', () => {
 
       const doc = await lastMockedDoc();
 
-      // Mirrors real pdfjs: calling `render()` again on a canvas that is
-      // still mid-render throws synchronously ("Cannot use the same canvas
-      // during multiple render() operations") rather than quietly queuing.
-      // Two overlapping renders sharing this lock is what actually
-      // reproduces the bug from #456 — `backCanvas()` resolves to the same
-      // DOM element for both calls until one of them promotes it.
+      // Mirrors real pdfjs: a second render() on a canvas still mid-render throws synchronously. Overlapping renders
+      // share this lock, reproducing #456 (backCanvas() is the same element for both).
       const busyCanvases = new Set<HTMLCanvasElement>();
       function lockedRenderTask(canvas: HTMLCanvasElement, inner: Promise<void>) {
         if (busyCanvases.has(canvas)) {
@@ -742,13 +677,10 @@ describe('Preview', () => {
       doc.getPage
         .mockImplementationOnce(() =>
           Promise.resolve({
-            // Deliberately distinct from B's viewport below: the assertion at
-            // the end only proves anything if the surviving pixel dimensions
-            // could only have come from the later render.
+            // Distinct from B's viewport so the final dimensions can only come from the later render.
             getViewport: vi.fn(() => ({ width: 111, height: 111 })),
             render: vi.fn(({ canvas }: { canvas: HTMLCanvasElement }) => {
-              // Never resolves on its own — this render is only ever meant
-              // to settle via cancellation below.
+              // Never resolves; settles only via cancellation below.
               taskA = lockedRenderTask(canvas, new Promise<void>(() => {}));
               return taskA;
             }),
@@ -778,17 +710,13 @@ describe('Preview', () => {
 
       resolveB();
 
-      // Neither promise may reject: the superseded render (call1) must have
-      // its RenderingCancelledException swallowed, not surfaced as an
-      // unhandled rejection, and the superseding render (call2) must
-      // complete normally.
+      // call1's RenderingCancelledException must be swallowed and call2 must complete normally.
       await expect(call2).resolves.toBeUndefined();
       await expect(call1).resolves.toBeUndefined();
 
       expect(taskA!.cancel).toHaveBeenCalledTimes(1);
 
-      // The buffer flip is reflected via a `[class.cv-preview-buffer-front]`
-      // template binding, which only updates the DOM on change detection.
+      // The flip reaches the DOM only on change detection (class binding).
       fixture.detectChanges();
       const frontCanvas = fixture.nativeElement.querySelector(
         'canvas.cv-preview-buffer-front',
@@ -842,22 +770,15 @@ describe('Preview', () => {
       await vi.waitFor(() => expect(taskA).toBeDefined());
       const call2 = renderCurrentPage();
 
-      // call1's cancellation is still swallowed — only call2's genuine
-      // failure must surface.
+      // call1's cancellation is still swallowed; only call2's genuine failure surfaces.
       await expect(call1).resolves.toBeUndefined();
       await expect(call2).rejects.toBe(failure);
       expect(taskA!.cancel).toHaveBeenCalledTimes(1);
     });
 
     it('logs a genuine render failure from a fire-and-forget call site instead of leaving it unhandled (#456 fix round §3)', async () => {
-      // `next()`, `prev()`, the resize observer, and `renderPdf` all call
-      // `renderCurrentPage` without awaiting or returning its promise —
-      // "surfaces a genuine render failure" above proves `renderCurrentPage`
-      // itself still rejects correctly, but nothing at any of those call
-      // sites would ever observe that rejection on its own. This asserts the
-      // wrapper those call sites actually use (`renderCurrentPageSafely`)
-      // catches it and logs it, rather than letting it reach nobody as an
-      // unhandled rejection while the stale frame stays frozen on screen.
+      // The fire-and-forget call sites use renderCurrentPageSafely; assert it logs the rejection instead of leaving
+      // an unhandled rejection and a frozen stale frame.
       preview.set(new Blob(['pdf-bytes-1'], { type: 'application/pdf' }));
       fixture.detectChanges();
       await vi.waitFor(() => expect(component.totalPages()).toBe(3));
@@ -882,14 +803,8 @@ describe('Preview', () => {
     });
 
     it('logs a renderPdf failure instead of leaving it an unhandled rejection (branch review Finding 3)', async () => {
-      // `8950933b` only wrapped `renderCurrentPage`'s fire-and-forget call
-      // sites. The constructor effect's call to `renderPdf` (which covers
-      // `loadPdfjs`, the blob read and `getDocument()` — none of which
-      // `renderCurrentPageSafely`/`renderCurrentPage` ever touch) was missed:
-      // a corrupt PDF rejecting `getDocument(...).promise` reached nobody. If
-      // this rejection were still unhandled, this `await vi.waitFor` would
-      // never observe the log and the test would time out rather than fail
-      // fast — pin the exact wrapper message so a regression is unambiguous.
+      // The constructor effect's renderPdf covers loadPdfjs, the blob read and getDocument(); a corrupt PDF rejecting
+      // there must be caught. Pin the exact wrapper message so a regression fails fast instead of timing out.
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const failure = new Error('Invalid PDF structure');
       getDocumentMock.mockImplementationOnce(
@@ -942,13 +857,8 @@ describe('Preview', () => {
         .renderCurrentPage();
       await vi.waitFor(() => expect(resolveRender).toBeDefined());
 
-      // Resolve `page.render(...).promise` and destroy the component in the
-      // same synchronous tick — `renderCurrentPage`'s continuation after that
-      // `await` is queued as a microtask, so `ngOnDestroy` (also synchronous)
-      // runs first and bumps the token before the continuation ever resumes.
-      // This is the second `token !== this.renderToken` check's window,
-      // which neither pre-existing `ngOnDestroy` spec reaches — both destroy
-      // during the earlier `await this.pdfDoc.getPage(...)` window instead.
+      // Resolve render().promise and destroy in the same tick: the continuation is a microtask, so ngOnDestroy bumps
+      // the token first. This hits the second token check's window, not the getPage one.
       resolveRender();
       expect(() => fixture.destroy()).not.toThrow();
 
@@ -961,11 +871,8 @@ describe('Preview', () => {
   });
 
   describe('ngOnDestroy (#425 mobile editor<->preview toggle recreates Preview per tap)', () => {
-    // Without a real layout engine, jsdom reports 0 for both dimensions, and
-    // `renderCurrentPage` bails on `width <= 0` long before it would ever
-    // reach `page.render(...)` — guard or no guard. Stubbing both, as the
-    // "standalone pane" block above does for height alone, lets execution
-    // actually reach the call the renderToken guard is meant to prevent.
+    // jsdom reports 0 dimensions and renderCurrentPage bails on width <= 0; stub both so execution reaches
+    // page.render.
     let originalClientHeight: PropertyDescriptor | undefined;
     let originalClientWidth: PropertyDescriptor | undefined;
 
@@ -993,8 +900,7 @@ describe('Preview', () => {
       preview.set(new Blob(['pdf-bytes'], { type: 'application/pdf' }));
       fixture.detectChanges();
 
-      // Wait for renderPdf's async chain (dynamic import, blob read, pdfjs
-      // promises) to actually assign a pdfDoc before destroying it.
+      // Wait for renderPdf to assign a pdfDoc before destroying it.
       await vi.waitFor(() => expect(component.totalPages()).toBe(3));
       const doc = await lastMockedDoc();
 
@@ -1010,11 +916,8 @@ describe('Preview', () => {
       await vi.waitFor(() => expect(component.totalPages()).toBe(3));
       const doc = await lastMockedDoc();
 
-      // Kick off a second render (e.g. a page turn) and destroy the component
-      // before its `await this.pdfDoc.getPage(...)` resumes — the same shape
-      // as the mobile toggle tearing this component down mid-render. The
-      // renderToken guard must make the resumed render bail out instead of
-      // running `page.render(...)` against a document that was just destroyed.
+      // Kick off a second render (a page turn) and destroy before its getPage resumes, like the mobile toggle tearing
+      // down mid-render; the renderToken guard must stop page.render.
       const pending = (component as unknown as { renderCurrentPage(): Promise<void> })
         .renderCurrentPage();
 

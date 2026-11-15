@@ -1,5 +1,3 @@
-/* Scrollable preview viewport with the scrollbar visually hidden — overflowing
-   pages can still be scrolled (wheel / trackpad / keyboard). */
 .no-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* legacy Edge */
@@ -9,35 +7,9 @@
   display: none; /* Chrome / Safari */
 }
 
-/* Double-buffered preview canvases (#456 §2). Exactly one of the two stacked
-   canvases is visible at a time; the render code always paints the hidden
-   one and only flips this class after the paint fully resolves (see
-   Preview.renderCurrentPage), so the visible frame is never cleared or
-   resized mid-render.
-   Resting opacity is 1 for BOTH canvases — a canvas is only ever driven to 0
-   via an inline style, set by Preview right before it becomes the render
-   target for the next frame (see the comment in renderCurrentPage), and
-   cleared the moment that frame is promoted. That inline-to-CSS transition is
-   what produces the crossfade: the incoming (just-promoted) canvas animates
-   0 -> 1 while stacked ABOVE (z-index 1) the outgoing one, which never has
-   its own opacity touched and so stays fully opaque underneath for the whole
-   180ms. Composite alpha therefore never dips below 1 at any point in the
-   transition — do NOT "simplify" this back to a single class fading both
-   canvases in opposite directions at once: that lets the outgoing canvas's
-   own fade-out bleed `--color-card` through the composite (visibly ~180ms of
-   card-coloured darkening on every regeneration and page turn in dark theme,
-   since `--color-card` there is a mid-grey, not white — exactly the flicker
-   #456 §2 exists to remove). The outgoing canvas is left fully opaque rather
-   than being explicitly hidden once the incoming one finishes fading in,
-   because Preview snaps its CSS width/height to match the incoming canvas's
-   at the moment of promotion (see the end of `renderCurrentPage`) — so it is
-   guaranteed same-sized and fully covered by the incoming canvas from that
-   point on, not merely "usually" same-sized because the frame rarely
-   resizes. That snap is also what a shrinking resize depends on: without it,
-   a canvas demoted at a larger size would keep sticking out past a smaller
-   frame even though its opacity never changes. Nothing observes the demoted
-   canvas's opacity again until it is chosen as a render target itself, when
-   it is reset to 0 in preparation for its own future promotion. */
+/* Only the incoming canvas animates 0 -> 1, stacked above the outgoing one, which stays fully opaque so
+   composite alpha never dips (#456 §2). Do not fade both at once: --color-card would bleed through.
+   Preview.renderCurrentPage sizes the outgoing canvas to match on promotion. */
 .cv-preview-buffer {
   opacity: 1;
   transition: opacity 180ms ease;
@@ -53,11 +25,8 @@
   }
 }
 
-/* First-load preview skeleton (#456 §1). Each placeholder line owns its highlight,
-   so the static page surface never flashes. The small phase shift between consecutive
-   lines turns those highlights into a quiet top-to-bottom cascade. Angular's emulated
-   view encapsulation does NOT scope `@keyframes` names, so the animation keeps its
-   `cv-` prefix to avoid collisions elsewhere in the app. */
+/* Each line owns its highlight so the page surface never flashes (#456 §1). Emulated view encapsulation does
+   not scope @keyframes names, hence the cv- prefix. */
 @keyframes cv-preview-skeleton-line-shimmer {
   0% {
     opacity: 0;
