@@ -301,7 +301,6 @@ Core pieces:
 - `AppFixture<Program>`
 - `TestCollection<WebApp>` (`CollectionAuth`, `CollectionResumes`)
 - Testcontainers for Keycloak/Postgres as needed
-- `EnableAdvancedTesting` in test `AssemblyInfo.cs`
 
 Examples:
 
@@ -310,12 +309,7 @@ public class CollectionAuth : TestCollection<WebApp>;
 ```
 
 ```csharp
-[assembly: EnableAdvancedTesting]
-```
-
-```csharp
 [Collection<CollectionAuth>]
-[Priority(1)]
 public class SignInTests(WebApp app) : TestBase
 {
     [Fact]
@@ -338,6 +332,7 @@ Test rules:
 - use NSubstitute for mocks
 - use seeded Bogus/class data when practical
 - use `TestContext.Current.CancellationToken`
+- keep every test order-independent: no `[Priority]`, no changes to `app.Client` headers, a fresh `TestUserFaker` user for account-wide state (`.agents/rules/backend-patterns.md`)
 - compare Keycloak username/email case-insensitively when relevant
 
 ---
