@@ -61,7 +61,6 @@
     <link rel="icon" href="${url.resourcesPath}/img/favicon.ico" sizes="32x32" />
     <link rel="icon" href="${url.resourcesPath}/img/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="${url.resourcesPath}/img/apple-touch-icon.png" />
-    <link rel="manifest" href="${url.resourcesPath}/img/site.webmanifest" />
     <#if themeResources?? && themeResources.stylesCommon?has_content>
         <@themeResourceTags.renderStyles themeResources.stylesCommon url.resourcesCommonPath />
     <#elseif properties.stylesCommon?has_content>
