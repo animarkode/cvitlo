@@ -60,6 +60,20 @@ public class AccountActionTests(WebApp app)
     }
 
     [Fact]
+    public async Task AccountAction_SessionCookieWithABearerHeader_ShouldBeRefusedAsMixedCredentials()
+    {
+        var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);
+        using var _client = client;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/account-action/password");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "x");
+
+        using var response = await client.SendAsync(request, Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await response.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.MixedCredentials");
+    }
+
+    [Fact]
     public async Task AccountAction_SignedIn_ShouldSendTheStoredIdTokenAsHint()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: Ct);

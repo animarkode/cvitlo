@@ -20,7 +20,7 @@ public static class AuthSchemes
 
     public const string CallbackPath = "/api/v1/auth/callback";
 
-    // The one test the scheme selector and the CSRF check share, so no request is bearer to one and cookie to the other.
+    // Shared by the scheme selector and the mixed-credentials guard, so no request is bearer to one and cookie to the other.
     public static bool IsBearerRequest(Microsoft.AspNetCore.Http.HttpRequest request)
     {
         return request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);

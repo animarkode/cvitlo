@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Nodes;
 using Cvitlo.Common.Testing.Data;
+using Cvitlo.Common.Testing.Http;
 using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Account;
@@ -28,7 +29,7 @@ public class AccountApiFailureTests(WebApp app)
             using var response = await client.GetAsync("api/v1/auth/account/profile", Ct);
 
             response.StatusCode.ShouldBe(expected);
-            (await ReadCodeAsync(response)).ShouldBe(code);
+            (await response.ReadProblemCodeAsync(Ct)).ShouldBe(code);
         }
         finally
         {
@@ -48,7 +49,7 @@ public class AccountApiFailureTests(WebApp app)
             using var response = await client.GetAsync("api/v1/auth/account/profile", Ct);
 
             response.StatusCode.ShouldBe(HttpStatusCode.BadGateway);
-            (await ReadCodeAsync(response)).ShouldBe("Account.Unavailable");
+            (await response.ReadProblemCodeAsync(Ct)).ShouldBe("Account.Unavailable");
         }
         finally
         {
@@ -156,7 +157,7 @@ public class AccountApiFailureTests(WebApp app)
             using var response = await client.DeleteAsync($"api/v1/auth/account/linked-accounts/{WebApp.StandIn.Alias}", Ct);
 
             response.StatusCode.ShouldBe(HttpStatusCode.BadGateway);
-            (await ReadCodeAsync(response)).ShouldBe("Account.Unavailable");
+            (await response.ReadProblemCodeAsync(Ct)).ShouldBe("Account.Unavailable");
         }
         finally
         {
@@ -164,13 +165,6 @@ public class AccountApiFailureTests(WebApp app)
         }
 
         (await app.Keycloak.Admin.GetFederatedIdentitiesAsync(userId, Ct)).Count.ShouldBe(1);
-    }
-
-    private static async Task<string?> ReadCodeAsync(HttpResponseMessage response)
-    {
-        var problem = await response.Content.ReadFromJsonAsync<JsonObject>(Ct);
-
-        return problem?["code"]?.GetValue<string>();
     }
 
     private async Task<TestUser> CreateUserAsync(int seed)

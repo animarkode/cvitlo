@@ -1,5 +1,6 @@
 using System.Net;
 using Cvitlo.Common.Testing.Data;
+using Cvitlo.Common.Testing.Http;
 using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.SignOut;
@@ -60,6 +61,7 @@ public class SignOutTests(WebApp app)
         using var logout = await client.PostAsync("api/v1/auth/logout", null, TestContext.Current.CancellationToken);
 
         logout.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await logout.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.CsrfHeaderMissing");
     }
 
     [Fact]
@@ -95,7 +97,7 @@ public class SignOutTests(WebApp app)
         after.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
-    [Fact(Skip = "#155: a Bearer-prefixed Authorization header switches off the CSRF check, so logout with the session cookie and no X-CSRF answers 204 and ends the session")]
+    [Fact]
     public async Task Logout_SessionCookieWithABearerHeaderAndNoCsrfHeader_ShouldNotEndTheSession()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5201), ct: Ct);
@@ -104,14 +106,32 @@ public class SignOutTests(WebApp app)
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "x");
 
         using var logout = await client.PostAsync("api/v1/auth/logout", null, Ct);
+        logout.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await logout.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.MixedCredentials");
 
         using var check = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");
         check.Headers.Add("X-CSRF", "1");
         client.DefaultRequestHeaders.Authorization = null;
         using var after = await client.SendAsync(check, Ct);
-        after.StatusCode.ShouldBe(HttpStatusCode.OK,
-            $"a request that carries the cookie must send the CSRF header whatever else it sends (logout answered {(int)logout.StatusCode})");
+        after.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task Logout_SessionCookieWithABearerHeaderAndCsrfHeader_ShouldBeRejectedAndKeepTheSession()
+    {
+        var (client, _) = await app.SignInAsync(await CreateUserAsync(5204), ct: Ct);
+        using var _client = client;
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "x");
+
+        using var logout = await client.PostAsync("api/v1/auth/logout", null, Ct);
+
+        logout.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await logout.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.MixedCredentials");
+        client.DefaultRequestHeaders.Authorization = null;
+        using var after = await client.GetAsync("api/v1/auth/user", Ct);
+        after.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
 
     private async Task<TestUser> CreateUserAsync(int seed)
     {

@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Authentication;
 
-// A forged cross-site request can carry the cookie but cannot add a custom header without a CORS preflight, which the API
-// never grants. Bearer calls, the sign-in navigations and Keycloak's back-channel call are left alone.
+// A request is one identity: endpoints that read the session directly would otherwise mix it with a bearer principal, so
+// any /api request with the cookie and a bearer header is refused. A forged cross-site request can carry the cookie but not
+// a custom header without a CORS preflight, which the API never grants; only top-level navigations go without it.
 public sealed class CsrfHeaderMiddleware(RequestDelegate next)
 {
     private static readonly PathString Api = "/api";
@@ -21,19 +23,39 @@ public sealed class CsrfHeaderMiddleware(RequestDelegate next)
     public Task InvokeAsync(HttpContext context)
     {
         var request = context.Request;
-        var needsHeader = request.Path.StartsWithSegments(Api, StringComparison.OrdinalIgnoreCase)
-                          && request.Cookies.ContainsKey(AuthSchemes.SessionCookieName)
-                          && !AuthSchemes.IsBearerRequest(request)
-                          && !Navigations.Any(path => request.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
-                          && !IsAccountAction(request.Path);
+        var carriesSession = request.Path.StartsWithSegments(Api, StringComparison.OrdinalIgnoreCase)
+                             && request.Cookies.ContainsKey(AuthSchemes.SessionCookieName);
 
-        if (needsHeader && request.Headers[AuthSchemes.CsrfHeaderName] != "1")
+        if (!carriesSession)
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
+            return next(context);
+        }
+
+        if (AuthSchemes.IsBearerRequest(request))
+        {
+            return Refuse(context, StatusCodes.Status400BadRequest, "Auth.MixedCredentials",
+                "Send either the session cookie or a bearer token, not both.");
+        }
+
+        var isNavigation = Navigations.Any(path => request.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                           || IsAccountAction(request.Path);
+
+        if (!isNavigation && request.Headers[AuthSchemes.CsrfHeaderName] != "1")
+        {
+            return Refuse(context, StatusCodes.Status403Forbidden, "Auth.CsrfHeaderMissing",
+                $"Send the {AuthSchemes.CsrfHeaderName}: 1 header with requests that carry the session cookie.");
         }
 
         return next(context);
+    }
+
+    private static Task Refuse(HttpContext context, int statusCode, string code, string detail)
+    {
+        return TypedResults.Problem(
+                detail,
+                statusCode: statusCode,
+                extensions: new Dictionary<string, object?>(StringComparer.Ordinal) { ["code"] = code })
+            .ExecuteAsync(context);
     }
 
     private static bool IsAccountAction(PathString path)
