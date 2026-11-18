@@ -14,8 +14,11 @@ public class CreateProjectValidator : Validator<CreateProjectRequest>
         RuleFor(x => x.Tagline)
             .MaximumLength(100).WithMessage("'Tagline' must not exceed 100 characters.");
 
+        // The raw cap runs first so an oversized body is rejected before the sanitizer parses it.
         RuleFor(x => x.Description)
-            .Must(description => HtmlContentSanitizer.GetPlainTextLength(description) <= 1000)
+            .Cascade(CascadeMode.Stop)
+            .MaximumLength(1000).WithMessage("'Description' must not exceed 1000 characters.")
+            .Must(description => HtmlContentSanitizer.GetSanitizedLength(description) <= 1000)
             .WithMessage("'Description' must not exceed 1000 characters.");
 
         RuleFor(x => x.Url)

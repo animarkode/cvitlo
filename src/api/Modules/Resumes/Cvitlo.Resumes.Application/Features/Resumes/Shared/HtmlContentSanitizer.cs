@@ -26,6 +26,12 @@ public static partial class HtmlContentSanitizer
         return Sanitizer.SanitizeDom(html).Body?.TextContent.Length ?? 0;
     }
 
+    // The column stores sanitized HTML, which can grow through entity encoding (& becomes &amp;).
+    public static int GetSanitizedLength(string? html)
+    {
+        return SanitizeBasicFormatting(html)?.Length ?? 0;
+    }
+
     private static HtmlSanitizer CreateSanitizer()
     {
         var sanitizer = new HtmlSanitizer

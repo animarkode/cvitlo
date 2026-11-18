@@ -207,8 +207,8 @@ public class UpdateExperienceTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    public async Task UpdateExperience_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
+    [Fact]
+    public async Task UpdateExperience_DescriptionThatGrowsWhenEncoded_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -221,7 +221,24 @@ public class UpdateExperienceTests(WebApp app) : TestBase
             .WithAuthToken(accessToken)
             .PUTAsync<UpdateExperienceEndpoint, UpdateExperienceRequest>(new UpdateExperienceRequest(created.Id, resume.Id, source.JobTitle, source.Employer, source.StartDate, source.EndDate, source.City, source.Description));
 
-        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateExperience_DescriptionOfExactly1000CharactersThatDoesNotGrow_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateExperienceAsync(accessToken, resume.Id);
+
+        var source = new CreateExperienceRequestFaker(resume.Id, 62005).Generate() with { Description = new string('a', 1000) };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateExperienceEndpoint, UpdateExperienceRequest>(new UpdateExperienceRequest(created.Id, resume.Id, source.JobTitle, source.Employer, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
     [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
