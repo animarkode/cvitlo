@@ -9,6 +9,8 @@ public class UpdateSummaryValidator : Validator<UpdateSummaryRequest>
     public UpdateSummaryValidator()
     {
         RuleFor(x => x.Summary)
+            .Cascade(CascadeMode.Stop)
+            .NotNull().WithMessage("'Summary' is required.")
             .Must(value => HtmlContentSanitizer.GetPlainTextLength(value) <= 200)
             .WithMessage("'Summary' must not exceed 200 characters.");
     }

@@ -9,6 +9,8 @@ public class UpdateHobbiesValidator : Validator<UpdateHobbiesRequest>
     public UpdateHobbiesValidator()
     {
         RuleFor(x => x.Hobbies)
+            .Cascade(CascadeMode.Stop)
+            .NotNull().WithMessage("'Hobbies' is required.")
             .Must(value => HtmlContentSanitizer.GetPlainTextLength(value) <= 200)
             .WithMessage("'Hobbies' must not exceed 200 characters.");
     }
