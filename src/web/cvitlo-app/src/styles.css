@@ -82,8 +82,10 @@ body {
 
   /* Body text and Angular Material UI — Nunito Sans variable (wght 300–700) */
   --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
-  /* Navbar brand/logo name only — Space Grotesk variable (wght 600–700) */
+  /* Not-found and account-deleted headings — Space Grotesk variable (wght 600–700) */
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  /* The cvitlo wordmark only — Sen 700 */
+  --font-brand: 'Sen', ui-sans-serif, system-ui, sans-serif;
   /* Editorial headings, resume names, dialog titles — Playfair Display variable (wght 700–900) */
   --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
   /* Social sign-in buttons only — Google's branding guidelines require Google Sans Medium (wght 500) */
