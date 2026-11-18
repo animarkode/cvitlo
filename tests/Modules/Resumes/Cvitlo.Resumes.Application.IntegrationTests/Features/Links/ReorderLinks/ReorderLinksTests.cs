@@ -1,5 +1,6 @@
-using System.Text;
 using System.Net;
+using System.Net.Http.Json;
+using System.Text;
 using Cvitlo.Resumes.Application.Features.Links.CreateLink;
 using Cvitlo.Resumes.Application.Features.Links.ReorderLinks;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
@@ -165,7 +166,7 @@ public class ReorderLinksTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; body {} answers 500 (NullReferenceException) instead of 400")]
+    [Fact]
     public async Task ReorderLinks_BodyWithoutOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -178,6 +179,9 @@ public class ReorderLinksTests(WebApp app) : TestBase
             .PutAsync($"api/v1/resumes/{resume.Id}/links/reorder", body, ct);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await httpResponse.Content.ReadFromJsonAsync<ErrorResponse>(ct);
+        error.ShouldNotBeNull();
+        error.Errors.ShouldContainKey("orderedIds");
     }
 
     private async Task<List<Guid>> CreateLinksAsync(string accessToken, Guid resumeId, int count)

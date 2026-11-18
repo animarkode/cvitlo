@@ -11,9 +11,9 @@ public class ReorderCoursesValidator : Validator<ReorderCoursesRequest>
             .NotEmpty().WithMessage("'ResumeId' must not be empty.");
 
         RuleFor(x => x.OrderedIds)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("'OrderedIds' must not be empty.")
             .Must(ids => ids.Distinct().Count() == ids.Count)
-            .WithMessage("'OrderedIds' must not contain duplicates.")
-            .When(x => x.OrderedIds is not null);
+            .WithMessage("'OrderedIds' must not contain duplicates.");
     }
 }
