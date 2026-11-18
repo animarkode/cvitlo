@@ -205,6 +205,23 @@ public class UpdateEducationTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task UpdateEducation_DescriptionOfExactly1000CharactersThatDoesNotGrow_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var created = await CreateEducationAsync(accessToken, resume.Id);
+
+        var source = new CreateEducationRequestFaker(resume.Id, 62005).Generate() with { Description = new string('a', 1000) };
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(new UpdateEducationRequest(created.Id, resume.Id, source.School, source.Degree, source.StartDate, source.EndDate, source.City, source.Description));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
     [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
     public async Task UpdateEducation_FutureStartDate_ShouldReturnBadRequest()
     {

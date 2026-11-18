@@ -256,6 +256,24 @@ public class UpdateProjectTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task UpdateProject_DescriptionOfExactly1000CharactersThatDoesNotGrow_ShouldReturnNoContent()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        var project = await CreateProjectAsync(accessToken, resume.Id);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateProjectEndpoint, UpdateProjectRequest>(
+                new UpdateProjectRequest(
+                    project.Id, resume.Id, project.Tagline, project.Name, project.Url,
+                    project.StartDate, project.EndDate, new string('a', 1000)));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
     [Fact(Skip = "#149: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]
     public async Task UpdateProject_FutureStartDate_ShouldReturnBadRequest()
     {
