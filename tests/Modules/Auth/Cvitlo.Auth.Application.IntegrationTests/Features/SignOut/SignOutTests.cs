@@ -95,7 +95,7 @@ public class SignOutTests(WebApp app)
         after.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
-    [Fact(Skip = "#155: a Bearer-prefixed Authorization header switches off the CSRF check, so logout with the session cookie and no X-CSRF answers 204 and ends the session")]
+    [Fact]
     public async Task Logout_SessionCookieWithABearerHeaderAndNoCsrfHeader_ShouldNotEndTheSession()
     {
         var (client, _) = await app.SignInAsync(await CreateUserAsync(5201), ct: Ct);
@@ -104,6 +104,7 @@ public class SignOutTests(WebApp app)
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "x");
 
         using var logout = await client.PostAsync("api/v1/auth/logout", null, Ct);
+        logout.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
 
         using var check = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");
         check.Headers.Add("X-CSRF", "1");

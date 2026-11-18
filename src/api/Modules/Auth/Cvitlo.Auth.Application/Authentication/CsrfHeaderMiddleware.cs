@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Http;
 namespace Cvitlo.Auth.Application.Authentication;
 
 // A forged cross-site request can carry the cookie but cannot add a custom header without a CORS preflight, which the API
-// never grants. Bearer calls, the sign-in navigations and Keycloak's back-channel call are left alone.
+// never grants. The cookie alone decides: an Authorization header never exempts a request that carries it. Bearer clients
+// send no cookie, and the sign-in navigations and Keycloak's back-channel call are left alone.
 public sealed class CsrfHeaderMiddleware(RequestDelegate next)
 {
     private static readonly PathString Api = "/api";
@@ -23,7 +24,6 @@ public sealed class CsrfHeaderMiddleware(RequestDelegate next)
         var request = context.Request;
         var needsHeader = request.Path.StartsWithSegments(Api, StringComparison.OrdinalIgnoreCase)
                           && request.Cookies.ContainsKey(AuthSchemes.SessionCookieName)
-                          && !AuthSchemes.IsBearerRequest(request)
                           && !Navigations.Any(path => request.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
                           && !IsAccountAction(request.Path);
 
