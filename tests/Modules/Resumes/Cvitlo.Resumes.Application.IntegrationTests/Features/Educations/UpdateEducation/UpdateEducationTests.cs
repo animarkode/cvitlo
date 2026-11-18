@@ -188,8 +188,8 @@ public class UpdateEducationTests(WebApp app) : TestBase
         after.School.ShouldBe(item.School);
     }
 
-    [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    public async Task UpdateEducation_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
+    [Fact]
+    public async Task UpdateEducation_DescriptionThatGrowsWhenEncoded_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -202,7 +202,7 @@ public class UpdateEducationTests(WebApp app) : TestBase
             .WithAuthToken(accessToken)
             .PUTAsync<UpdateEducationEndpoint, UpdateEducationRequest>(new UpdateEducationRequest(created.Id, resume.Id, source.School, source.Degree, source.StartDate, source.EndDate, source.City, source.Description));
 
-        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]

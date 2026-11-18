@@ -133,8 +133,8 @@ public class CreateProjectTests(WebApp app) : TestBase
         getResponse.Description.ShouldContain("<strong>Module</strong>");
     }
 
-    [Fact(Skip = "#147: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
-    public async Task CreateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
+    [Fact]
+    public async Task CreateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -149,7 +149,23 @@ public class CreateProjectTests(WebApp app) : TestBase
             .WithAuthToken(accessToken)
             .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, ErrorResponse>(request);
 
-        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateProject_DescriptionOfExactly1000CharactersThatDoesNotGrow_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var request = new CreateProjectRequestFaker(resume.Id).Generate() with { Description = new string('a', 1000) };
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateProjectEndpoint, CreateProjectRequest, CreateProjectResponse>(request);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     private async Task<CreateProjectResponse> CreateProjectAsync(

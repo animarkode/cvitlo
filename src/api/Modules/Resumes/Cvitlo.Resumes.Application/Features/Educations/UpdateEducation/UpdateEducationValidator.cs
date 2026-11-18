@@ -1,3 +1,4 @@
+using Cvitlo.Resumes.Application.Features.Resumes.Shared;
 using FastEndpoints;
 using FluentValidation;
 
@@ -16,8 +17,12 @@ public class UpdateEducationValidator : Validator<UpdateEducationRequest>
         RuleFor(x => x.City)
             .MaximumLength(100).WithMessage("'City' must not exceed 100 characters.");
 
+        // The raw cap runs first so an oversized body is rejected before the sanitizer parses it.
         RuleFor(x => x.Description)
-            .MaximumLength(1000).WithMessage("'Description' must not exceed 1000 characters.");
+            .Cascade(CascadeMode.Stop)
+            .MaximumLength(1000).WithMessage("'Description' must not exceed 1000 characters.")
+            .Must(description => HtmlContentSanitizer.GetSanitizedLength(description) <= 1000)
+            .WithMessage("'Description' must not exceed 1000 characters.");
 
         RuleFor(x => x.EndDate)
             .Must((r, endDate) => endDate >= r.StartDate)

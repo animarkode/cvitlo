@@ -238,8 +238,8 @@ public class UpdateProjectTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    [Fact(Skip = "#147: <p> + 1000 chars + </p> passes the visible-length rule but the stored HTML overflows varchar(1000); answers 500 (DbUpdateException) instead of 200/400")]
-    public async Task UpdateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldNotFail()
+    [Fact]
+    public async Task UpdateProject_DescriptionOf1000VisibleCharactersInAParagraph_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -253,7 +253,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
                     project.Id, resume.Id, project.Tagline, project.Name, project.Url,
                     project.StartDate, project.EndDate, "<p>" + new string('a', 1000) + "</p>"));
 
-        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.NoContent, HttpStatusCode.BadRequest);
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact(Skip = "#149: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]

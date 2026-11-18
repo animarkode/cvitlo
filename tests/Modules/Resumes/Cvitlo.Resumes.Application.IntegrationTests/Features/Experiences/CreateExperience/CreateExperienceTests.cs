@@ -148,8 +148,8 @@ public class CreateExperienceTests(WebApp app) : TestBase
         getResponse.Description.ShouldContain("<strong>Module</strong>");
     }
 
-    [Fact(Skip = "#147: 1000 ampersands pass validation, grow to 5000 chars when sanitized and overflow varchar(1000); answers 500 instead of 200/400")]
-    public async Task CreateExperience_DescriptionThatGrowsWhenEncoded_ShouldNotFail()
+    [Fact]
+    public async Task CreateExperience_DescriptionThatGrowsWhenEncoded_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -161,7 +161,23 @@ public class CreateExperienceTests(WebApp app) : TestBase
             .WithAuthToken(accessToken)
             .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, ErrorResponse>(request);
 
-        httpResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateExperience_DescriptionOfExactly1000CharactersThatDoesNotGrow_ShouldReturnOk()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        var request = new CreateExperienceRequestFaker(resume.Id).Generate() with { Description = new string('a', 1000) };
+
+        var (httpResponse, _) = await app.Client
+            .WithAuthToken(accessToken)
+            .POSTAsync<CreateExperienceEndpoint, CreateExperienceRequest, CreateExperienceResponse>(request);
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
