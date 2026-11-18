@@ -17,28 +17,28 @@ public class SingleFieldPutContractTests(WebApp app) : TestBase
     private const string KnownLocalization = "uk-ua";
 
     [Theory]
-    [InlineData("title", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("summary", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("hobbies", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("title")]
+    [InlineData("summary")]
+    [InlineData("hobbies")]
     [InlineData("localization")]
     public async Task Put_BodyWithValueProperty_ShouldNotEraseTheField(string field)
     {
         var (response, stored) = await PutThenReadAsync(field, """{"value":"x"}""");
 
-        response.StatusCode.ShouldNotBe(HttpStatusCode.NoContent);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         stored.ShouldBe(KnownFor(field));
     }
 
     [Theory]
-    [InlineData("title", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("summary", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
-    [InlineData("hobbies", Skip = "#145: a body without the named property binds it to null, the validator accepts it and the field is erased with 204")]
+    [InlineData("title")]
+    [InlineData("summary")]
+    [InlineData("hobbies")]
     [InlineData("localization")]
     public async Task Put_EmptyObjectBody_ShouldNotEraseTheField(string field)
     {
         var (response, stored) = await PutThenReadAsync(field, "{}");
 
-        response.StatusCode.ShouldNotBe(HttpStatusCode.NoContent);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         stored.ShouldBe(KnownFor(field));
     }
 
