@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Cvitlo.Resumes.Application.Features.Experiences.CreateExperience;
 using Cvitlo.Resumes.Application.Features.Experiences.ReorderExperiences;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
@@ -188,7 +189,7 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
         resumeResponse.Experience.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
     }
 
-    [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; answers 500")]
+    [Fact]
     public async Task ReorderExperiences_BodyWithoutOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -201,6 +202,9 @@ public class ReorderExperiencesTests(WebApp app) : TestBase
             .PutAsync($"api/v1/resumes/{resume.Id}/experiences/reorder", body, ct);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await httpResponse.Content.ReadFromJsonAsync<ErrorResponse>(ct);
+        error.ShouldNotBeNull();
+        error.Errors.ShouldContainKey("orderedIds");
     }
 
     private async Task<List<Guid>> CreateExperiencesAsync(string accessToken, Guid resumeId, int count)

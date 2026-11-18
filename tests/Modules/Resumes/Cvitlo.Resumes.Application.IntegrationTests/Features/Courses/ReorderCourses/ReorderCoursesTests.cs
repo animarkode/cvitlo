@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Cvitlo.Resumes.Application.Features.Courses.CreateCourse;
 using Cvitlo.Resumes.Application.Features.Courses.ReorderCourses;
 using Cvitlo.Resumes.Application.Features.Resumes.GetResume;
@@ -188,7 +189,7 @@ public class ReorderCoursesTests(WebApp app) : TestBase
         resumeResponse.Courses.Select(i => i.Order).ShouldBe(new[] { 0, 1, 2 });
     }
 
-    [Fact(Skip = "#146: When() on the OrderedIds chain skips NotEmpty, SectionReorder dereferences null; answers 500")]
+    [Fact]
     public async Task ReorderCourses_BodyWithoutOrderedIds_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -201,6 +202,9 @@ public class ReorderCoursesTests(WebApp app) : TestBase
             .PutAsync($"api/v1/resumes/{resume.Id}/courses/reorder", body, ct);
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var error = await httpResponse.Content.ReadFromJsonAsync<ErrorResponse>(ct);
+        error.ShouldNotBeNull();
+        error.Errors.ShouldContainKey("orderedIds");
     }
 
     private async Task<List<Guid>> CreateCoursesAsync(string accessToken, Guid resumeId, int count)
