@@ -84,7 +84,7 @@ public class FirstTemplateTests
         html.ShouldContain("&lt;script&gt;");
     }
 
-    [Fact(Skip = "#144: render-time Sanitize decodes encoded markup into a live <img> tag")]
+    [Fact]
     public async Task Render_SummaryWithEncodedMarkup_ShouldNotEmitLiveTags()
     {
         var resume = new ResumeDocument

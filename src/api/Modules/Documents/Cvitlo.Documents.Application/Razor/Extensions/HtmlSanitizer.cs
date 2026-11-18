@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.RegularExpressions;
 
 namespace Cvitlo.Documents.Application.Razor.Extensions;
@@ -14,9 +13,7 @@ public static partial class HtmlSanitizer
             return string.Empty;
         }
 
-        var decoded = WebUtility.HtmlDecode(input);
-
-        decoded = decoded
+        var result = input
             .Replace("\u00A0", " ", StringComparison.Ordinal)
             .Replace("\u202F", " ", StringComparison.Ordinal)
             .Replace("\u2007", " ", StringComparison.Ordinal)
@@ -29,10 +26,10 @@ public static partial class HtmlSanitizer
             .Replace("\u00AD", "", StringComparison.Ordinal)
             .Replace("&shy;", "", StringComparison.Ordinal);
 
-        decoded = BlindOrControlSymbolsRegex().Replace(decoded, "");
-        decoded = TwoAndMoreSpaces().Replace(decoded, " ");
+        result = BlindOrControlSymbolsRegex().Replace(result, "");
+        result = TwoAndMoreSpaces().Replace(result, " ");
 
-        return decoded.Trim();
+        return result.Trim();
     }
 
     [GeneratedRegex(@"[\p{Cc}&&[^\r\n\t]]", RegexOptions.None, RegexTimeoutMilliseconds)]

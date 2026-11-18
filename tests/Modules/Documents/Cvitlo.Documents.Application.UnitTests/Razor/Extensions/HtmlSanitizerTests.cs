@@ -54,12 +54,20 @@ public class HtmlSanitizerTests
         "a\u0001b\u0007c\td\ne".Sanitize().ShouldBe("abc\td\ne");
     }
 
-    [Fact(Skip = "#144: HtmlDecode re-activates encoded markup into live tags")]
+    [Fact]
     public void Sanitize_EncodedMarkup_ShouldNotBecomeLiveMarkup()
     {
-        var result = "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>".Sanitize();
+        const string markup = "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>";
 
-        result.ShouldNotContain("<script");
+        markup.Sanitize().ShouldBe(markup);
+    }
+
+    [Fact]
+    public void Sanitize_EncodedAmpersand_ShouldStayEncoded()
+    {
+        const string markup = "<p>a &amp; b</p>";
+
+        markup.Sanitize().ShouldBe(markup);
     }
 
     [Fact]
