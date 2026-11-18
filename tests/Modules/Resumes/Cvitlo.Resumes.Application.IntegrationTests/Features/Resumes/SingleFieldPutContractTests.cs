@@ -61,12 +61,38 @@ public class SingleFieldPutContractTests(WebApp app) : TestBase
     [InlineData("title")]
     [InlineData("summary")]
     [InlineData("hobbies")]
-    public async Task Put_ExplicitNull_ShouldClearTheField(string field)
+    public async Task Put_EmptyString_ShouldClearTheField(string field)
     {
-        var (response, stored) = await PutThenReadAsync(field, $$"""{"{{field}}":null}""");
+        var (response, stored) = await PutThenReadAsync(field, $$"""{"{{field}}":""}""");
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         stored.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData("title")]
+    [InlineData("summary")]
+    [InlineData("hobbies")]
+    [InlineData("localization")]
+    public async Task Put_ExplicitNull_ShouldNotEraseTheField(string field)
+    {
+        var (response, stored) = await PutThenReadAsync(field, $$"""{"{{field}}":null}""");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        stored.ShouldBe(KnownFor(field));
+    }
+
+    [Theory]
+    [InlineData("title")]
+    [InlineData("summary")]
+    [InlineData("hobbies")]
+    [InlineData("localization")]
+    public async Task Put_NullBody_ShouldNotEraseTheField(string field)
+    {
+        var (response, stored) = await PutThenReadAsync(field, "null");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        stored.ShouldBe(KnownFor(field));
     }
 
     private static string KnownFor(string field) => string.Equals(field, "localization", StringComparison.Ordinal) ? KnownLocalization : KnownValue;

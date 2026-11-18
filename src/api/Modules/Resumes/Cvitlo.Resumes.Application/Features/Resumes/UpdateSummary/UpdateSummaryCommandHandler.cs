@@ -19,7 +19,8 @@ public class UpdateSummaryCommandHandler(ResumesDbContext dbContext)
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.Id}' was not found");
         }
 
-        resume.Summary = HtmlContentSanitizer.SanitizeBasicFormatting(command.Summary);
+        var sanitized = HtmlContentSanitizer.SanitizeBasicFormatting(command.Summary);
+        resume.Summary = string.IsNullOrWhiteSpace(sanitized) ? null : sanitized;
         await dbContext.SaveChangesAsync(ct);
 
         return true;

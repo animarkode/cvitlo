@@ -8,7 +8,9 @@ public class UpdateTitleValidator : Validator<UpdateTitleRequest>
     public UpdateTitleValidator()
     {
         RuleFor(x => x.Title)
-            .Must(value => (value ?? string.Empty).Trim().Length <= 100)
+            .Cascade(CascadeMode.Stop)
+            .NotNull().WithMessage("'Title' is required.")
+            .Must(value => value.Trim().Length <= 100)
             .WithMessage("'Title' must not exceed 100 characters.");
     }
 }

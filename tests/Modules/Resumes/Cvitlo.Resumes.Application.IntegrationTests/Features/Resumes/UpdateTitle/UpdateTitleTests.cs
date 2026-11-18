@@ -78,7 +78,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
     }
 
     [Fact]
-    public async Task UpdateTitle_WhitespaceTitle_ShouldPersistAsEmptyString()
+    public async Task UpdateTitle_WhitespaceTitle_ShouldClearTheTitle()
     {
         var ct = TestContext.Current.CancellationToken;
         var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
@@ -94,7 +94,7 @@ public class UpdateTitleTests(WebApp app) : TestBase
             .WithAuthToken(accessToken)
             .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
 
-        getResponse.Title.ShouldBe(string.Empty);
+        getResponse.Title.ShouldBeNull();
     }
 
     [Fact]
