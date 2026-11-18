@@ -134,7 +134,7 @@ public class SessionTests(WebApp app)
 
         using var response = await client.GetAsync("api/v1/auth/account/profile", TestContext.Current.CancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]

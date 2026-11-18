@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Cvitlo.Auth.Application.Authentication;
 
 // A forged cross-site request can carry the cookie but cannot add a custom header without a CORS preflight, which the API
-// never grants. The cookie alone decides: an Authorization header never exempts a request that carries it. Bearer clients
-// send no cookie, and the sign-in navigations and Keycloak's back-channel call are left alone.
+// never grants. A request is one identity: endpoints that read the session directly would otherwise mix it with a bearer
+// principal, so a cookie request that also sends a bearer header is refused.
 public sealed class CsrfHeaderMiddleware(RequestDelegate next)
 {
     private static readonly PathString Api = "/api";
@@ -27,13 +28,33 @@ public sealed class CsrfHeaderMiddleware(RequestDelegate next)
                           && !Navigations.Any(path => request.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
                           && !IsAccountAction(request.Path);
 
-        if (needsHeader && request.Headers[AuthSchemes.CsrfHeaderName] != "1")
+        if (!needsHeader)
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
+            return next(context);
+        }
+
+        if (request.Headers[AuthSchemes.CsrfHeaderName] != "1")
+        {
+            return Refuse(context, StatusCodes.Status403Forbidden, "Auth.CsrfHeaderMissing",
+                $"Send the {AuthSchemes.CsrfHeaderName}: 1 header with requests that carry the session cookie.");
+        }
+
+        if (AuthSchemes.IsBearerRequest(request))
+        {
+            return Refuse(context, StatusCodes.Status400BadRequest, "Auth.MixedCredentials",
+                "Send either the session cookie or a bearer token, not both.");
         }
 
         return next(context);
+    }
+
+    private static Task Refuse(HttpContext context, int statusCode, string code, string detail)
+    {
+        return TypedResults.Problem(
+                detail,
+                statusCode: statusCode,
+                extensions: new Dictionary<string, object?>(StringComparer.Ordinal) { ["code"] = code })
+            .ExecuteAsync(context);
     }
 
     private static bool IsAccountAction(PathString path)

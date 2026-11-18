@@ -57,6 +57,29 @@ public class DeleteAccountTests(WebApp app)
     }
 
     [Fact]
+    public async Task DeleteAccount_SessionCookieWithAnotherUsersBearerToken_ShouldBeRejectedAndDeleteNobody()
+    {
+        app.Clock.Realign();
+        var (userA, subjectA) = await CreateUserAsync(9320);
+        var (userB, subjectB) = await CreateUserAsync(9321);
+        var (client, _) = await app.SignInAsync(userB, ct: Ct);
+        using var _client = client;
+        var tokens = await app.Keycloak.GetTokensAsync(userA.Email, userA.Password, Ct);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens["access_token"]!.GetValue<string>());
+
+        using var response = await client.DeleteAsync(Route, Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var problem = await response.Content.ReadFromJsonAsync<JsonObject>(Ct);
+        problem!["code"]!.GetValue<string>().ShouldBe("Auth.MixedCredentials");
+        (await app.Keycloak.Admin.FindUserIdAsync(userA.Email, Ct)).ShouldBe(subjectA);
+        (await app.Keycloak.Admin.FindUserIdAsync(userB.Email, Ct)).ShouldBe(subjectB);
+        client.DefaultRequestHeaders.Authorization = null;
+        using var after = await client.GetAsync("api/v1/auth/user", Ct);
+        after.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task DeleteAccount_OldSignIn_ShouldRequireReauthenticationAndKeepEverything()
     {
         app.Clock.Realign();
