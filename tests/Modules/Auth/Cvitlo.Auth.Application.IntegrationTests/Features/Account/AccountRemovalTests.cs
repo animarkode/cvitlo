@@ -50,7 +50,7 @@ public class AccountRemovalTests(WebApp app)
         using var response = await client.DeleteAsync($"api/v1/auth/account/credentials/{passwordId}", Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
-        (await ReadCodeAsync(response)).ShouldBe("Account.CredentialNotRemovable");
+        (await response.ReadProblemCodeAsync(Ct)).ShouldBe("Account.CredentialNotRemovable");
         (await FindPasswordIdAsync(client)).ShouldBe(passwordId);
     }
 
@@ -79,7 +79,7 @@ public class AccountRemovalTests(WebApp app)
         using var response = await signInClient.DeleteAsync($"api/v1/auth/account/linked-accounts/{provider.Alias}", Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
-        (await ReadCodeAsync(response)).ShouldBe("Account.LastSignInMethod");
+        (await response.ReadProblemCodeAsync(Ct)).ShouldBe("Account.LastSignInMethod");
         var accounts = await signInClient.GetFromJsonAsync<JsonArray>("api/v1/auth/account/linked-accounts", Ct);
         accounts!.Single(a => string.Equals(a!["providerAlias"]!.GetValue<string>(), provider.Alias, StringComparison.Ordinal))!
             ["connected"]!.GetValue<bool>().ShouldBeTrue();
@@ -101,7 +101,7 @@ public class AccountRemovalTests(WebApp app)
         var statuses = responses.Select(r => r.StatusCode).ToList();
         statuses.Count(s => s == HttpStatusCode.NoContent).ShouldBe(1);
         statuses.Count(s => s == HttpStatusCode.Conflict).ShouldBe(1);
-        var refusedCode = await ReadCodeAsync(responses.Single(r => r.StatusCode == HttpStatusCode.Conflict));
+        var refusedCode = await responses.Single(r => r.StatusCode == HttpStatusCode.Conflict).ReadProblemCodeAsync(Ct);
         responses.ToList().ForEach(r => r.Dispose());
         // Keycloak never lets a password go, so the guard refuses it before the last-method check: this test
         // cannot prove the lock until a second removable method (a second provider) exists in the fixture.
@@ -183,13 +183,6 @@ public class AccountRemovalTests(WebApp app)
         (await WaitUntilSignedOutAsync(second)).ShouldBe(HttpStatusCode.Unauthorized);
         using var stillSignedIn = await first.GetAsync("api/v1/auth/user", Ct);
         stillSignedIn.StatusCode.ShouldBe(HttpStatusCode.OK);
-    }
-
-    private static async Task<string?> ReadCodeAsync(HttpResponseMessage response)
-    {
-        var problem = await response.Content.ReadFromJsonAsync<JsonObject>(Ct);
-
-        return problem?["code"]?.GetValue<string>();
     }
 
     // A user of its own, so that sessions and credentials are not shared with other tests.
