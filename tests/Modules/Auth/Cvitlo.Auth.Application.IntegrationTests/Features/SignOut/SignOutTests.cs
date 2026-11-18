@@ -1,7 +1,6 @@
 using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
 using Cvitlo.Common.Testing.Data;
+using Cvitlo.Common.Testing.Http;
 using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.SignOut;
@@ -61,7 +60,8 @@ public class SignOutTests(WebApp app)
 
         using var logout = await client.PostAsync("api/v1/auth/logout", null, TestContext.Current.CancellationToken);
 
-        await ShouldBeProblemAsync(logout, HttpStatusCode.Forbidden, "Auth.CsrfHeaderMissing");
+        logout.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await logout.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.CsrfHeaderMissing");
     }
 
     [Fact]
@@ -106,14 +106,14 @@ public class SignOutTests(WebApp app)
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "x");
 
         using var logout = await client.PostAsync("api/v1/auth/logout", null, Ct);
-        await ShouldBeProblemAsync(logout, HttpStatusCode.Forbidden, "Auth.CsrfHeaderMissing");
+        logout.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await logout.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.MixedCredentials");
 
         using var check = new HttpRequestMessage(HttpMethod.Get, "api/v1/auth/user");
         check.Headers.Add("X-CSRF", "1");
         client.DefaultRequestHeaders.Authorization = null;
         using var after = await client.SendAsync(check, Ct);
-        after.StatusCode.ShouldBe(HttpStatusCode.OK,
-            $"a request that carries the cookie must send the CSRF header whatever else it sends (logout answered {(int)logout.StatusCode})");
+        after.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -125,18 +125,13 @@ public class SignOutTests(WebApp app)
 
         using var logout = await client.PostAsync("api/v1/auth/logout", null, Ct);
 
-        await ShouldBeProblemAsync(logout, HttpStatusCode.BadRequest, "Auth.MixedCredentials");
+        logout.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await logout.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.MixedCredentials");
         client.DefaultRequestHeaders.Authorization = null;
         using var after = await client.GetAsync("api/v1/auth/user", Ct);
         after.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    private static async Task ShouldBeProblemAsync(HttpResponseMessage response, HttpStatusCode status, string code)
-    {
-        response.StatusCode.ShouldBe(status);
-        var problem = await response.Content.ReadFromJsonAsync<JsonObject>(Ct);
-        problem!["code"]!.GetValue<string>().ShouldBe(code);
-    }
 
     private async Task<TestUser> CreateUserAsync(int seed)
     {

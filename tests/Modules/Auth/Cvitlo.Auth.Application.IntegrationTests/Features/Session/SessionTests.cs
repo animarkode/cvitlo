@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using Cvitlo.Common.Testing.Containers;
+using Cvitlo.Common.Testing.Http;
 using Shouldly;
 
 namespace Cvitlo.Auth.Application.IntegrationTests.Features.Session;
@@ -126,7 +127,7 @@ public class SessionTests(WebApp app)
     }
 
     [Fact]
-    public async Task CookieRequest_GarbageBearerHeader_ShouldNotBeServedFromTheSession()
+    public async Task CookieRequest_GarbageBearerHeader_ShouldBeRefusedAsMixedCredentials()
     {
         var (client, _) = await app.SignInAsync(app.Users[0], ct: TestContext.Current.CancellationToken);
         using var _client = client;
@@ -135,6 +136,7 @@ public class SessionTests(WebApp app)
         using var response = await client.GetAsync("api/v1/auth/account/profile", TestContext.Current.CancellationToken);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await response.ReadProblemCodeAsync(TestContext.Current.CancellationToken)).ShouldBe("Auth.MixedCredentials");
     }
 
     [Fact]

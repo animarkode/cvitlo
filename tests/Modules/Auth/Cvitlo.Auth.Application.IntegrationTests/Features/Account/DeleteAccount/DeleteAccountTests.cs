@@ -1,7 +1,5 @@
 using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json.Nodes;
 using Cvitlo.Auth.Application.Sessions;
 using Cvitlo.Auth.Application.IntegrationTests.Support;
 using Cvitlo.Auth.Infrastructure.Database;
@@ -70,8 +68,7 @@ public class DeleteAccountTests(WebApp app)
         using var response = await client.DeleteAsync(Route, Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        var problem = await response.Content.ReadFromJsonAsync<JsonObject>(Ct);
-        problem!["code"]!.GetValue<string>().ShouldBe("Auth.MixedCredentials");
+        (await response.ReadProblemCodeAsync(Ct)).ShouldBe("Auth.MixedCredentials");
         (await app.Keycloak.Admin.FindUserIdAsync(userA.Email, Ct)).ShouldBe(subjectA);
         (await app.Keycloak.Admin.FindUserIdAsync(userB.Email, Ct)).ShouldBe(subjectB);
         client.DefaultRequestHeaders.Authorization = null;
@@ -336,8 +333,7 @@ public class DeleteAccountTests(WebApp app)
     private static async Task ShouldRequireReauthenticationAsync(HttpResponseMessage response)
     {
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
-        var problem = await response.Content.ReadFromJsonAsync<JsonObject>(Ct);
-        problem!["code"]!.GetValue<string>().ShouldBe("Account.ReauthenticationRequired");
+        (await response.ReadProblemCodeAsync(Ct)).ShouldBe("Account.ReauthenticationRequired");
     }
 
     private async Task<(TestUser User, string Subject)> CreateUserAsync(int seed)
