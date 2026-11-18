@@ -1,6 +1,6 @@
 {
   "realm": "cvitlo",
-  "displayName": "Cvitlo",
+  "displayName": "cvitlo",
   "enabled": true,
   "loginTheme": "cvitlo",
   "internationalizationEnabled": false,
@@ -46,8 +46,8 @@
   "adminEventsEnabled": true,
   "adminEventsDetailsEnabled": false,
 
-  "webAuthnPolicyRpEntityName": "Cvitlo",
-  "webAuthnPolicyPasswordlessRpEntityName": "Cvitlo",
+  "webAuthnPolicyRpEntityName": "cvitlo",
+  "webAuthnPolicyPasswordlessRpEntityName": "cvitlo",
   "webAuthnPolicyPasswordlessUserVerificationRequirement": "required",
 
   "smtpServer": {

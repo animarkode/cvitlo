@@ -24,6 +24,9 @@
   </@field.group>
 </#macro>
 
+<#-- The B5 mark; the paths must match the web app's favicon.svg. -->
+<#macro cvBrandMark><svg class="cv-brand__mark" viewBox="0 0 32 32" width="1.15em" height="1.15em" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M24.2 9.1A10.5 10.5 0 1 0 24.2 22.9" stroke="#F0B429" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="16" cy="16" r="3.4" fill="#F0B429"/></svg></#macro>
+
 <#macro registrationLayout bodyClass="" displayInfo=false displayMessage=true displayRequiredFields=false>
 <!DOCTYPE html>
 <html class="${properties.kcHtmlClass!}" lang="${lang}"<#if realm.internationalizationEnabled> dir="${(locale.rtl)?then('rtl','ltr')}"</#if>>
@@ -35,7 +38,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <#-- Fetch the faces the page shows straight away before the first paint. cvitlo.css uses
          font-display: optional, so a font that is late is skipped instead of swapped in mid-page. -->
-    <#assign cvFonts = ["nunito-sans-latin", "playfair-display-latin", "space-grotesk-latin"]>
+    <#assign cvFonts = ["nunito-sans-latin", "playfair-display-latin", "sen-latin"]>
     <#if social?? && social.providers?has_content>
       <#assign cvFonts = cvFonts + ["google-sans-latin"]>
     </#if>
@@ -172,9 +175,9 @@
 <header class="cv-header" id="cv-header">
   <div class="cv-header__inner">
       <#if (client.baseUrl)?has_content>
-      <a class="cv-brand" href="${client.baseUrl}">Cvitlo</a>
+      <a class="cv-brand" href="${client.baseUrl}" aria-label="cvitlo, home"><@cvBrandMark/>cvitlo</a>
       <#else>
-      <span class="cv-brand">Cvitlo</span>
+      <span class="cv-brand"><@cvBrandMark/>cvitlo</span>
       </#if>
       <#-- Both labels are rendered; cvitlo.css hides the one that does not fit html.dark, and a
            display:none element drops out of the accessibility tree, so the name is right before any JS runs. -->
