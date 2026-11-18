@@ -19,8 +19,7 @@ public class UpdateHobbiesCommandHandler(ResumesDbContext dbContext)
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.Id}' was not found");
         }
 
-        var sanitized = HtmlContentSanitizer.SanitizeBasicFormatting(command.Hobbies);
-        resume.Hobbies = string.IsNullOrWhiteSpace(sanitized) ? null : sanitized;
+        resume.Hobbies = HtmlContentSanitizer.SanitizeBasicFormatting(command.Hobbies);
         await dbContext.SaveChangesAsync(ct);
 
         return true;

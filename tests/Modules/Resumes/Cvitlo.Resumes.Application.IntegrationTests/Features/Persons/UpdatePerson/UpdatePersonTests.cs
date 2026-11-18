@@ -192,6 +192,37 @@ public class UpdatePersonTests(WebApp app) : TestBase
     }
 
     [Fact]
+    public async Task UpdatePerson_TitleClearedByUser_ShouldNotSnapshotFullNameIntoResumeTitle()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+        using var client = app.Client.WithAuthToken(accessToken);
+
+        var createRequest = new CreatePersonRequestFaker(resume.Id).Generate();
+        var (_, personResponse) = await client
+            .POSTAsync<CreatePersonEndpoint, CreatePersonRequest, CreatePersonResponse>(createRequest);
+
+        var clearResponse = await client
+            .PUTAsync<UpdateTitleEndpoint, UpdateTitleRequest>(new UpdateTitleRequest(resume.Id, string.Empty));
+        clearResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var updateResponse = await client
+            .PUTAsync<UpdatePersonEndpoint, UpdatePersonRequest>(
+                new UpdatePersonRequest(
+                    personResponse.Id, resume.Id, createRequest.JobTitle, "Ada", "Lovelace",
+                    createRequest.Email, createRequest.Phone, createRequest.Country, createRequest.City,
+                    createRequest.Street, createRequest.PostCode, createRequest.Nationality,
+                    createRequest.DateOfBirth, createRequest.DrivingLicense));
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var (_, getResumeResponse) = await client
+            .GETAsync<GetResumeEndpoint, GetResumeRequest, ResumeResponse>(new GetResumeRequest(resume.Id));
+
+        getResumeResponse.Title.ShouldBe(string.Empty);
+    }
+
+    [Fact]
     public async Task UpdatePerson_NameChangedAfterTitleSnapshot_ShouldLeaveResumeTitleUnchanged()
     {
         var ct = TestContext.Current.CancellationToken;

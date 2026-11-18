@@ -18,7 +18,7 @@ public class UpdateTitleCommandHandler(ResumesDbContext dbContext)
             return Error.NotFound("Resume.NotFound", $"Resume with id '{command.Id}' was not found");
         }
 
-        resume.Title = string.IsNullOrWhiteSpace(command.Title) ? null : command.Title.Trim();
+        resume.Title = command.Title.Trim();
         await dbContext.SaveChangesAsync(ct);
 
         return true;

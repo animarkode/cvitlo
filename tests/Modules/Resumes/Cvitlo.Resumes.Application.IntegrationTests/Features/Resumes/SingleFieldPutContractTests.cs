@@ -66,7 +66,7 @@ public class SingleFieldPutContractTests(WebApp app) : TestBase
         var (response, stored) = await PutThenReadAsync(field, $$"""{"{{field}}":""}""");
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
-        stored.ShouldBeNull();
+        stored.ShouldBe(string.Empty);
     }
 
     [Theory]
