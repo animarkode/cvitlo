@@ -124,12 +124,10 @@ describe('AppNavbar', () => {
     expect(hrefs).toContain(API_ROUTES.auth.register);
   });
 
-  it('should default title to "Cvitlo"', () => {
-    expect(component.title()).toBe('Cvitlo');
-  });
+  it('should render the cv-logo in the home link labelled "cvitlo, home"', () => {
+    const link = (fixture.nativeElement as HTMLElement).querySelector('a[aria-label="cvitlo, home"]');
 
-  it('should accept custom title input', () => {
-    fixture.componentRef.setInput('title', 'My App');
-    expect(component.title()).toBe('My App');
+    expect(link).not.toBeNull();
+    expect(link?.querySelector('cv-logo')).not.toBeNull();
   });
 });

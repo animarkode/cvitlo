@@ -20,13 +20,14 @@ import { API_ROUTES } from '../../routes/api-routes';
 import { APP_ROUTES } from '../../routes/app-routes';
 import { CvSpinner } from '../../../shared/components/cv-spinner/cv-spinner';
 import { CvInitials } from '../../../shared/components/cv-initials/cv-initials';
+import { CvLogo } from '../../../shared/components/cv-logo/cv-logo';
 import { CvToggleButton } from '../../../shared/components/cv-toggle-button/cv-toggle-button';
 import { CvThemeToggle } from '../../../shared/components/cv-theme-toggle/cv-theme-toggle';
 import { AppUserMenu } from './app-user-menu/app-user-menu';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule, CvSpinner, CvInitials, CvToggleButton, CvThemeToggle, AppUserMenu],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule, CvSpinner, CvInitials, CvLogo, CvToggleButton, CvThemeToggle, AppUserMenu],
   templateUrl: './app-navbar.html',
   styleUrl: './app-navbar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,7 +46,6 @@ export class AppNavbar implements OnInit {
   isDrawerOpen = signal(false);
   // Set by the shell from its scroll container: the window itself never scrolls.
   scrolled = input(false);
-  title = input('Cvitlo');
 
   private readonly userMenuAnchor = viewChild<ElementRef>('userMenuAnchor');
   private readonly anchorRect = signal<DOMRect | null>(null);
