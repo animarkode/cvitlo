@@ -24,6 +24,11 @@ public class UpdateExperienceValidator : Validator<UpdateExperienceRequest>
             .Must(description => HtmlContentSanitizer.GetSanitizedLength(description) <= 1000)
             .WithMessage("'Description' must not exceed 1000 characters.");
 
+        RuleFor(x => x.StartDate)
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))
+            .WithMessage("'StartDate' must not be in the future.")
+            .When(x => x.StartDate.HasValue);
+
         RuleFor(x => x.EndDate)
             .Must((r, endDate) => endDate >= r.StartDate)
             .WithMessage("'EndDate' must be greater than or equal to 'StartDate'.")

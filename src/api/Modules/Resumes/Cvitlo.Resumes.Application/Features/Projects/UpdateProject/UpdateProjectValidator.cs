@@ -26,6 +26,11 @@ public class UpdateProjectValidator : Validator<UpdateProjectRequest>
             .Must(IsValidUrl).WithMessage("'Url' must be a valid HTTP or HTTPS URL.")
             .When(x => !string.IsNullOrWhiteSpace(x.Url));
 
+        RuleFor(x => x.StartDate)
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))
+            .WithMessage("'StartDate' must not be in the future.")
+            .When(x => x.StartDate.HasValue);
+
         RuleFor(x => x.EndDate)
             .Must((r, endDate) => endDate >= r.StartDate)
             .WithMessage("'EndDate' must be greater than or equal to 'StartDate'.")

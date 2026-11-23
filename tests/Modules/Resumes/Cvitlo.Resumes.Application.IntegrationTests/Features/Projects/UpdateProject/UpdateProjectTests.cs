@@ -274,7 +274,7 @@ public class UpdateProjectTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
-    [Fact(Skip = "#149: UpdateProjectValidator has no future StartDate rule (CreateProjectValidator has); update answers 204 instead of 400")]
+    [Fact]
     public async Task UpdateProject_FutureStartDate_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
