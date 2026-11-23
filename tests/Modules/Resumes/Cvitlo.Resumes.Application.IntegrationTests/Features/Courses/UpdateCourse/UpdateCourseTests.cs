@@ -255,7 +255,7 @@ public class UpdateCourseTests(WebApp app) : TestBase
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
     }
 
-    [Fact(Skip = "#149: the update validator has no future StartDate rule (create has); answers 204")]
+    [Fact]
     public async Task UpdateCourse_FutureStartDate_ShouldReturnBadRequest()
     {
         var ct = TestContext.Current.CancellationToken;
