@@ -169,4 +169,40 @@ public class UpdateSummaryTests(WebApp app) : TestBase
 
         httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task UpdateSummary_MarkupThatGrowsWhenSanitized_ShouldReturnBadRequest()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        // Every '&' is stored as '&amp;', so the raw text fits the column but the stored markup does not.
+        var markup = $"<p><a href=\"https://e.example/?{new string('&', 450)}\">x</a></p>";
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateSummaryEndpoint, UpdateSummaryRequest>(new UpdateSummaryRequest(resume.Id, markup));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateSummary_EditorLinksLongerThanTheColumnBeforeSanitizing_ShouldModifySummary()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var accessToken = await ResumesTestHelper.SignInAsFirstUserAsync(app, ct);
+        var resume = await ResumesTestHelper.CreateResumeAsync(app.Client, accessToken, ct: ct);
+
+        // The editor adds target and rel to every link; the sanitizer drops them, so the stored markup fits.
+        var link = $"<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://e.example/{new string('a', 100)}\">x</a>";
+        var markup = $"<p>{string.Concat(Enumerable.Repeat(link, 13))}</p>";
+        markup.Length.ShouldBeGreaterThan(2000);
+
+        var httpResponse = await app.Client
+            .WithAuthToken(accessToken)
+            .PUTAsync<UpdateSummaryEndpoint, UpdateSummaryRequest>(new UpdateSummaryRequest(resume.Id, markup));
+
+        httpResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
 }
